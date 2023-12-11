@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+    mongodb:
+        build:
+            context: ./conf/mongodb
+            dockerfile: Dockerfile
+        image: ${CONTAINER_AUTHOR}/${SERVICE_NAME}_mongodb
+        container_name: ${MONGO_CONTAINER_NAME}
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+            MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+            TZ: ${TZ}
+        env_file:
+            - ${ENV_FILE_PATH}
+        volumes:
+            - ./data/mongodb/db:/data/db
+            # - ./conf/mongodb/mongod.conf:${MONGO_INNER_CONFIG_PATH}
+            - ./logs/mongodb:/var/log/mongodb
+
+        ports:
+            - ${MONGO_OUTER_PORT}:${MONGO_INNER_PORT}
+        networks:
+            todo_mongodb_jwt_net:
+                ipv4_address: ${MONGO_HOST_IP}
+
+    mongodb-express:
+        build:
+            context: ./conf/mongodb-express
+            dockerfile: Dockerfile
+        image: ${CONTAINER_AUTHOR}/${SERVICE_NAME}_mongodb-express
+        container_name: ${MONGO_EXPRESS_CONTAINER_NAME}
+        restart: always
+        environment:
+            ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+            ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+            ME_CONFIG_MONGODB_SERVER: ${MONGO_HOST_IP}
+            ME_CONFIG_MONGODB_PORT: ${MONGO_INNER_PORT}
+            ME_CONFIG_MONGODB_AUTH_DATABASE: ${MONGO_EXPRES_AUTH_DATABASE}
+            ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME}
+            ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
+        env_file:
+          - ${ENV_FILE_PATH}
+        ports:
+            - ${MONGO_EXPRESS_OUTER_PORT}:${MONGO_EXPRESS_INNER_PORT}
+        depends_on:
+            - mongodb
+        networks:
+            todo_mongodb_jwt_net:
+                ipv4_address: ${MONGO_EXPRESS_HOST_IP}
+
+networks:
+    todo_mongodb_jwt_net:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: ${NETWORK_SUBNET}
+                  gateway: ${NETWORK_GATEWAY}
