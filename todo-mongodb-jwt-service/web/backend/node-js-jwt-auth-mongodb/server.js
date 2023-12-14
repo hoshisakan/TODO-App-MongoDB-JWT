@@ -27,11 +27,11 @@ const DatabackupExtension = require('./extensions/databackup.extension');
 const db = require('./models');
 const Role = db.role;
 
-console.log(`config.HOST: ${config.HOST}`);
-console.log(`config.PORT: ${config.PORT}`);
-console.log(`config.DATABASE: ${config.DATABASE}`);
-console.log(`config.USERNAME: ${config.USERNAME}`);
-console.log(`config.PASSWORD: ${config.PASSWORD}`);
+// console.log(`config.HOST: ${config.HOST}`);
+// console.log(`config.PORT: ${config.PORT}`);
+// console.log(`config.DATABASE: ${config.DATABASE}`);
+// console.log(`config.USERNAME: ${config.USERNAME}`);
+// console.log(`config.PASSWORD: ${config.PASSWORD}`);
 
 const DebugHelper = require('./utils/error.utils');
 const e = require('express');

@@ -1,6 +1,34 @@
 version: '3.9'
 
 services:
+    server:
+        build:
+            context: ./web/backend/node-js-jwt-auth-mongodb
+            # target: dev
+            target: production
+            args:
+                - SERVER_TIME_ZONE=${TZ}
+                - SERVER_LANG_NAME=${LANG_NAME}
+                - SERVER_LANG_INPUTFILE=${LANG_INPUTFILE}
+                - SERVER_LANG_CHARMAP=${LANG_CHARMAP}
+        image: ${CONTAINER_AUTHOR}/${SERVICE_NAME}_server
+        container_name: ${SERVER_CONTAINER_NAME}
+        volumes:
+          # - ./web/deploy/img:/app/Photos
+          - ./data_backup:/app/data_backup
+          - ./logs/server:/var/log
+        env_file:
+            - ${ENV_FILE_PATH}
+        ports:
+            - ${SERVER_OUTER_PORT}:${SERVER_INNER_PORT}
+        networks:
+            todo_mongodb_jwt_net:
+                ipv4_address: ${SERVER_HOST_IP}
+        depends_on:
+            - mongodb
+        tty: true
+        restart: always
+
     mongodb:
         build:
             context: ./conf/mongodb
