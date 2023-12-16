@@ -11,6 +11,9 @@ services:
                 - SERVER_LANG_NAME=${LANG_NAME}
                 - SERVER_LANG_INPUTFILE=${LANG_INPUTFILE}
                 - SERVER_LANG_CHARMAP=${LANG_CHARMAP}
+                - SERVER_POSTGRES_VERSION=${POSTGRES_VERSION}
+                - SERVER_POSTGRES_CLIENT_HOME=${SERVER_POSTGRES_CLIENT_HOME}
+                - SERVER_PACKAGES_PATH=${SERVER_PACKAGES_PATH}
         image: ${CONTAINER_AUTHOR}/${SERVICE_NAME}_server
         container_name: ${SERVER_CONTAINER_NAME}
         volumes:
