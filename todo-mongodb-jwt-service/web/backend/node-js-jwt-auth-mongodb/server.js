@@ -74,7 +74,7 @@ createConnection
 const initial = async () => {
     try {
         const result = await Role.estimatedDocumentCount();
-        console.log(`result: ${result}`);
+        console.log(`roles has role count: ${result}`);
         if (result === 0) {
             await Promise.all([
                 new Role({ name: 'user' }).save(),
@@ -98,8 +98,18 @@ app.use(express.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-require('./routes/auth.routes')(app);
-require('./routes/user.routes')(app);
+require('./routes/index.routes');
+
+const apiRouter = require('./routes/index.routes');
+
+app.use('/api', apiRouter, (req, res, next) => {
+    res.header('Access-Control-Allow-Headers', 'x-access-token, Origin, Content-Type, Accept');
+    console.log('api route hit');
+    next();
+});
+
+// require('./routes/auth.routes')(app);
+// require('./routes/user.routes')(app);
 
 const databackupExtension = new DatabackupExtension();
 
