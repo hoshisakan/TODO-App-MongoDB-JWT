@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/auth.config.js');
-const db = require('../models');
+const db = require('../models/index.js');
 const User = db.user;
 const Role = db.role;
-const http = require('../helpers/http.helper');
-const DebugHelper = require('../utils/error.utils');
+const http = require('../helpers/http.helper.js');
+const DebugHelper = require('../utils/error.util.js');
 const {
     OK,
     INTERNAL_SERVER_ERROR,
@@ -12,13 +12,13 @@ const {
     NO_CONTENT,
     BAD_REQUEST,
     CREATED,
-} = require('../helpers/constants.helper');
+} = require('../helpers/constants.helper.js');
 
 verifyToken = (req, res, next) => {
     let token = req.headers['x-access-token'];
 
-    console.log('token: ', token);
-
+    DebugHelper.log(`token: ${token}`);
+    
     if (!token) {
         return http.errorResponse(res, 403, 'No token provided!');
     }
@@ -30,8 +30,6 @@ verifyToken = (req, res, next) => {
         req.userId = decoded.id;
         return next();
     });
-
-    console.log('token: ', token);
 };
 
 isAdmin = async (req, res, next) => {
@@ -101,7 +99,7 @@ const authJwt = {
 };
 module.exports = authJwt;
 
-const verifySignUp = require('./verifySignUp');
+const verifySignUp = require('./verifySignUp.middlewares.js');
 
 module.exports = {
     authJwt,

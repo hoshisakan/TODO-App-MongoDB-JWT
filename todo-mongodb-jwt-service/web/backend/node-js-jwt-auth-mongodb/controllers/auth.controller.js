@@ -1,6 +1,6 @@
-const config = require('../config/auth.config');
-const db = require('../models');
-const DebugHelper = require('../utils/error.utils');
+// const config = require('../config/auth.config');
+// const db = require('../models');
+const DebugHelper = require('../utils/error.util');
 const http = require('../helpers/http.helper');
 const {
     OK,
@@ -11,99 +11,34 @@ const {
     CREATED,
 } = require('../helpers/constants.helper');
 
-const User = db.user;
-const Role = db.role;
+const AuthService = require('../services/auth.service');
 
-var jwt = require('jsonwebtoken');
-var bcrypt = require('bcryptjs');
 
-exports.signup = async (req, res) => {
-    try {
-        const user = new User({
-            username: req.body.username,
-            email: req.body.email,
-            password: bcrypt.hashSync(req.body.password, 8),
-        });
 
-        const userCreatedResult = await user.save();
-
-        if (req.body.roles) {
-            const roles = await Role.find({
-                name: { $in: req.body.roles },
-            });
-
-            // DebugHelper.log(`roles: ${roles}`);
-
-            userCreatedResult.roles = roles.map((role) => role._id);
-
-            // DebugHelper.log(`userCreatedResult.roles: ${userCreatedResult.roles}`);
-
-            await userCreatedResult.save();
-
-            return http.successResponse(res, CREATED, userCreatedResult);
-        } else {
-            const role = await Role.findOne({ name: 'user' });
-
-            // DebugHelper.log(`role: ${role}`);
-
-            userCreatedResult.roles = [role._id];
-
-            // DebugHelper.log(`userCreatedResult.roles: ${userCreatedResult.roles}`);
-
-            await userCreatedResult.save();
-
-            return http.successResponse(res, CREATED, userCreatedResult);
-        }
-    } catch (error) {
-        DebugHelper.printErrorDetails(error);
-        return http.errorResponse(res, BAD_REQUEST, error.message);
+class AuthController {
+    constructor() {
+        this.authService = new AuthService();
     }
-};
 
-exports.signin = async (req, res) => {
-    try {
-        const userFindResult = await User.findOne({
-            username: req.body.username,
-        });
-
-        DebugHelper.log(`userFindResult: ${userFindResult}`);
-
-        if (!userFindResult) {
-            return http.errorResponse(res, NOT_FOUND, 'User Not found.');
+    signup = async (req, res) => {
+        try {
+            const user = await this.authService.signup(req.body);
+            return http.successResponse(res, CREATED, user);
+        } catch (error) {
+            DebugHelper.printErrorDetails(error);
+            return http.errorResponse(res, INTERNAL_SERVER_ERROR, error.message);
         }
-
-        const passwordIsValid = bcrypt.compareSync(req.body.password, userFindResult.password);
-
-        if (!passwordIsValid) {
-            return http.errorResponse(res, BAD_REQUEST, 'Invalid Password!');
-        } else {
-            const token = jwt.sign({ id: userFindResult.id }, config.secret, {
-                // expiresIn: 86400, // 24 hours
-                expiresIn: 60, // 24 hours
-            });
-
-            const authorities = [];
-
-            DebugHelper.log(`userFindResult.roles: ${userFindResult.roles}`);
-
-            const roles = await Role.find({
-                _id: { $in: userFindResult.roles },
-            });
-
-            for (let i = 0; i < roles.length; i++) {
-                authorities.push('ROLE_' + roles[i].name.toUpperCase());
-            }
-
-            return http.successResponse(res, OK, {
-                id: userFindResult._id,
-                username: userFindResult.username,
-                email: userFindResult.email,
-                roles: authorities,
-                accessToken: token,
-            });
-        }
-    } catch (error) {
-        DebugHelper.printErrorDetails(error);
-        return http.errorResponse(res, BAD_REQUEST, error.message);
     }
-};
+
+    signin = async (req, res) => {
+        try {
+            const user = await this.authService.signin(req.body);
+            return http.successResponse(res, OK, user);
+        } catch (error) {
+            DebugHelper.printErrorDetails(error, true);
+            return http.errorResponse(res, INTERNAL_SERVER_ERROR, error.message);
+        }
+    }
+}
+
+module.exports = AuthController;

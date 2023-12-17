@@ -12,8 +12,6 @@ dotenv.config({ path: envPath });
 
 console.log(`env.trim(): ${env.trim()}`);
 
-const config = require('./config/config');
-
 console.log(`Logfile path: ${process.env.LOG_FILE_PATH}`);
 
 const logger = require('./extensions/logger.extension');
@@ -24,71 +22,9 @@ const corsOptions = require('./config/corsOptions').corsOptions;
 
 const DatabackupExtension = require('./extensions/databackup.extension');
 
-const db = require('./models');
-const Role = db.role;
+const DebugHelper = require('./utils/error.util');
 
-// console.log(`config.HOST: ${config.HOST}`);
-// console.log(`config.PORT: ${config.PORT}`);
-// console.log(`config.DATABASE: ${config.DATABASE}`);
-// console.log(`config.USERNAME: ${config.USERNAME}`);
-// console.log(`config.PASSWORD: ${config.PASSWORD}`);
-
-const DebugHelper = require('./utils/error.utils');
-const e = require('express');
-
-const connectionString = `mongodb://${config.USERNAME}:${config.PASSWORD}@${config.HOST}:${config.PORT}/${config.DATABASE}?authSource=${config.AUTH_DATABASE}`;
-
-// console.log(`connectionString: ${connectionString}`);
-
-const createConnection = db.mongoose.connect(connectionString, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
-
-createConnection
-    .then((conn) => {
-        console.log('Connection to MongoDB successful.');
-        logger.info('Connection to MongoDB successful.');
-        initial();
-        conn.connection.db.listCollections().toArray((err, names) => {
-            if (err) {
-                DebugHelper.printErrorDetails(err);
-            } else {
-                if (!names) {
-                    console.log('No collections found.');
-                } else {
-                    names.forEach((name) => {
-                        console.log(`Collection name: ${name.name}`);
-                    });
-                }
-            }
-        });
-    })
-    .catch((err) => {
-        console.error('Connection error', err);
-        logger.error('Connection error', err);
-
-        process.exit();
-    });
-
-const initial = async () => {
-    try {
-        const result = await Role.estimatedDocumentCount();
-        console.log(`roles has role count: ${result}`);
-        if (result === 0) {
-            await Promise.all([
-                new Role({ name: 'user' }).save(),
-                new Role({ name: 'moderator' }).save(),
-                new Role({ name: 'admin' }).save(),
-            ]);
-            console.log('Added roles to database.');
-        } else {
-            console.log('Roles already exist in database.');
-        }
-    } catch (error) {
-        console.log(error);
-    }
-};
+require('./models/db_init');
 
 app.use(cors(corsOptions));
 
@@ -98,9 +34,9 @@ app.use(express.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-require('./routes/index.routes');
+require('./routes/index.route');
 
-const apiRouter = require('./routes/index.routes');
+const apiRouter = require('./routes/index.route');
 
 app.use('/api', apiRouter, (req, res, next) => {
     res.header('Access-Control-Allow-Headers', 'x-access-token, Origin, Content-Type, Accept');
@@ -108,12 +44,7 @@ app.use('/api', apiRouter, (req, res, next) => {
     next();
 });
 
-// require('./routes/auth.routes')(app);
-// require('./routes/user.routes')(app);
-
-const databackupExtension = new DatabackupExtension();
-
-databackupExtension.start();
+DatabackupExtension.start();
 
 // simple route
 app.get('/', (req, res) => {

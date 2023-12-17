@@ -2,9 +2,10 @@ const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
-const { printErrorDetails } = require('../utils/error.utils');
+const { printErrorDetails } = require('../utils/error.util');
 
 const logger = require('../extensions/logger.extension');
+const DebugHelper = require('../utils/error.util');
 
 class DatabackupExtension {
     constructor() {
@@ -27,48 +28,35 @@ class DatabackupExtension {
         let backupDirName = '';
 
         try {
-            // backupDatetimeformat = new Date()
-            // .replace(/T/, '')
-            // .replace(/Z/, '')
-            // .replace(/-/g, '')
-            // .replace(/:/g, '');
-            // .substring(0, 14);
-
             backupDatetimeformat = moment().format('YYYYMMDDHHmmss');
             backupDirName = moment().format('YYYYMMDD');
 
-            console.log(`backupDatetimeformat: ${backupDatetimeformat}`);
-            logger.info(`backupDatetimeformat: ${backupDatetimeformat}`);
+            DebugHelper.log(`backupDatetimeformat: ${backupDatetimeformat}`, true);
+            
             backupFileName = `${this.dbName}_${backupDatetimeformat}`;
             backupFilePath = path.join(__dirname, '..', `/data_backup/${this.dbName}/${backupDirName}`);
             backupFileFullPath = path.join(backupFilePath, backupFileName);
 
-            console.log(`backupFileName: ${backupFileName}`);
-            console.log(`backupFilePath: ${backupFilePath}`);
-            logger.info(`backupFileName: ${backupFileName}`);
-            logger.info(`backupFilePath: ${backupFilePath}`);
+            DebugHelper.log(`backupFileName: ${backupFileName}`, true);
+            DebugHelper.log(`backupFilePath: ${backupFilePath}`, true);
 
             let tryCreatedDirCount = 0;
             const maxTryCreatedDirCount = 3;
 
             while (!fs.existsSync(backupFilePath) && tryCreatedDirCount < maxTryCreatedDirCount) {
-                // console.log(`backupFilePath: ${backupFilePath} does not exist`);
-                logger.info(`backupFilePath: ${backupFilePath} does not exist`);
+                DebugHelper.log(`backupFilePath: ${backupFilePath} not exists`, true);
                 fs.mkdirSync(backupFilePath, { recursive: true }, (err) => {
                     if (err) {
-                        // console.log(`backupFilePath: ${backupFilePath} cannot be created`);
-                        logger.info(`backupFilePath: ${backupFilePath} cannot be created`);
                         printErrorDetails(err);
                         return;
                     }
                 });
-                // console.log(`backupFilePath: ${backupFilePath} created`);
-                logger.info(`backupFilePath: ${backupFilePath} created`);
+                DebugHelper.log(`backupFilePath: ${backupFilePath} created`, true);
                 tryCreatedDirCount++;
             }
 
             if (tryCreatedDirCount >= maxTryCreatedDirCount) {
-                console.log(`backupFilePath: ${backupFilePath} does not exist and cannot be created`);
+                DebugHelper.log(`backupFilePath: ${backupFilePath} cannot be created`, true);
                 return;
             }
 
@@ -81,17 +69,13 @@ class DatabackupExtension {
             } else if (this.dialect === 'mongodb') {
                 backupCommand = `mongodump "mongodb://${this.dbUsername}:${this.dbPassword}@${this.dbHost}:${this.dbPort}/${this.dbName}" --authenticationDatabase=${this.authDBName} --gzip --archive=${backupFileFullPath}.gz`;
             } else {
-                console.log(`dialect ${this.dialect} is not supported`);
+                DebugHelper.log(`Dialect ${this.dialect} is not supported`, true);
                 return;
             }
 
-            console.log(`backupCommand: ${backupCommand}`);
+            DebugHelper.log(`backupCommand: ${backupCommand}`, true);
 
-            logger.info(`backupCommand: ${backupCommand}`);
-
-            // console.log(`Starting backup database ${this.dbName} for ${this.dialect} at ${new Date().toISOString()}`);
-
-            logger.info(`Starting backup database ${this.dbName} for ${this.dialect} at ${new Date().toISOString()}`);
+            DebugHelper.log(`Start backup database ${this.dbName} for ${this.dialect} at ${backupDatetimeformat}`, true);
 
             const exec = require('child_process').exec;
 
@@ -101,31 +85,21 @@ class DatabackupExtension {
                     return;
                 }
                 if (stderr) {
-                    // console.log(`stderr: ${stderr}`);
-                    logger.info(`stderr: ${stderr}`);
+                    printErrorDetails(stderr);
                     return;
                 }
-                // console.log(`stdout: ${stdout}`);
-                // logger.info(`stdout: ${stdout}`);
             });
-            // console.log(`Finish backup database ${this.dbName} for ${this.dialect} at ${new Date().toISOString()}`);
-            logger.info(`Finish backup database ${this.dbName} for ${this.dialect} at ${new Date().toISOString()}`);
+            DebugHelper.log(`End backup database ${this.dbName} for ${this.dialect} at ${backupDatetimeformat}`, true);
         } catch (error) {
             printErrorDetails(error);
         }
     };
 
     start = () => {
-        /// '*/2 * * * * *' => run every 2 seconds
         cron.schedule(this.cronExpreession, () => {
-            // console.log(
-            //     `db name: ${this.dbName}, db username: ${this.dbUsername}, db password: ${this.dbPassword},
-            //     db host: ${this.dbHost}, db port: ${this.dbPort}, dialect: ${this.dialect}`
-            // );
-            // console.log('Running a job at 00:00 at America/Sao_Paulo timezone');
             this.backup();
         });
     };
 }
 
-module.exports = DatabackupExtension;
+module.exports = new DatabackupExtension();

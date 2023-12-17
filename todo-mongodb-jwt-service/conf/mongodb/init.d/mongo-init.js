@@ -1,4 +1,6 @@
-console.log('Starting init script...');
+const DebugHelper = require("../../../web/backend/node-js-jwt-auth-mongodb/utils/error.util");
+
+DebugHelper.log('Starting init script...', true);
 
 const user = 'hoshiyou';
 const password = 'NormalPassword12345';
@@ -30,4 +32,4 @@ db.createUser({
     ],
 });
 
-console.log('Init script finished.');
+DebugHelper.log('Finished init script.', true);

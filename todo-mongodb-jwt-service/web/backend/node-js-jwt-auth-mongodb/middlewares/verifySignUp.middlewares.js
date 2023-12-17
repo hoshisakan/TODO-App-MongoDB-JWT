@@ -1,7 +1,7 @@
 const db = require('../models');
 const ROLES = db.ROLES;
 const User = db.user;
-const DebugHelper = require('../utils/error.utils');
+const DebugHelper = require('../utils/error.util');
 const http = require('../helpers/http.helper');
 const {
     OK,

@@ -1,5 +1,5 @@
-const { authJwt } = require('../../middlewares/authJwt');
-const controller = require('../../controllers/user.controller');
+const { authJwt } = require('../../middlewares/authJwt.middleware');
+const controller = require('../../controllers/test.controller');
 const router = require('express').Router();
 
 router.get('/all', controller.allAccess);
