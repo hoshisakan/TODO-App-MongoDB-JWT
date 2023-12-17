@@ -1,0 +1,561 @@
+{
+	"info": {
+		"_postman_id": "bc422f21-6a9d-4420-b45c-7571dc764f11",
+		"name": "Todo-JWT-Mongodb",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13694207",
+		"_collection_link": "https://planetary-flare-387137.postman.co/workspace/NodeJS~c734808a-0f84-437b-8891-66420ce1b3ac/collection/13694207-bc422f21-6a9d-4420-b45c-7571dc764f11?action=share&source=collection_link&creator=13694207"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "SignUp Only Give Normal User Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera97\",\r\n    \"email\": \"mod@bezkoder97.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signup",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SignUp Only Give Moderator User Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera98\",\r\n    \"email\": \"mod@bezkoder98.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"moderator\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signup",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SignUp Only Give Admin User Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera99\",\r\n    \"email\": \"mod@bezkoder99.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"admin\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signup",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SignUp Add All Roles",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera100\",\r\n    \"email\": \"mod@bezkoder100.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signup",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SignIn By Normal User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"/// Normal Role User\r",
+									"const user = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Has properties\", function () {\r",
+									"    pm.expect(user.message).to.have.property('accessToken');\r",
+									"});\r",
+									"\r",
+									"if (pm.test(\"Has properties\")) {\r",
+									"    //console.log('Has properties.');\r",
+									"    pm.globals.set('normal_user_token', user.message.accessToken);\r",
+									"}\r",
+									"else {\r",
+									"    //console.log('Not has properties.');\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Global token has been set\", function() {\r",
+									"    var token = pm.globals.get('normal_user_token');\r",
+									"    pm.expect(token).to.eql(user.message.accessToken);\r",
+									"    console.log(`set globals normal_user_token is: ${token}`);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera98\",\r\n    \"password\": \"12345678a\"\r\n}d",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signin",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SignIn By Modera User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"/// Modera Role User\r",
+									"const user = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Has properties\", function () {\r",
+									"    pm.expect(user.message).to.have.property('accessToken');\r",
+									"});\r",
+									"\r",
+									"if (pm.test(\"Has properties\")) {\r",
+									"    //console.log('Has properties.');\r",
+									"    pm.globals.set('modera_token', user.message.accessToken);\r",
+									"}\r",
+									"else {\r",
+									"    //console.log('Not has properties.');\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera97\",\r\n    \"password\": \"12345678a\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signin",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SignIn By Admin User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"/// Admin Role User\r",
+									"const user = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Has properties\", function () {\r",
+									"    pm.expect(user.message).to.have.property('accessToken');\r",
+									"});\r",
+									"\r",
+									"if (pm.test(\"Has properties\")) {\r",
+									"    //console.log('Has properties.');\r",
+									"    pm.globals.set('admin_token', user.message.accessToken);\r",
+									"}\r",
+									"else {\r",
+									"    //console.log('Not has properties.');\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Global token has been set\", function() {\r",
+									"    var token = pm.globals.get('admin_token');\r",
+									"    pm.expect(token).to.eql(user.message.accessToken);\r",
+									"    console.log(`set globals admin_token is: ${token}`);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera100\",\r\n    \"password\": \"12345678a\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signin",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SignIn By All Roles User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"/// All Roles User\r",
+									"const user = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Has properties\", function () {\r",
+									"    pm.expect(user.message).to.have.property('accessToken');\r",
+									"});\r",
+									"\r",
+									"if (pm.test(\"Has properties\")) {\r",
+									"    //console.log('Has properties.');\r",
+									"    pm.globals.set('all_roles_token', user.message.accessToken);\r",
+									"}\r",
+									"else {\r",
+									"    //console.log('Not has properties.');\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Global token has been set\", function() {\r",
+									"    var token = pm.globals.get('all_roles_token');\r",
+									"    pm.expect(token).to.eql(user.message.accessToken);\r",
+									"    console.log(`set globals all_roles_token is: ${token}`);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"modera99\",\r\n    \"password\": \"12345678a\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signin",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "test",
+			"item": [
+				{
+					"name": "GetAllPublicContent",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/test/all",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetTestNormalUserMessage",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/test/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetTestModUserMessage",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/test/mod",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"mod"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetTestAdminUserMessage",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/test/admin",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "root",
+			"item": [
+				{
+					"name": "root",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:49146",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "49146"
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:49146",
+			"type": "string"
+		},
+		{
+			"key": "url",
+			"value": "http://localhost:5002",
+			"type": "string",
+			"disabled": true
+		}
+	]
+}

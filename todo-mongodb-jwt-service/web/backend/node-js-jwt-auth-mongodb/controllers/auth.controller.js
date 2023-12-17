@@ -1,8 +1,15 @@
 const config = require('../config/auth.config');
 const db = require('../models');
 const DebugHelper = require('../utils/error.utils');
-const http = require('../helpers/http');
-const { OK, INTERNAL_SERVER_ERROR, NOT_FOUND, NO_CONTENT, BAD_REQUEST, CREATED } = require('../helpers/constants');
+const http = require('../helpers/http.helper');
+const {
+    OK,
+    INTERNAL_SERVER_ERROR,
+    NOT_FOUND,
+    NO_CONTENT,
+    BAD_REQUEST,
+    CREATED,
+} = require('../helpers/constants.helper');
 
 const User = db.user;
 const Role = db.role;
@@ -59,27 +66,25 @@ exports.signin = async (req, res) => {
             username: req.body.username,
         });
 
-        // DebugHelper.log(`userFindResult: ${userFindResult}`);
+        DebugHelper.log(`userFindResult: ${userFindResult}`);
 
         if (!userFindResult) {
-            return res.status(404).send({ message: 'User Not found.' });
+            return http.errorResponse(res, NOT_FOUND, 'User Not found.');
         }
 
         const passwordIsValid = bcrypt.compareSync(req.body.password, userFindResult.password);
 
         if (!passwordIsValid) {
-            return res.status(401).send({
-                accessToken: null,
-                message: 'Invalid Password!',
-            });
+            return http.errorResponse(res, BAD_REQUEST, 'Invalid Password!');
         } else {
             const token = jwt.sign({ id: userFindResult.id }, config.secret, {
-                expiresIn: 86400, // 24 hours
+                // expiresIn: 86400, // 24 hours
+                expiresIn: 60, // 24 hours
             });
 
             const authorities = [];
 
-            // DebugHelper.log(`userFindResult.roles: ${userFindResult.roles}`);
+            DebugHelper.log(`userFindResult.roles: ${userFindResult.roles}`);
 
             const roles = await Role.find({
                 _id: { $in: userFindResult.roles },

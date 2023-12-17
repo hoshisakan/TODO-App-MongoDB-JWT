@@ -11,10 +11,12 @@ if (!fs.existsSync(logDir)) {
 const transport = new winston.transports.DailyRotateFile({
     // filename: `${logDir}/%DATE%-photo-service.log`,
     filename: `${logDir}/web_log_%DATE%.log`,
-    datePattern: 'YYYYMMDD',
-    zippedArchive: true,
-    maxSize: '20m',
-    maxFiles: '14d',
+    /// One hour generate one log file
+    datePattern: 'YYYYMMDDHH',
+    // datePattern: 'YYYYMMDDHHmm',
+    // zippedArchive: true,
+    // maxSize: '20m',
+    // maxFiles: '14d',
 });
 
 const logger = winston.createLogger({

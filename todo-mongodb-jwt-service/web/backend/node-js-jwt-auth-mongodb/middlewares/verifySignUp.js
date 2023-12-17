@@ -2,8 +2,15 @@ const db = require('../models');
 const ROLES = db.ROLES;
 const User = db.user;
 const DebugHelper = require('../utils/error.utils');
-const http = require('../helpers/http');
-const { OK, INTERNAL_SERVER_ERROR, NOT_FOUND, NO_CONTENT, BAD_REQUEST, CREATED } = require('../helpers/constants');
+const http = require('../helpers/http.helper');
+const {
+    OK,
+    INTERNAL_SERVER_ERROR,
+    NOT_FOUND,
+    NO_CONTENT,
+    BAD_REQUEST,
+    CREATED,
+} = require('../helpers/constants.helper');
 
 checkDuplicateUsernameOrEmail = async (req, res, next) => {
     try {

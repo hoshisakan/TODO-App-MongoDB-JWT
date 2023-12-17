@@ -3,9 +3,16 @@ const config = require('../config/auth.config.js');
 const db = require('../models');
 const User = db.user;
 const Role = db.role;
-const http = require('../helpers/http');
+const http = require('../helpers/http.helper');
 const DebugHelper = require('../utils/error.utils');
-const { OK, INTERNAL_SERVER_ERROR, NOT_FOUND, NO_CONTENT, BAD_REQUEST, CREATED } = require('../helpers/constants');
+const {
+    OK,
+    INTERNAL_SERVER_ERROR,
+    NOT_FOUND,
+    NO_CONTENT,
+    BAD_REQUEST,
+    CREATED,
+} = require('../helpers/constants.helper');
 
 verifyToken = (req, res, next) => {
     let token = req.headers['x-access-token'];
