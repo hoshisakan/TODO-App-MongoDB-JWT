@@ -1,9 +1,6 @@
-const DebugHelper = require('../utils/error.util');
+const { printErrorDetails, log } = require('../utils/debug.util');
 const http = require('../helpers/http.helper');
-const {
-    OK
-} = require('../helpers/constants.helper');
-
+const { OK } = require('../helpers/constants.helper');
 
 class TestController {
     allAccess(req, res) {

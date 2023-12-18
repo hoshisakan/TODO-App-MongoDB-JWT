@@ -3,11 +3,11 @@ class Repository {
         this.model = model;
     }
 
-    async find(condition) {
+    async find(condition={}) {
         return this.model.find(condition);
     }
 
-    async findOne(condition) {
+    async findOne(condition={}) {
         return this.model.findOne(condition);
     }
 

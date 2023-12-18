@@ -4,7 +4,7 @@ const db = require('../models/index.js');
 const User = db.user;
 const Role = db.role;
 const http = require('../helpers/http.helper.js');
-const DebugHelper = require('../utils/error.util.js');
+const DebugHelper = require('../utils/debug.util.js');
 const {
     OK,
     INTERNAL_SERVER_ERROR,
@@ -18,7 +18,7 @@ verifyToken = (req, res, next) => {
     let token = req.headers['x-access-token'];
 
     DebugHelper.log(`token: ${token}`);
-    
+
     if (!token) {
         return http.errorResponse(res, 403, 'No token provided!');
     }

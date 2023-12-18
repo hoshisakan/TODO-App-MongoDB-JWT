@@ -22,7 +22,7 @@ const corsOptions = require('./config/corsOptions').corsOptions;
 
 const DatabackupExtension = require('./extensions/databackup.extension');
 
-const DebugHelper = require('./utils/error.util');
+// const DebugHelper = require('./utils/debug.util');
 
 require('./models/db_init');
 

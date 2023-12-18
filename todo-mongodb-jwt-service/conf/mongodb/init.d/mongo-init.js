@@ -1,4 +1,4 @@
-const DebugHelper = require("../../../web/backend/node-js-jwt-auth-mongodb/utils/error.util");
+const DebugHelper = require('../../../web/backend/node-js-jwt-auth-mongodb/utils/debug.util');
 
 DebugHelper.log('Starting init script...', true);
 

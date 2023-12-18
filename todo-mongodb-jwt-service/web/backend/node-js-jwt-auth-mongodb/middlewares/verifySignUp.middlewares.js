@@ -1,7 +1,7 @@
 const db = require('../models');
 const ROLES = db.ROLES;
 const User = db.user;
-const DebugHelper = require('../utils/error.util');
+const { printErrorDetails, log } = require('../utils/debug.util');
 const http = require('../helpers/http.helper');
 const {
     OK,
@@ -28,24 +28,31 @@ checkDuplicateUsernameOrEmail = async (req, res, next) => {
         }
         return next();
     } catch (error) {
-        DebugHelper.printErrorDetails(error);
+        printErrorDetails(error);
         return http.errorResponse(res, BAD_REQUEST, error.message);
     }
 };
 
 checkRolesExisted = (req, res, next) => {
     try {
-        DebugHelper.log('checkRolesExisted');
+        log('checkRolesExisted');
         if (req.body.roles) {
+            ROLES.forEach((role) => {
+                log(`Authentication role: ${role}`, true);
+            });
+
             for (let i = 0; i < req.body.roles.length; i++) {
+                log(req.body.roles[i], true);
                 if (!ROLES.includes(req.body.roles[i])) {
                     http.errorResponse(res, BAD_REQUEST, `Failed! Role ${req.body.roles[i]} does not exist!`);
                 }
             }
+        } else {
+            throw new Error('Roles is required');
         }
         return next();
     } catch (error) {
-        DebugHelper.printErrorDetails(error);
+        printErrorDetails(error);
         http.errorResponse(res, BAD_REQUEST, error.message);
     }
 };

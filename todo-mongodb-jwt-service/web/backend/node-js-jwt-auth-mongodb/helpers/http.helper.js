@@ -1,3 +1,5 @@
+const { printErrorDetails } = require('../utils/debug.util');
+
 const HttpHelper = {
     response: (data, status, message) => {
         return {
@@ -8,13 +10,20 @@ const HttpHelper = {
     },
 
     successResponse: (res, status, message, data) => {
-        return res.status(status).json(HttpHelper.response(data, status, message));
+        try {
+            return res.status(status).json(HttpHelper.response(data, status, message));
+        } catch (error) {
+            printErrorDetails(error, true);
+        }
     },
 
     errorResponse: (res, status, message, error) => {
-        return res.status(status).json(HttpHelper.response(error, status, message));
+        try {
+            return res.status(status).json(HttpHelper.response(error, status, message));
+        } catch (error) {
+            printErrorDetails(error, true);
+        }
     },
 };
 
 module.exports = HttpHelper;
-

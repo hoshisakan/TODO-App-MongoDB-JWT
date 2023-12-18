@@ -1,6 +1,4 @@
-// const config = require('../config/auth.config');
-// const db = require('../models');
-const DebugHelper = require('../utils/error.util');
+const { printErrorDetails, log } = require('../utils/debug.util');
 const http = require('../helpers/http.helper');
 const {
     OK,
@@ -13,8 +11,6 @@ const {
 
 const AuthService = require('../services/auth.service');
 
-
-
 class AuthController {
     constructor() {
         this.authService = new AuthService();
@@ -22,23 +18,24 @@ class AuthController {
 
     signup = async (req, res) => {
         try {
-            const user = await this.authService.signup(req.body);
-            return http.successResponse(res, CREATED, user);
+            const result = await this.authService.signup(req.body);
+            // return http.successResponse(res, CREATED, result);
+            return http.successResponse(res, CREATED, 'User was registered successfully!');
         } catch (error) {
-            DebugHelper.printErrorDetails(error);
-            return http.errorResponse(res, INTERNAL_SERVER_ERROR, error.message);
+            printErrorDetails(error, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
         }
-    }
+    };
 
     signin = async (req, res) => {
         try {
-            const user = await this.authService.signin(req.body);
-            return http.successResponse(res, OK, user);
+            const result = await this.authService.signin(req.body);
+            return http.successResponse(res, OK, result);
         } catch (error) {
-            DebugHelper.printErrorDetails(error, true);
-            return http.errorResponse(res, INTERNAL_SERVER_ERROR, error.message);
+            printErrorDetails(error, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
         }
-    }
+    };
 }
 
 module.exports = AuthController;

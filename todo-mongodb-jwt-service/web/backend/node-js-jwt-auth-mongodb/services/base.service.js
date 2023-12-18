@@ -3,8 +3,8 @@ class BaseService {
         this.repository = repository;
     }
 
-    getAll = async () => {
-        return await this.repository.getAll();
+    find = async (condition={}) => {
+        return await this.repository.find(condition);
     };
 
     getById = async (id) => {

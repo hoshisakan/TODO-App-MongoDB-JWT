@@ -1,19 +1,21 @@
 const logger = require('../extensions/logger.extension');
+const { stringify } = require('./json.util');
 
-const DebugHelper = {
-    log: (message, outToConsole=false) => {
+
+const DebugUtil = {
+    log: (message, outToConsole = false) => {
         if (outToConsole) {
             console.log(message);
         }
         logger.info(message);
     },
 
-    printErrorDetails: (err, outToConsole=false) => {
+    printErrorDetails: (err, outToConsole = false) => {
         if (outToConsole) {
-            console.error(err.message);
+            console.error(err.stack);
         }
         logger.error(err.stack);
     },
 };
 
-module.exports = DebugHelper;
+module.exports = DebugUtil;
