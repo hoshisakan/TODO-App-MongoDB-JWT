@@ -7,27 +7,37 @@ class BaseService {
         return await this.repository.find(condition);
     };
 
-    getById = async (id) => {
-        const result = await this.repository.getById(id);
+    findOne = async (condition={}) => {
+        return await this.repository.findOne(condition);
+    };
 
-        if (!result) {
-            throw new Error('Not found');
-        }
-        return result;
-    }
+    findById = async (id) => {
+        return await this.repository.findById(id);
+    };
 
     create = async (entity) => {
-        const result = await this.repository.create(entity);
+        return await this.repository.create(entity);
+    };
 
-        if (!result) {
-            throw new Error('Not created');
-        }
-        return result;
+    update = async (id, entity) => {
+        return await this.repository.update(id, entity);
+    };
+
+    updateOne = async (condition, entity) => {
+        return await this.repository.updateOne(condition, entity);
+    };
+
+    updateMany = async (condition, entity) => {
+        return await this.repository.updateMany(condition, entity);
     }
 
-    removeAll = async () => {
-        return await this.repository.deleteAll();
-    }
+    deleteOne = async (condition) => {
+        return await this.repository.deleteOne(condition);
+    };
+
+    deleteMany = async (condition) => {
+        return await this.repository.deleteMany(condition);
+    };
 }
 
 module.exports = BaseService;

@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "user",
+			"name": "auth",
 			"item": [
 				{
 					"name": "SignUp Only Give Normal User Role",
@@ -17,7 +17,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera97\",\r\n    \"email\": \"mod@bezkoder97.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\"]\r\n}",
+							"raw": "{\r\n    \"username\": \"modera1009\",\r\n    \"email\": \"mod@bezkoder1009.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": []\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -129,7 +129,6 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"/// Normal Role User\r",
 									"const user = pm.response.json();\r",
 									"\r",
 									"pm.test(\"Has properties\", function () {\r",
@@ -159,7 +158,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera98\",\r\n    \"password\": \"12345678a\"\r\n}d",
+							"raw": "{\r\n    \"username\": \"modera98\",\r\n    \"password\": \"12345678a\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -512,12 +511,167 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:49146",
-							"protocol": "http",
+							"raw": "{{url}}",
 							"host": [
-								"localhost"
+								"{{url}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/user/",
+							"host": [
+								"{{url}}"
 							],
-							"port": "49146"
+							"path": [
+								"api",
+								"user",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all with condition",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/user?username=modera1009",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "modera1,modera1003,modera1004",
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": "mod@bezkoder1003.com,mod@bezkoder.com1,mod@bezkoder.com",
+									"disabled": true
+								},
+								{
+									"key": "roles",
+									"value": "admin",
+									"disabled": true
+								},
+								{
+									"key": "username",
+									"value": "modera1009"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "role",
+			"item": [
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/role/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"role",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all with condition",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/role/?name=moderator,user&id=6577e293255f0fec1c386625,6577e293255f0fec1c386624,6577e293255f0fec1c386626",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"role",
+								""
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "moderator,user"
+								},
+								{
+									"key": "name",
+									"value": "admin",
+									"disabled": true
+								},
+								{
+									"key": "id",
+									"value": "6577e293255f0fec1c386625,6577e293255f0fec1c386624,6577e293255f0fec1c386626"
+								}
+							]
 						}
 					},
 					"response": []

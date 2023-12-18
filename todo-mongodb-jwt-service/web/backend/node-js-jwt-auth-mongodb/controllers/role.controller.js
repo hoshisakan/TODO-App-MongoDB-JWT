@@ -19,8 +19,7 @@ class RoleController {
 
     findAll = async (req, res) => {
         try {
-            const param = req.query;
-            const result = await this.roleService.find(param);
+            const result = await this.roleService.find(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             printErrorDetails(error, true);
