@@ -1,28 +1,26 @@
 const db = require('../models');
 const ROLES = db.ROLES;
-const User = db.user;
 const { printErrorDetails, log } = require('../utils/debug.util');
 const http = require('../helpers/http.helper');
 const {
-    OK,
-    INTERNAL_SERVER_ERROR,
-    NOT_FOUND,
-    NO_CONTENT,
     BAD_REQUEST,
-    CREATED,
 } = require('../helpers/constants.helper');
+
+const UserService = require('../services/user.service');
+const userService = new UserService();
+
 
 checkDuplicateUsernameOrEmail = async (req, res, next) => {
     try {
-        const isUserExists = await User.findOne({
-            username: req.body.username,
-        });
+        const params = req.body;
+        const isUserExists = await userService.findOne(params, checkField = 'username');
+
         if (isUserExists) {
             return http.errorResponse(res, BAD_REQUEST, 'Failed! Username is already in use!');
         }
-        const isEmailExists = await User.findOne({
-            email: req.body.email,
-        });
+
+        const isEmailExists = await userService.findOne(params, checkField = 'email');
+
         if (isEmailExists) {
             return http.errorResponse(res, BAD_REQUEST, 'Failed! Email is already in user');
         }
@@ -35,7 +33,6 @@ checkDuplicateUsernameOrEmail = async (req, res, next) => {
 
 checkRolesExisted = (req, res, next) => {
     try {
-        log('checkRolesExisted');
         if (req.body.roles) {
             ROLES.forEach((role) => {
                 log(`Authentication role: ${role}`, true);
@@ -52,7 +49,7 @@ checkRolesExisted = (req, res, next) => {
         }
         return next();
     } catch (error) {
-        printErrorDetails(error);
+        printErrorDetails(error, true);
         http.errorResponse(res, BAD_REQUEST, error.message);
     }
 };

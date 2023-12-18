@@ -36,7 +36,7 @@ class Repository {
         return await this.model.deleteOne(condition);
     }
 
-    async deleteAll(condition) {
+    async deleteMany(condition) {
         return await this.model.deleteMany(condition);
     }
 }

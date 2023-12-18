@@ -1,18 +1,44 @@
-const UnitOfWork = require('../repositories/unitwork');
-
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcryptjs');
 const { printErrorDetails, log } = require('../utils/debug.util');
 const config = require('../config/auth.config');
+const { stringify } = require('../utils/json.util');
+const logger = require('../extensions/logger.extension');
+
+const UnitOfWork = require('../repositories/unitwork');
 const User = require('../models/user.model');
-const DebugHelper = require('../utils/debug.util');
+const unitOfWork = new UnitOfWork();
+
 
 class AuthService {
     constructor() {
-        const unitOfWork = new UnitOfWork();
         this.unitOfWork = unitOfWork;
-        this.tokenExpirationTime = process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME;
+        ///TODO: Convert to integer from string and radix 10 (decimal) base
+        this.tokenExpirationTime = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME, 10);
+        logger.info(`tokenExpirationTime data type: ${typeof this.tokenExpirationTime}`, true);
     }
+
+    findUserById = async (id) => {
+        return await this.unitOfWork.users.findById(id);
+    };
+
+    findUserRolesById = async (userId) => {
+        const user = await this.findUserById(userId);
+
+        if (!user) {
+            throw new Error('User not found.');
+        }
+
+        return await this.unitOfWork.roles.find({
+            _id: { $in: user.roles },
+        });
+    }
+
+    generateJwtToken = (validateUser) => {
+        return jwt.sign({ id: validateUser.id }, config.secret, {
+            expiresIn: this.tokenExpirationTime,
+        });
+    };
 
     signup = async (user) => {
         let userCreated = null;
@@ -35,7 +61,7 @@ class AuthService {
                 throw new Error('User cannot be created');
             }
 
-            if (user.roles) {
+            if (user.roles && user.roles.length > 0) {
                 const roles = await this.unitOfWork.roles.find({ name: { $in: user.roles } });
 
                 if (!roles) {
@@ -75,7 +101,7 @@ class AuthService {
             throw new Error('User Not Found');
         }
 
-        log(validateUser, false);
+        log(`validateUser: ${stringify(validateUser)}`, true);
 
         const matchPassword = bcrypt.compareSync(user.password, validateUser.password);
 
@@ -85,11 +111,17 @@ class AuthService {
 
         const authorities = await this.unitOfWork.roles.find({ _id: { $in: validateUser.roles } });
 
-        log(authorities, true);
+        log(`authorities: ${stringify(authorities)}`, true);
 
-        const token = jwt.sign({ id: validateUser.id }, config.secret, {
-            expiresIn: this.tokenExpirationTime,
-        });
+        log(`validateUser.id: ${validateUser.id}`, true);
+
+        log(`config.secret: ${config.secret}`, true);
+
+        log(`this.tokenExpirationTime: ${this.tokenExpirationTime}`, true);
+
+        const token = this.generateJwtToken(validateUser);
+
+        log(`token: ${token}`, true);
 
         const result = {
             id: validateUser._id,

@@ -19,8 +19,7 @@ class UserController {
 
     findAll = async (req, res) => {
         try {
-            const param = req.query;
-            const result = await this.userService.find(param);
+            const result = await this.userService.find(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             printErrorDetails(error, true);
