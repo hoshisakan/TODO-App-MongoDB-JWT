@@ -1,3 +1,4 @@
 module.exports = {
-    secret: 'hoshiyou-secret-key',
+    jwtSecret: 'hoshiyou-secret-key',
 };
+

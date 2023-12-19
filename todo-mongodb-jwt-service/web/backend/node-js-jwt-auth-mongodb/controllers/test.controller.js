@@ -20,4 +20,4 @@ class TestController {
     }
 }
 
-module.exports = new TestController();
+module.exports = TestController;

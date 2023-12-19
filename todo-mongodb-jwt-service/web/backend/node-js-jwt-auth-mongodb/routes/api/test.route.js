@@ -1,13 +1,13 @@
 const { authJwt } = require('../../middlewares/authJwt.middleware');
-const controller = require('../../controllers/test.controller');
 const router = require('express').Router();
+const { testController } = require('./base.route');
 
-router.get('/all', controller.allAccess);
+router.get('/all', testController.allAccess);
 
-router.get('/user', [authJwt.verifyToken], controller.userBoard);
+router.get('/user', [authJwt.verifyToken], testController.userBoard);
 
-router.get('/mod', [authJwt.verifyToken, authJwt.isModerator], controller.moderatorBoard);
+router.get('/mod', [authJwt.verifyToken, authJwt.isModerator], testController.moderatorBoard);
 
-router.get('/admin', [authJwt.verifyToken, authJwt.isAdmin], controller.adminBoard);
+router.get('/admin', [authJwt.verifyToken, authJwt.isAdmin], testController.adminBoard);
 
 module.exports = router;

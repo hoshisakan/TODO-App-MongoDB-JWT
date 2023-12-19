@@ -1,21 +1,16 @@
-var jwt = require('jsonwebtoken');
 var bcrypt = require('bcryptjs');
 const { printErrorDetails, log } = require('../utils/debug.util');
-const config = require('../config/auth.config');
 const { stringify } = require('../utils/json.util');
-const logger = require('../extensions/logger.extension');
+// const logger = require('../extensions/logger.extension');
 
+const { jwtSign } = require('../utils/jwt.util');
 const UnitOfWork = require('../repositories/unitwork');
 const User = require('../models/user.model');
 const unitOfWork = new UnitOfWork();
 
-
 class AuthService {
     constructor() {
         this.unitOfWork = unitOfWork;
-        ///TODO: Convert to integer from string and radix 10 (decimal) base
-        this.tokenExpirationTime = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME, 10);
-        logger.info(`tokenExpirationTime data type: ${typeof this.tokenExpirationTime}`, true);
     }
 
     findUserById = async (id) => {
@@ -32,12 +27,50 @@ class AuthService {
         return await this.unitOfWork.roles.find({
             _id: { $in: user.roles },
         });
-    }
+    };
 
-    generateJwtToken = (validateUser) => {
-        return jwt.sign({ id: validateUser.id }, config.secret, {
-            expiresIn: this.tokenExpirationTime,
-        });
+    generateJwtToken = (validateUser, roleName) => {
+        if (!validateUser) {
+            throw new Error('User cannot be empty');
+        }
+
+        if (!roleName) {
+            throw new Error('Role name cannot be empty');
+        }
+
+        let tokenExpirationTime = -1;
+
+        switch (roleName) {
+            case 'admin':
+                tokenExpirationTime = parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME_FOR_ADMIN, 10);
+                break;
+            case 'moderator':
+                tokenExpirationTime = parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME_FOR_MODERATOR, 10);
+                break;
+            case 'user':
+                tokenExpirationTime = parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME_FOR_USER, 10);
+                break;
+            default:
+                throw new Error('Role name is invalid');
+        }
+
+        if (tokenExpirationTime === -1) {
+            throw new Error('Token expiration time is invalid');
+        }
+
+        const payload = {
+            id: validateUser.id,
+            // username: validateUser.username,
+            // email: validateUser.email,
+            // roles: validateUser.roles,
+        };
+
+        log(
+            `payload: ${stringify(payload)}, roleName: ${roleName}, tokenExpirationTime: ${tokenExpirationTime}`,
+            true
+        );
+
+        return jwtSign(payload, tokenExpirationTime);
     };
 
     signup = async (user) => {
@@ -80,8 +113,7 @@ class AuthService {
                 if (!result) {
                     throw new Error('Roles cannot be added');
                 }
-
-                // DebugHelper.log(result, true);
+                DebugHelper.log(`result: ${stringify(result)}`, true);
             } else {
                 const role = await this.unitOfWork.roles.findOne({ name: 'user' });
                 result = await this.unitOfWork.users.addRole(userCreated._id, role._id);
@@ -93,7 +125,7 @@ class AuthService {
     };
 
     signin = async (user) => {
-        log(`sigin username: ${user.username}, password: ${user.password}`, true);
+        log(`sigin username: ${user.username}, email: ${user.email}`, true);
 
         const validateUser = await this.unitOfWork.users.findOne({ username: user.username });
 
@@ -115,13 +147,9 @@ class AuthService {
 
         log(`validateUser.id: ${validateUser.id}`, true);
 
-        log(`config.secret: ${config.secret}`, true);
+        const token = this.generateJwtToken(validateUser, authorities[0].name);
 
-        log(`this.tokenExpirationTime: ${this.tokenExpirationTime}`, true);
-
-        const token = this.generateJwtToken(validateUser);
-
-        log(`token: ${token}`, true);
+        log(`Access token: ${token}`, true);
 
         const result = {
             id: validateUser._id,
@@ -130,7 +158,6 @@ class AuthService {
             roles: authorities.map((role) => 'ROLE_' + role.name.toUpperCase()),
             accessToken: token,
         };
-
         return result;
     };
 }

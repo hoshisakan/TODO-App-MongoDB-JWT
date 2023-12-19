@@ -16,7 +16,7 @@ module.exports = {
         },
         userEndpoint: {
             validateRoles: ['admin'],
-            validateFields: ['username', 'email', 'roles'],
+            validateFields: ['id', 'username', 'email', 'roles'],
         },
         roleEndpoint: {
             validateRoles: ['admin'],
