@@ -17,7 +17,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera1009\",\r\n    \"email\": \"mod@bezkoder1009.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": []\r\n}",
+							"raw": "{\r\n    \"username\": \"modera1009992\",\r\n    \"email\": \"mod@bezkoder1009992.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": []\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -45,7 +45,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera98\",\r\n    \"email\": \"mod@bezkoder98.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"moderator\"]\r\n}",
+							"raw": "{\r\n    \"username\": \"modera987\",\r\n    \"email\": \"mod@bezkoder987.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"moderator\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -585,7 +585,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/user?username=modera1009",
+							"raw": "{{url}}/api/user?roles=admin&username=modera1009992&email=mod@bezkoder.com,mod@bezkoder.com5&id=657a99ae1dd447cd7e3e74d7",
 							"host": [
 								"{{url}}"
 							],
@@ -596,7 +596,7 @@
 							"query": [
 								{
 									"key": "username",
-									"value": "modera1,modera1003,modera1004",
+									"value": "modera,modera2",
 									"disabled": true
 								},
 								{
@@ -606,12 +606,24 @@
 								},
 								{
 									"key": "roles",
-									"value": "admin",
+									"value": "admin"
+								},
+								{
+									"key": "username",
+									"value": "modera1009",
 									"disabled": true
 								},
 								{
 									"key": "username",
-									"value": "modera1009"
+									"value": "modera1009992"
+								},
+								{
+									"key": "email",
+									"value": "mod@bezkoder.com,mod@bezkoder.com5"
+								},
+								{
+									"key": "id",
+									"value": "657a99ae1dd447cd7e3e74d7"
 								}
 							]
 						}
@@ -627,15 +639,39 @@
 					"name": "Find all",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
 						"url": {
-							"raw": "{{url}}/api/role/",
+							"raw": "{{url}}/api/user/",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
-								"role",
+								"user",
 								""
 							]
 						}
@@ -646,9 +682,33 @@
 					"name": "Find all with condition",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
 						"url": {
-							"raw": "{{url}}/api/role/?name=moderator,user&id=6577e293255f0fec1c386625,6577e293255f0fec1c386624,6577e293255f0fec1c386626",
+							"raw": "{{url}}/api/role/?name=admin,user",
 							"host": [
 								"{{url}}"
 							],
@@ -660,16 +720,17 @@
 							"query": [
 								{
 									"key": "name",
-									"value": "moderator,user"
-								},
-								{
-									"key": "name",
-									"value": "admin",
-									"disabled": true
+									"value": "admin,user"
 								},
 								{
 									"key": "id",
-									"value": "6577e293255f0fec1c386625,6577e293255f0fec1c386624,6577e293255f0fec1c386626"
+									"value": "6577e293255f0fec1c386624",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "moderator",
+									"disabled": true
 								}
 							]
 						}
