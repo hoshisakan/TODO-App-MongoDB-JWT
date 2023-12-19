@@ -5,7 +5,6 @@ const { endpoint } = require('../utils/validate.util');
 const BaseService = require('./base.service');
 const UnitOfWork = require('../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
-
 const validateFields = endpoint.userEndpoint.validateFields;
 
 class UserService extends BaseService {
@@ -29,7 +28,6 @@ class UserService extends BaseService {
         } else {
             ///TODO: If fields different quantity, then will be use 'OR' operator search in database
             const validateResult = validateFields.every((field) => checkFields.includes(field));
-
             expression = validateResult ? { $or: [] } : {};
 
             for (const checkField of checkFields) {
@@ -41,7 +39,6 @@ class UserService extends BaseService {
                     expression = Object.assign(expression, await this.handleSingleQueryParams(queryParams, checkField));
                 }
             }
-
             log(`expression: ${stringify(expression)}`, true);
         }
         return expression;
@@ -50,7 +47,6 @@ class UserService extends BaseService {
     ///TODO: Get expression of one fields by query params and check field
     handleSingleQueryParams = async (queryParams, checkField) => {
         let expression = {};
-
         ///TODO: If not add $or operator, then will be use 'AND' operator search in database
         if (queryParams.id && checkField === 'id') {
             // expression._id = queryParams.id;

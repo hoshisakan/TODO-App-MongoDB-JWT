@@ -59,10 +59,7 @@ class AuthService {
         }
 
         const payload = {
-            id: validateUser.id,
-            // username: validateUser.username,
-            // email: validateUser.email,
-            // roles: validateUser.roles,
+            id: validateUser.id
         };
 
         log(
@@ -125,7 +122,7 @@ class AuthService {
     };
 
     signin = async (user) => {
-        log(`sigin username: ${user.username}, email: ${user.email}`, true);
+        log(`sigin username: ${user.username}`, true);
 
         const validateUser = await this.unitOfWork.users.findOne({ username: user.username });
 

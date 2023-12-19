@@ -4,5 +4,4 @@ const { userController } = require('./base.route');
 
 router.get('/', [authJwt.verifyToken, authJwt.isAdmin], userController.findAll);
 
-
 module.exports = router;

@@ -37,9 +37,9 @@ createConnection
         log(`Successfully connected to the database: ${config.DATABASE}`, true);
         initial();
         ///TODO: Get all collections (tables) from database, but not working
-        conn.connection.db.listCollections().toArray((err, items) => {
-            log(`Collections: ${stringify(items)}`, true);
-        });
+        // conn.connection.db.listCollections().toArray((err, items) => {
+        //     log(`Collections: ${stringify(items)}`, true);
+        // });
     })
     .catch((err) => {
         printErrorDetails(err, true);
