@@ -1,4 +1,4 @@
-const { printErrorDetails } = require('../utils/debug.util');
+const { logError } = require('../utils/log.util');
 
 const HttpHelper = {
     response: (data, status, message) => {
@@ -13,7 +13,7 @@ const HttpHelper = {
         try {
             return res.status(status).json(HttpHelper.response(data, status, message));
         } catch (error) {
-            printErrorDetails(error, true);
+            logError(error, true);
         }
     },
 
@@ -21,7 +21,7 @@ const HttpHelper = {
         try {
             return res.status(status).json(HttpHelper.response(error, status, message));
         } catch (error) {
-            printErrorDetails(error, true);
+            logError(error, true);
         }
     },
 };

@@ -1,6 +1,12 @@
-const DebugHelper = require('../../../web/backend/node-js-jwt-auth-mongodb/utils/debug.util');
+const { logInfo, logError } = require('../utils/log.util.js');
 
-DebugHelper.log('Starting init script...', true);
+const { filenameFilter } = require('./utils/regex.util');
+
+const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+
+const fileDetails = `[${filenameWithoutPath}]`;
+
+logInfo('Start init script.', fileDetails, true);
 
 const user = 'hoshiyou';
 const password = 'NormalPassword12345';
@@ -32,4 +38,4 @@ db.createUser({
     ],
 });
 
-DebugHelper.log('Finished init script.', true);
+logInfo('End init script.', fileDetails, true);

@@ -1,7 +1,7 @@
 var bcrypt = require('bcryptjs');
-const { printErrorDetails, log } = require('../utils/debug.util');
+const { logInfo, logError } = require('../utils/log.util');
 const { stringify } = require('../utils/json.util');
-// const logger = require('../extensions/logger.extension');
+const { filenameFilter } = require('../utils/regex.util');
 
 const { jwtSign } = require('../utils/jwt.util');
 const UnitOfWork = require('../repositories/unitwork');
@@ -11,7 +11,22 @@ const unitOfWork = new UnitOfWork();
 class AuthService {
     constructor() {
         this.unitOfWork = unitOfWork;
+        this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
     }
+
+    getFunctionCallerName = () => {
+        const err = new Error();
+        const stack = err.stack.split('\n');
+        const functionName = stack[2].trim().split(' ')[1];
+        return functionName;
+    };
+
+    getFileDetails = (classAndFuncName) => {
+        // const className = classAndFuncName.split('.')[0];
+        // const funcName = classAndFuncName.split('.')[1];
+        const classAndFuncNameArr = classAndFuncName.split('.');
+        return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
+    };
 
     findUserById = async (id) => {
         return await this.unitOfWork.users.findById(id);
@@ -38,6 +53,9 @@ class AuthService {
             throw new Error('Role name cannot be empty');
         }
 
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+
         let tokenExpirationTime = -1;
 
         switch (roleName) {
@@ -59,11 +77,12 @@ class AuthService {
         }
 
         const payload = {
-            id: validateUser.id
+            id: validateUser.id,
         };
 
-        log(
+        logInfo(
             `payload: ${stringify(payload)}, roleName: ${roleName}, tokenExpirationTime: ${tokenExpirationTime}`,
+            fileDetails,
             true
         );
 
@@ -73,12 +92,26 @@ class AuthService {
     signup = async (user) => {
         let userCreated = null;
         let result = null;
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
 
         try {
             if (!user) {
                 throw new Error('User cannot be empty');
             }
 
+            logInfo(`user: ${stringify(user)}`, fileDetails, true);
+
+            const roles = await this.unitOfWork.roles.find({ name: { $in: user.roles } });
+
+            if (!roles) {
+                throw new Error('Roles cannot be found');
+            }
+
+            if (roles.length !== user.roles.length) {
+                throw new Error('Roles one or more cannot be found');
+            }
+            
             const registerUser = new User({
                 username: user.username,
                 email: user.email,
@@ -92,16 +125,6 @@ class AuthService {
             }
 
             if (user.roles && user.roles.length > 0) {
-                const roles = await this.unitOfWork.roles.find({ name: { $in: user.roles } });
-
-                if (!roles) {
-                    throw new Error('Roles cannot be found');
-                }
-
-                if (roles.length !== user.roles.length) {
-                    throw new Error('Roles one or more cannot be found');
-                }
-
                 result = await this.unitOfWork.users.addRoles(
                     userCreated._id,
                     roles.map((role) => role._id)
@@ -110,19 +133,22 @@ class AuthService {
                 if (!result) {
                     throw new Error('Roles cannot be added');
                 }
-                DebugHelper.log(`result: ${stringify(result)}`, true);
+                logInfo(`result: ${stringify(result)}`, fileDetails, true);
             } else {
                 const role = await this.unitOfWork.roles.findOne({ name: 'user' });
                 result = await this.unitOfWork.users.addRole(userCreated._id, role._id);
             }
-        } catch (error) {
-            printErrorDetails(error, true);
+        } catch (err) {
+            logError(err, fileDetails, true);
         }
         return result;
     };
 
     signin = async (user) => {
-        log(`sigin username: ${user.username}`, true);
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+        logInfo(`sigin username: ${user.username}`, fileDetails, true);
 
         const validateUser = await this.unitOfWork.users.findOne({ username: user.username });
 
@@ -130,7 +156,7 @@ class AuthService {
             throw new Error('User Not Found');
         }
 
-        log(`validateUser: ${stringify(validateUser)}`, true);
+        logInfo(`validateUser: ${stringify(validateUser)}`, fileDetails, true);
 
         const matchPassword = bcrypt.compareSync(user.password, validateUser.password);
 
@@ -140,13 +166,11 @@ class AuthService {
 
         const authorities = await this.unitOfWork.roles.find({ _id: { $in: validateUser.roles } });
 
-        log(`authorities: ${stringify(authorities)}`, true);
-
-        log(`validateUser.id: ${validateUser.id}`, true);
+        logInfo(`authorities: ${stringify(authorities)}`, fileDetails, true);
 
         const token = this.generateJwtToken(validateUser, authorities[0].name);
 
-        log(`Access token: ${token}`, true);
+        logInfo(`token: ${token}`, fileDetails, true);
 
         const result = {
             id: validateUser._id,

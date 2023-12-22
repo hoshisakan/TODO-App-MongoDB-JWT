@@ -1,5 +1,3 @@
-const logger = require('../extensions/logger.extension');
-const { stringify } = require('./json.util');
 const config = require('../config/auth.config.js');
 const jwt = require('jsonwebtoken');
 

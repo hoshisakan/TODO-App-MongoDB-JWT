@@ -3,12 +3,12 @@ class BaseService {
         this.repository = repository;
     }
 
-    find = async (condition={}) => {
-        return await this.repository.find(condition);
+    find = async (expression={}) => {
+        return await this.repository.find(expression);
     };
 
-    findOne = async (condition={}) => {
-        return await this.repository.findOne(condition);
+    findOne = async (expression={}) => {
+        return await this.repository.findOne(expression);
     };
 
     findById = async (id) => {
@@ -23,20 +23,20 @@ class BaseService {
         return await this.repository.update(id, entity);
     };
 
-    updateOne = async (condition, entity) => {
-        return await this.repository.updateOne(condition, entity);
+    updateOne = async (expression, entity) => {
+        return await this.repository.updateOne(expression, entity);
     };
 
-    updateMany = async (condition, entity) => {
-        return await this.repository.updateMany(condition, entity);
+    updateMany = async (expression, entity) => {
+        return await this.repository.updateMany(expression, entity);
     }
 
-    deleteOne = async (condition) => {
-        return await this.repository.deleteOne(condition);
+    deleteOne = async (expression) => {
+        return await this.repository.deleteOne(expression);
     };
 
-    deleteMany = async (condition) => {
-        return await this.repository.deleteMany(condition);
+    deleteMany = async (expression) => {
+        return await this.repository.deleteMany(expression);
     };
 }
 

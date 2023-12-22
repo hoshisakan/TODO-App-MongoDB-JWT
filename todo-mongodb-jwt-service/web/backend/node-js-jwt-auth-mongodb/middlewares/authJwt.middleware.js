@@ -1,20 +1,37 @@
 const http = require('../helpers/http.helper.js');
-const { printErrorDetails, log } = require('../utils/debug.util.js');
+const { logInfo, logError } = require('../utils/log.util.js');
 const { stringify } = require('../utils/json.util.js');
-
+const { filenameFilter } = require('../utils/regex.util');
 const { BAD_REQUEST, UNAUTHORIZED } = require('../helpers/constants.helper.js');
 
 const AuthService = require('../services/auth.service');
-
 const authService = new AuthService();
-
 const { jwtVertify } = require('../utils/jwt.util.js');
 
+const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+
+getFunctionCallerName = () => {
+    const err = new Error();
+    const stack = err.stack.split('\n');
+    const functionName = stack[2].trim().split(' ')[1];
+    return functionName;
+};
+
+getFileDetails = (classAndFuncName) => {
+    // const className = classAndFuncName.split('.')[0];
+    // const funcName = classAndFuncName.split('.')[1];
+    const classAndFuncNameArr = classAndFuncName.split('.');
+    return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
+};
+
 verifyToken = (req, res, next) => {
+    const classNameAndFuncName = getFunctionCallerName();
+    const fileDetails = getFileDetails(classNameAndFuncName);
+
     try {
         let token = req.headers['x-access-token'];
 
-        log(`verifyToken: ${token}`, true);
+        logInfo(`verifyToken: ${token}`, fileDetails, true);
 
         if (!token) {
             return http.errorResponse(res, BAD_REQUEST, 'No token provided!');
@@ -22,19 +39,19 @@ verifyToken = (req, res, next) => {
 
         const decoded = jwtVertify(token);
 
-        log(`decoded: ${stringify(decoded)}`, true);
+        logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
 
         if (!decoded) {
-            log(`decoded is null`, true);
+            logInfo(`decoded is null`, fileDetails, true);
             return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
 
         req.userId = decoded.id;
 
         return next();
-    } catch (error) {
-        printErrorDetails(error, true);
-        return http.errorResponse(res, BAD_REQUEST, error.message);
+    } catch (err) {
+        logError(err, fileDetails, true);
+        return http.errorResponse(res, BAD_REQUEST, err.message);
     }
 };
 
@@ -50,42 +67,45 @@ isMatchRole = (userOwnRoleList, checkRole) => {
 };
 
 isAdmin = async (req, res, next) => {
+    const classNameAndFuncName = getFunctionCallerName();
+    const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userOwnRoleList = await authService.findUserRolesById(req.userId);
-
         const isAdmin = isMatchRole(userOwnRoleList, 'admin');
 
-        log(`isAdmin: ${isAdmin}`, true);
+        logInfo(`isAdmin: ${isAdmin}`, fileDetails, true);
 
         if (!isAdmin) {
-            log(`Admin role not found.`, true);
+            logInfo(`Admin role not found.`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
         return next();
-    } catch (error) {
-        printErrorDetails(error, true);
-        return http.errorResponse(res, BAD_REQUEST, error.message);
+    } catch (err) {
+        logError(err, fileDetails, true);
+        return http.errorResponse(res, BAD_REQUEST, err.message);
     }
 };
 
 isModerator = async (req, res, next) => {
+    const classNameAndFuncName = getFunctionCallerName();
+    const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userOwnRoleList = await authService.findUserRolesById(req.userId);
 
-        log(`userOwnRoleList: ${stringify(userOwnRoleList)}`, true);
+        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
         const isModerator = isMatchRole(userOwnRoleList, 'moderator');
 
-        log(`isModerator: ${isModerator}`, true);
+        logInfo(`isModerator: ${isModerator}`, fileDetails, true);
 
         if (!isModerator) {
-            log(`Moderator role not found.`, true);
+            logInfo(`Moderator role not found.`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
         return next();
-    } catch (error) {
-        printErrorDetails(error);
-        return http.errorResponse(res, BAD_REQUEST, error.message);
+    } catch (err) {
+        logError(err, fileDetails, true);
+        return http.errorResponse(res, BAD_REQUEST, err.message);
     }
 };
 

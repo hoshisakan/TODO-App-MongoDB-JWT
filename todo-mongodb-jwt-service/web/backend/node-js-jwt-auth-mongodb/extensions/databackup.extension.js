@@ -2,7 +2,8 @@ const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
-const { printErrorDetails, log } = require('../utils/debug.util');
+const { logInfo, logError } = require('../utils/log.util');
+const { filenameFilter } = require('../utils/regex.util');
 
 class DatabackupExtension {
     constructor() {
@@ -14,7 +15,22 @@ class DatabackupExtension {
         this.dbPort = process.env.DB_PORT;
         this.dialect = process.env.DB_DIALECT;
         this.cronExpreession = process.env.CRON_EXPRESSION;
+        this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
     }
+
+    getFunctionCallerName = () => {
+        const err = new Error();
+        const stack = err.stack.split('\n');
+        const functionName = stack[2].trim().split(' ')[1];
+        return functionName;
+    };
+
+    getFileDetails = (classAndFuncName) => {
+        // const className = classAndFuncName.split('.')[0];
+        // const funcName = classAndFuncName.split('.')[1];
+        const classAndFuncNameArr = classAndFuncName.split('.');
+        return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
+    };
 
     backup = () => {
         let backupCommand = '';
@@ -23,28 +39,30 @@ class DatabackupExtension {
         let backupFileFullPath = '';
         let backupDatetimeformat = '';
         let backupDirName = '';
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
 
         try {
             backupDatetimeformat = moment().format('YYYYMMDDHHmmss');
             backupDirName = moment().format('YYYYMMDD');
 
-            log(`backupDatetimeformat: ${backupDatetimeformat}`, true);
+            logInfo(`backupDatetimeformat: ${backupDatetimeformat}`, fileDetails, true);
 
             backupFileName = `${this.dbName}_${backupDatetimeformat}`;
             backupFilePath = path.join(__dirname, '..', `/data_backup/${this.dbName}/${backupDirName}`);
             backupFileFullPath = path.join(backupFilePath, backupFileName);
 
-            log(`backupFileName: ${backupFileName}`, true);
-            log(`backupFilePath: ${backupFilePath}`, true);
+            logInfo(`backupFileName: ${backupFileName}`, fileDetails, true);
+            logInfo(`backupFilePath: ${backupFilePath}`, fileDetails, true);
 
             let tryCreatedDirCount = 0;
             const maxTryCreatedDirCount = 3;
 
             while (!fs.existsSync(backupFilePath) && tryCreatedDirCount < maxTryCreatedDirCount) {
-                log(`backupFilePath: ${backupFilePath} not exists`, true);
+                logInfo(`tryCreatedDirCount: ${tryCreatedDirCount}`, fileDetails, true);
                 fs.mkdirSync(backupFilePath, { recursive: true }, (err) => {
                     if (err) {
-                        printErrorDetails(err);
+                        logError(err);
                         return;
                     }
                 });
@@ -53,7 +71,7 @@ class DatabackupExtension {
             }
 
             if (tryCreatedDirCount >= maxTryCreatedDirCount) {
-                log(`backupFilePath: ${backupFilePath} cannot be created`, true);
+                logInfo(`tryCreatedDirCount: ${tryCreatedDirCount}`, fileDetails, true);
                 return;
             }
 
@@ -66,40 +84,50 @@ class DatabackupExtension {
             } else if (this.dialect === 'mongodb') {
                 backupCommand = `mongodump "mongodb://${this.dbUsername}:${this.dbPassword}@${this.dbHost}:${this.dbPort}/${this.dbName}" --authenticationDatabase=${this.authDBName} --gzip --archive=${backupFileFullPath}.gz`;
             } else {
-                log(`Dialect ${this.dialect} is not supported`, true);
+                logInfo(`this.dialect: ${this.dialect}`, fileDetails, true);
                 return;
             }
 
-            log(`backupCommand: ${backupCommand}`, true);
+            logInfo(`backupCommand: ${backupCommand}`, fileDetails, true);
 
-            log(`Start backup database ${this.dbName} for ${this.dialect} at ${backupDatetimeformat}`, true);
+            logInfo(
+                `Start backup database ${this.dbName} for ${this.dialect} at ${backupDatetimeformat}`,
+                fileDetails,
+                true
+            );
 
             const exec = require('child_process').exec;
 
-            exec(backupCommand, (error, stdout, stderr) => {
-                if (error) {
-                    printErrorDetails(error, true);
+            exec(backupCommand, (err, stdout, stderr) => {
+                if (err) {
+                    logError(err, fileDetails, true);
                     return;
                 }
                 ///TODO: Record and write backup result to log file
                 if (stderr) {
-                    log(stderr, true);
+                    logInfo(stderr, fileDetails, true);
                     return;
                 }
             });
-            log(`End backup database ${this.dbName} for ${this.dialect} at ${backupDatetimeformat}`, true);
-        } catch (error) {
-            printErrorDetails(error, true);
+            logInfo(
+                `End backup database ${this.dbName} for ${this.dialect} at ${backupDatetimeformat}`,
+                fileDetails,
+                true
+            );
+        } catch (err) {
+            logError(err, fileDetails, true);
         }
     };
 
     start = () => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             cron.schedule(this.cronExpreession, () => {
                 this.backup();
             });
-        } catch (error) {
-            printErrorDetails(error, true);
+        } catch (err) {
+            logError(err, fileDetails, true);
         }
     };
 }

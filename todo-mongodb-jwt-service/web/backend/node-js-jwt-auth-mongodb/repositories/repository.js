@@ -3,12 +3,12 @@ class Repository {
         this.model = model;
     }
 
-    async find(condition={}) {
-        return this.model.find(condition);
+    async find(expression={}) {
+        return this.model.find(expression);
     }
 
-    async findOne(condition={}) {
-        return this.model.findOne(condition);
+    async findOne(expression={}) {
+        return this.model.findOne(expression);
     }
 
     async findById(id) {
@@ -24,20 +24,20 @@ class Repository {
         return await this.model.findByIdAndUpdate(id, entity, { new: true });
     }
 
-    async updateOne(condition, entity) {
-        return await this.model.updateOne(condition, entity);
+    async updateOne(expression, entity) {
+        return await this.model.updateOne(expression, entity);
     }
 
-    async updateMany(condition, entity) {
-        return await this.model.updateMany(condition, entity);
+    async updateMany(expression, entity) {
+        return await this.model.updateMany(expression, entity);
     }
 
-    async deleteOne(condition) {
-        return await this.model.deleteOne(condition);
+    async deleteOne(expression) {
+        return await this.model.deleteOne(expression);
     }
 
-    async deleteMany(condition) {
-        return await this.model.deleteMany(condition);
+    async deleteMany(expression) {
+        return await this.model.deleteMany(expression);
     }
 }
 

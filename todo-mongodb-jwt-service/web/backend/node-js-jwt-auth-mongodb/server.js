@@ -14,15 +14,19 @@ console.log(`env.trim(): ${env.trim()}`);
 
 console.log(`Logfile path: ${process.env.LOG_FILE_PATH}`);
 
-const logger = require('./extensions/logger.extension');
-
 const app = express();
 
 const corsOptions = require('./config/corsOptions').corsOptions;
 
 const DatabackupExtension = require('./extensions/databackup.extension');
 
-// const DebugHelper = require('./utils/debug.util');
+const { logInfo } = require('./utils/log.util');
+
+const { filenameFilter } = require('./utils/regex.util');
+
+const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+
+const fileDetails = `[${filenameWithoutPath}]`;
 
 require('./models/db_init');
 
@@ -40,7 +44,7 @@ const apiRouter = require('./routes/index.route');
 
 app.use('/api', apiRouter, (req, res, next) => {
     res.header('Access-Control-Allow-Headers', 'x-access-token, Origin, Content-Type, Accept');
-    console.log('api route hit');
+    logInfo(`Request URL: ${req.originalUrl}`, fileDetails, true);
     next();
 });
 
@@ -54,6 +58,5 @@ app.get('/', (req, res) => {
 // set port, listen for requests
 const PORT = process.env.SERVER_PORT || 8080;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}.`);
-    logger.info(`Server is running on port ${PORT}.`);
+    logInfo(`Server is running on port ${PORT}.`, fileDetails, true);
 });

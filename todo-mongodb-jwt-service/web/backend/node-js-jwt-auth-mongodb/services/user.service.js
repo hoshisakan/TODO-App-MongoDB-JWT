@@ -1,156 +1,340 @@
-const { log } = require('../utils/debug.util');
+const { logInfo, logError } = require('../utils/log.util');
 const { stringify } = require('../utils/json.util');
-const { endpoint } = require('../utils/validate.util');
-
+const { endpoint, queryOperator } = require('../utils/validate.util');
+const { filenameFilter } = require('../utils/regex.util');
 const BaseService = require('./base.service');
 const UnitOfWork = require('../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
-const validateFields = endpoint.userEndpoint.validateFields;
+const findValidateFields = endpoint.userEndpoint.findValidateFields;
+const signUpValidateFields = endpoint.userEndpoint.signUpValidateFields;
+const validateMode = endpoint.userEndpoint.validateMode;
+const validateOperators = queryOperator.validateOperators;
+const mongoOperators = queryOperator.mongoOperators;
 
 class UserService extends BaseService {
     constructor() {
         super(unitOfWork.users);
         this.unitOfWork = unitOfWork;
+        this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
     }
+
+    getFunctionCallerName = () => {
+        const err = new Error();
+        const stack = err.stack.split('\n');
+        const functionName = stack[2].trim().split(' ')[1];
+        return functionName;
+    };
+
+    getFileDetails = (classAndFuncName) => {
+        const classAndFuncNameArr = classAndFuncName.split('.');
+        return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
+    };
 
     ///TODO: Search roles by name
     searchRolesByName = async (roles) => {
         return await this.unitOfWork.roles.find({ name: { $in: roles } });
     };
 
-    ///TODO: Get expression of multiple fields by query params and check fields
-    handleMultQueryParams = async (queryParams) => {
-        let expression = {};
+    getValidateFields = (validObj) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let validateFields = [];
+
+        try {
+            if (!validObj) {
+                throw new Error('Valid object is required');
+            }
+            switch (validObj) {
+                case 'find':
+                    validateFields = findValidateFields;
+                    break;
+                case 'signup':
+                    validateFields = signUpValidateFields;
+                    break;
+                default:
+                    throw new Error('Valid object is invalid');
+            }
+        } catch (error) {
+            logError(error, fileDetails, true);
+        }
+        return validateFields;
+    };
+
+    isAnyFieldExists = (queryParams, validObj, reverse) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
         const checkFields = Object.keys(queryParams);
+        // const checkFieldsCount = checkFields.length;
+        let validateFields = [];
+        logInfo(`checkFields: ${stringify(checkFields)}`, fileDetails, true);
 
-        if (checkFields.length === 1) {
-            expression = await this.handleSingleQueryParams(queryParams, checkFields[0]);
-        } else {
-            ///TODO: If fields different quantity, then will be use 'OR' operator search in database
-            const validateResult = validateFields.every((field) => checkFields.includes(field));
-            expression = validateResult ? { $or: [] } : {};
-
-            for (const checkField of checkFields) {
-                if (validateResult) {
-                    ///TODO: If validateResult is true, then will be use 'OR' operator search in database
-                    expression.$or.push(await this.handleSingleQueryParams(queryParams, checkField));
-                } else {
-                    ///TODO: If validateResult is false, then will be use 'AND' operator search in database
-                    expression = Object.assign(expression, await this.handleSingleQueryParams(queryParams, checkField));
-                }
-            }
-            log(`expression: ${stringify(expression)}`, true);
+        if (!queryParams) {
+            throw new Error('Query params is required');
         }
-        return expression;
+        if (!validObj) {
+            throw new Error('Validate object is required');
+        }
+        validateFields = this.getValidateFields(validObj);
+        return reverse
+            ? checkFields.some((field) => !validateFields.includes(field))
+            : checkFields.some((field) => validateFields.includes(field));
     };
 
-    ///TODO: Get expression of one fields by query params and check field
-    handleSingleQueryParams = async (queryParams, checkField) => {
-        let expression = {};
-        ///TODO: If not add $or operator, then will be use 'AND' operator search in database
-        if (queryParams.id && checkField === 'id') {
-            // expression._id = queryParams.id;
-            expression._id = {
-                $in: queryParams.id.split(','),
-            };
-        } else if (queryParams.username && checkField === 'username') {
-            // expression.username = queryParams.username;
-            expression.username = {
-                $in: queryParams.username.split(','),
-            };
-        } else if (queryParams.email && checkField === 'email') {
-            // expression.email = queryParams.email;
-            expression.email = {
-                $in: queryParams.email.split(','),
-            };
-        } else if (queryParams.roles && checkField === 'roles') {
-            const roles = await this.searchRolesByName(queryParams.roles.split(','));
+    isAllFieldsExists = (queryParams, validObj, reverse) => {
+        const checkFields = Object.keys(queryParams);
+        // const checkFieldsCount = checkFields.length;
+        let validateFields = [];
+        logInfo(`checkFields: ${stringify(checkFields)}`, true);
 
-            if (!roles) {
-                throw new Error('Roles cannot be found');
-            }
-
-            log(`roles: ${stringify(roles)}`, true);
-
-            expression.roles = {
-                $in: roles,
-            };
+        if (!queryParams) {
+            throw new Error('Query params is required');
         }
-        return expression;
+        if (!validObj) {
+            throw new Error('Validate object is required');
+        }
+        validateFields = this.getValidateFields(validObj);
+        return reverse
+            ? checkFields.every((field) => !validateFields.includes(field))
+            : checkFields.every((field) => validateFields.includes(field));
     };
 
-    ///TODO: Check query params is valid, allMatch is true then must all fields match with validateFields fields, otherwise return false
-    checkQueryParams = (queryParams, allMatch) => {
-        let checkFields = Object.keys(queryParams);
-        const checkFieldsCount = checkFields.length;
-        // log(`checkFields: ${checkFieldsCount}`, true);
-        // log(`validateFields: ${stringify(validateFields)}`, true);
-        let result = false;
+    validateQueryOperator = (queryOperator) => {
+        return validateOperators.indexOf(queryOperator) === -1 ? false : true;
+    };
 
-        if (checkFieldsCount == 1) {
-            result = validateFields.includes(checkFields[0]) ? true : false;
-        } else if (checkFieldsCount > 1 && allMatch) {
-            ///TODO: Check query params is valid, every method equal to C# LINQ All method
-            ///TODO: must all fields match with validateFields fields, otherwise return false
-            result = validateFields.every((field) => checkFields.includes(field)) ? true : false;
-        } else if (checkFieldsCount > 1 && !allMatch) {
-            result = validateFields.some((field) => checkFields.includes(field)) ? true : false;
+    getQueryOperator = (queryOperator) => {
+        return this.validateQueryOperator(queryOperator) ? mongoOperators[queryOperator] : null;
+    };
+
+    isArray = (value) => {
+        return Array.isArray(value);
+    };
+
+    convertToArray = (value) => {
+        if (!value) {
+            throw new Error('Value is required');
         }
-        return result;
+        return this.isArray(value) ? value : String(value).split(',');
+    };
+
+    getValueOfAttributeCount = (attribute) => {
+        if (!attribute) {
+            throw new Error('Query param is required');
+        }
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        const checkValues = Object.values(attribute);
+        const checkValuesCount = checkValues.length;
+
+        logInfo(`checkValues: ${stringify(checkValues)}, attributes count: ${checkValuesCount}`, fileDetails, true);
+
+        return checkValuesCount;
+    };
+
+    regexCheckIncludeSpecialCharacters = (value) => {
+        if (!value) {
+            throw new Error('Value is required');
+        }
+        // const regex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+        const regex = /[,|]+/;
+        return regex.test(value);
+    };
+
+    isMultValues = (attribute) => {
+        return this.isArray(attribute) || this.regexCheckIncludeSpecialCharacters(attribute);
     };
 
     isOnlyOneValueExists = (queryParams) => {
-        const chechValues = Object.values(queryParams);
-        log(`chechValues: ${stringify(chechValues)}`, true);
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+        if (!queryParams) {
+            throw new Error('Query params is required');
+        }
+        const checkValues = Object.values(queryParams);
+
+        logInfo(`checkValues: ${stringify(checkValues)}`, fileDetails, true);
 
         let callbackFn = null;
         let result = false;
 
         // callbackFn = (value) => !Array.isArray(value);
         ///TODO: Method1: filter items of not equal to array, then check length whether equal to chechValues length
-        //result = chechValues.filter(callbackFn).length === chechValues.length;
+        //result = checkValues.filter(callbackFn).length === chechValues.length;
 
-        callbackFn = (value) => Array.isArray(value);
+        // callbackFn = (value) => Array.isArray(value);
         ///TODO: Method2: filter items of equal to array, then check length whether equal to 0
-        // result = chechValues.filter(callbackFn).length === 0;
+        // result = checkValues.filter(callbackFn).length === 0;
 
         ///TODO: Method3: check every item whether not equal to array, all items not equal to array then return true, otherwise return false
         callbackFn = (value) => !Array.isArray(value);
-        result = chechValues.every(callbackFn);
+        result = checkValues.every(callbackFn);
 
-        log(`result: ${result}`, true);
+        logInfo(`result: ${result}`, fileDetails, true);
+        return result;
+    };
+
+    validateRequestMode = (reqValidateMode) => {
+        if (!reqValidateMode) {
+            throw new Error('Validate mode is required');
+        }
+        return validateMode.indexOf(reqValidateMode) === -1 ? false : true;
+    };
+
+    ///TODO: Get single field expression, 目前在處理 isEnableQueryOperator 與 queryOperator 時有問題，原因待查，進而影響到 getMultFieldsExpression 方法
+    getSingleFieldExpression = async (queryParams, queryOperator, checkField, isEnableQueryOperator) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let expression = {};
+
+        try {
+            // logInfo(`checkValues: ${stringify(checkValues)}, attributes count: ${checkValuesCount}`, fileDetails, true);
+
+            if (!queryParams) {
+                throw new Error('Query params is required');
+            }
+
+            if (!queryOperator) {
+                throw new Error('Query operator is required');
+            }
+
+            if (!checkField) {
+                throw new Error('Check field is required');
+            }
+
+            let value = null;
+            let mongoOperator = null;
+
+            logInfo(`isEnableQueryOperator: ${isEnableQueryOperator}`, fileDetails, true);
+
+            mongoOperator = isEnableQueryOperator ? this.getQueryOperator(queryOperator) : null;
+
+            if (mongoOperator) {
+                logInfo(`mongoOperator: ${stringify(mongoOperator)}`, fileDetails, true);
+                expression = { queryOperator: [expression] };
+            } else {
+                logInfo(`Disable mongodb query expression, status: ${isEnableQueryOperator}`, fileDetails, true);
+            }
+
+            if (checkField === 'id') {
+                value = queryParams.id;
+                expression = this.isMultValues(value) ? { _id: { $in: this.convertToArray(value) } } : { _id: value };
+                logInfo(`Add id field related to expression: ${stringify(expression)}`, fileDetails, true);
+            } else if (checkField === 'email') {
+                value = queryParams.email;
+                expression = this.isMultValues(value)
+                    ? { email: { $in: this.convertToArray(value) } }
+                    : { email: value };
+                logInfo(`Add email field related to expression: ${stringify(expression)}`, fileDetails, true);
+            } else if (checkField === 'username') {
+                value = queryParams.username;
+                expression = this.isMultValues(value)
+                    ? { username: { $in: this.convertToArray(value) } }
+                    : { username: value };
+                logInfo(`Add username field related to expression: ${stringify(expression)}`, fileDetails, true);
+            } else if (checkField === 'roles') {
+                value = queryParams.roles;
+                expression = this.isMultValues(value)
+                    ? { roles: { $in: this.convertToArray(value) } }
+                    : { roles: value };
+                logInfo(`Add roles field related to expression: ${stringify(expression)}`, fileDetails, true);
+            } else {
+                logInfo(
+                    `Check field ${checkField} is invalid, must be id, email, username or roles`,
+                    fileDetails,
+                    true
+                );
+                throw new Error(`Check field ${checkField} is invalid, must be id, email, username or roles`);
+            }
+            logInfo(`getSingleFieldExpression handle query expression: ${stringify(expression)}`, fileDetails, true);
+        } catch (err) {
+            expression = null;
+            logError(err, fileDetails, true);
+        }
+        return expression;
+    };
+
+    getMultFieldsExpression = async (queryParams, queryOperator) => {
+        let expression = {};
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            if (!queryParams) {
+                throw new Error('Query params is required');
+            }
+
+            if (!queryOperator) {
+                throw new Error('Query operator is required');
+            }
+
+            const checkFields = Object.keys(queryParams);
+            const checkFieldsCount = checkFields.length;
+
+            logInfo(`checkFields: ${stringify(checkFields)}, attributes count: ${checkFieldsCount}`, fileDetails, true);
+
+            if (checkFieldsCount < 2) {
+                throw new Error('Query params is invalid, must be more than one field');
+            }
+
+            let mongodbQueryOperator = null;
+
+            mongodbQueryOperator = this.getQueryOperator(queryOperator);
+
+            if (!mongodbQueryOperator) {
+                throw new Error('Convert mongodb query operator failed, query operator is invalid');
+            }
+
+            logInfo(
+                `getMultFieldsExpression mongodbQueryOperator: ${stringify(mongodbQueryOperator)}`,
+                fileDetails,
+                true
+            );
+
+            expression[mongodbQueryOperator] = [];
+
+            checkFields.forEach(async (field, index) => {
+                // logInfo(`index: ${index + 1}, field: ${field}`, true);
+                const currFieldExpression = await this.getSingleFieldExpression(
+                    queryParams,
+                    queryOperator,
+                    field,
+                    false
+                );
+                logInfo(
+                    `current field '${field}' get expression: ${stringify(currFieldExpression)}`,
+                    fileDetails,
+                    true
+                );
+                if (!currFieldExpression || Object.keys(currFieldExpression).length === 0) {
+                    throw new Error(`Get single field expression failed, field: ${field}`);
+                }
+                // await expression[mongodbQueryOperator].push(currFieldExpression);
+                expression[mongodbQueryOperator] = [...expression[mongodbQueryOperator], currFieldExpression];
+            });
+        } catch (err) {
+            expression = null;
+            logError(err, fileDetails, true);
+        }
+        return expression;
+    };
+
+    ///TODO: Find one user by query params
+    findOne = async (expression={}) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = [];
+
+        result = await this.unitOfWork.users.findOne(expression);
         return result;
     };
 
     ///TODO: Find all users by query params
-    find = async (queryParams) => {
-        const checkFields = Object.keys(queryParams);
-        const checkFieldsCount = checkFields.length;
-
-        log(`checkFields: ${stringify(checkFields)}, attributes count: ${checkFieldsCount}`, true);
-
-        if (checkFieldsCount > 0) {
-            const isOnlyOneValueExists = this.isOnlyOneValueExists(queryParams);
-
-            log(`isOnlyOneValueExists: ${isOnlyOneValueExists}`, true);
-
-            if (!isOnlyOneValueExists) {
-                throw new Error('Query params is not valid, every field only allowed exists one value');
-            }
-            if (this.checkQueryParams(queryParams)) {
-                // log(`queryParams: ${stringify(queryParams)}`, true);
-
-                let expression = {};
-                expression = await this.handleMultQueryParams(queryParams);
-                // log(`expression: ${stringify(expression)}`, true);
-
-                return await this.unitOfWork.users.find(expression);
-            } else {
-                log(`Query params is reuquired, not pass query parameter check`, true);
-                throw new Error('Query params is reuquired');
-            }
-        }
-        return await this.unitOfWork.users.find();
+    find = async (expression={}) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = [];
+        result = await this.unitOfWork.users.find(expression);
+        return result;
     };
 }
 
