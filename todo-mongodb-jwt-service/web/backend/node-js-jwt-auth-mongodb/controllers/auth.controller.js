@@ -37,10 +37,13 @@ class AuthController {
             logInfo(`req.body: ${JSON.stringify(req.body)}`, fileDetails, true);
             const result = await this.authService.signup(req.body);
             // return http.successResponse(res, CREATED, result);
+            if (!result) {
+                throw new Error('User was not registered successfully!');
+            }
             return http.successResponse(res, CREATED, 'User was registered successfully!');
         } catch (err) {
             logError(err, fileDetails, true);
-            return http.errorResponse(res, NO_CONTENT, err.message);
+            return http.errorResponse(res, BAD_REQUEST, err.message);
         }
     };
 

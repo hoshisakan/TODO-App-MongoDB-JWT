@@ -18,12 +18,12 @@ getFunctionCallerName = () => {
 };
 
 getFileDetails = (classAndFuncName) => {
-    // const className = classAndFuncName.split('.')[0];
-    // const funcName = classAndFuncName.split('.')[1];
     const classAndFuncNameArr = classAndFuncName.split('.');
     return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
 };
 
+///TODO: Verify token
+///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
 verifyToken = (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
@@ -46,7 +46,9 @@ verifyToken = (req, res, next) => {
             return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
 
-        req.userId = decoded.id;
+        req.user = {}
+        req.user.id = decoded.id;
+        req.user.permission = 'user'
 
         return next();
     } catch (err) {
@@ -70,7 +72,7 @@ isAdmin = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
-        const userOwnRoleList = await authService.findUserRolesById(req.userId);
+        const userOwnRoleList = await authService.findUserRolesById(req.user.id);
         const isAdmin = isMatchRole(userOwnRoleList, 'admin');
 
         logInfo(`isAdmin: ${isAdmin}`, fileDetails, true);
@@ -79,6 +81,7 @@ isAdmin = async (req, res, next) => {
             logInfo(`Admin role not found.`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
+        req.user.permission = 'admin';
         return next();
     } catch (err) {
         logError(err, fileDetails, true);
@@ -90,7 +93,7 @@ isModerator = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
-        const userOwnRoleList = await authService.findUserRolesById(req.userId);
+        const userOwnRoleList = await authService.findUserRolesById(req.user.id);
 
         logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
@@ -102,6 +105,7 @@ isModerator = async (req, res, next) => {
             logInfo(`Moderator role not found.`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
+        res.user.permission = 'moderator';
         return next();
     } catch (err) {
         logError(err, fileDetails, true);

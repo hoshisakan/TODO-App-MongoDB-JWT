@@ -12,12 +12,12 @@ const {
 
 const RoleService = require('../services/role.service');
 
+
 class RoleController {
     constructor() {
         this.roleService = new RoleService();
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
     }
-
     getFunctionCallerName = () => {
         const err = new Error();
         const stack = err.stack.split('\n');
@@ -34,7 +34,11 @@ class RoleController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.roleService.find(req.query);
+            const userId = req.user.id;
+            logInfo(`User id: ${userId}`, fileDetails);
+            const userPermission = req.user.permission;
+            logInfo(`User permission: ${userPermission}`, fileDetails);
+            const result = await this.roleService.find(req.query, userPermission);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);

@@ -18,8 +18,6 @@ getFunctionCallerName = () => {
 };
 
 getFileDetails = (classAndFuncName) => {
-    // const className = classAndFuncName.split('.')[0];
-    // const funcName = classAndFuncName.split('.')[1];
     const classAndFuncNameArr = classAndFuncName.split('.');
     return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
 };
@@ -29,21 +27,20 @@ checkDuplicateUsernameOrEmail = async (req, res, next) => {
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const params = req.body;
-        logInfo(`params: ${JSON.stringify(params)}`, fileDetails, true);
+        // logInfo(`params: ${JSON.stringify(params)}`, fileDetails, true);
 
-        const isUserExists = await userService.findOne({ username: params.username });
+        const isUserExists = await userService.checkUserExistsByUsername(params.username);
         logInfo(`isUserExists: ${JSON.stringify(isUserExists)}`, fileDetails, true);
 
         if (isUserExists) {
             return http.errorResponse(res, BAD_REQUEST, 'Failed! Username is already in use!');
         }
 
-        const isEmailExists = await userService.findOne({ email: params.email });
-
+        const isEmailExists = await userService.checkUserExistsByEmail(params.email);
         logInfo(`isEmailExists: ${JSON.stringify(isEmailExists)}`, fileDetails, true);
 
         if (isEmailExists) {
-            return http.errorResponse(res, BAD_REQUEST, 'Failed! Email is already in user');
+            return http.errorResponse(res, BAD_REQUEST, 'Failed! Email is already in use');
         }
         return next();
     } catch (err) {

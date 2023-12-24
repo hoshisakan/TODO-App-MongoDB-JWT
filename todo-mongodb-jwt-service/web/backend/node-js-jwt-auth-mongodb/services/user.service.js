@@ -1,15 +1,14 @@
 const { logInfo, logError } = require('../utils/log.util');
 const { stringify } = require('../utils/json.util');
-const { endpoint, queryOperator } = require('../utils/validate.util');
 const { filenameFilter } = require('../utils/regex.util');
+const { validateFieldsAuthenticity } = require('../utils/model.validate.util');
+
+
 const BaseService = require('./base.service');
 const UnitOfWork = require('../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
-const findValidateFields = endpoint.userEndpoint.findValidateFields;
-const signUpValidateFields = endpoint.userEndpoint.signUpValidateFields;
-const validateMode = endpoint.userEndpoint.validateMode;
-const validateOperators = queryOperator.validateOperators;
-const mongoOperators = queryOperator.mongoOperators;
+
+
 
 class UserService extends BaseService {
     constructor() {
@@ -30,310 +29,293 @@ class UserService extends BaseService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    ///TODO: Search roles by name
-    searchRolesByName = async (roles) => {
-        return await this.unitOfWork.roles.find({ name: { $in: roles } });
+    isAnyFieldExists = (queryParamsKeys = []) => {
+        return queryParamsKeys.length > 0;
     };
 
-    getValidateFields = (validObj) => {
+    validateValuesContainsFilterFormat = (queryParamsValues = []) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let validateFields = [];
-
+        let result = false;
         try {
-            if (!validObj) {
-                throw new Error('Valid object is required');
+            if (!queryParamsValues) {
+                throw new Error('Invalid query parameters, please provide values');
             }
-            switch (validObj) {
-                case 'find':
-                    validateFields = findValidateFields;
-                    break;
-                case 'signup':
-                    validateFields = signUpValidateFields;
-                    break;
-                default:
-                    throw new Error('Valid object is invalid');
-            }
-        } catch (error) {
-            logError(error, fileDetails, true);
+            const predicate = (value) => typeof value == 'string' || typeof value == 'object';
+            result = queryParamsValues.every((value) => predicate(value));
+
+            return result;
+        } catch (err) {
+            result = false;
+            logError(err, fileDetails, true);
         }
-        return validateFields;
-    };
-
-    isAnyFieldExists = (queryParams, validObj, reverse) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        const checkFields = Object.keys(queryParams);
-        // const checkFieldsCount = checkFields.length;
-        let validateFields = [];
-        logInfo(`checkFields: ${stringify(checkFields)}`, fileDetails, true);
-
-        if (!queryParams) {
-            throw new Error('Query params is required');
-        }
-        if (!validObj) {
-            throw new Error('Validate object is required');
-        }
-        validateFields = this.getValidateFields(validObj);
-        return reverse
-            ? checkFields.some((field) => !validateFields.includes(field))
-            : checkFields.some((field) => validateFields.includes(field));
-    };
-
-    isAllFieldsExists = (queryParams, validObj, reverse) => {
-        const checkFields = Object.keys(queryParams);
-        // const checkFieldsCount = checkFields.length;
-        let validateFields = [];
-        logInfo(`checkFields: ${stringify(checkFields)}`, true);
-
-        if (!queryParams) {
-            throw new Error('Query params is required');
-        }
-        if (!validObj) {
-            throw new Error('Validate object is required');
-        }
-        validateFields = this.getValidateFields(validObj);
-        return reverse
-            ? checkFields.every((field) => !validateFields.includes(field))
-            : checkFields.every((field) => validateFields.includes(field));
-    };
-
-    validateQueryOperator = (queryOperator) => {
-        return validateOperators.indexOf(queryOperator) === -1 ? false : true;
-    };
-
-    getQueryOperator = (queryOperator) => {
-        return this.validateQueryOperator(queryOperator) ? mongoOperators[queryOperator] : null;
-    };
-
-    isArray = (value) => {
-        return Array.isArray(value);
-    };
-
-    convertToArray = (value) => {
-        if (!value) {
-            throw new Error('Value is required');
-        }
-        return this.isArray(value) ? value : String(value).split(',');
-    };
-
-    getValueOfAttributeCount = (attribute) => {
-        if (!attribute) {
-            throw new Error('Query param is required');
-        }
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        const checkValues = Object.values(attribute);
-        const checkValuesCount = checkValues.length;
-
-        logInfo(`checkValues: ${stringify(checkValues)}, attributes count: ${checkValuesCount}`, fileDetails, true);
-
-        return checkValuesCount;
+        return result;
     };
 
     regexCheckIncludeSpecialCharacters = (value) => {
         if (!value) {
             throw new Error('Value is required');
         }
-        // const regex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
         const regex = /[,|]+/;
         return regex.test(value);
     };
 
-    isMultValues = (attribute) => {
-        return this.isArray(attribute) || this.regexCheckIncludeSpecialCharacters(attribute);
-    };
-
-    isOnlyOneValueExists = (queryParams) => {
+    validateQueryParams = (queryParams) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
-
-        if (!queryParams) {
-            throw new Error('Query params is required');
-        }
-        const checkValues = Object.values(queryParams);
-
-        logInfo(`checkValues: ${stringify(checkValues)}`, fileDetails, true);
-
-        let callbackFn = null;
-        let result = false;
-
-        // callbackFn = (value) => !Array.isArray(value);
-        ///TODO: Method1: filter items of not equal to array, then check length whether equal to chechValues length
-        //result = checkValues.filter(callbackFn).length === chechValues.length;
-
-        // callbackFn = (value) => Array.isArray(value);
-        ///TODO: Method2: filter items of equal to array, then check length whether equal to 0
-        // result = checkValues.filter(callbackFn).length === 0;
-
-        ///TODO: Method3: check every item whether not equal to array, all items not equal to array then return true, otherwise return false
-        callbackFn = (value) => !Array.isArray(value);
-        result = checkValues.every(callbackFn);
-
-        logInfo(`result: ${result}`, fileDetails, true);
-        return result;
-    };
-
-    validateRequestMode = (reqValidateMode) => {
-        if (!reqValidateMode) {
-            throw new Error('Validate mode is required');
-        }
-        return validateMode.indexOf(reqValidateMode) === -1 ? false : true;
-    };
-
-    ///TODO: Get single field expression, 目前在處理 isEnableQueryOperator 與 queryOperator 時有問題，原因待查，進而影響到 getMultFieldsExpression 方法
-    getSingleFieldExpression = async (queryParams, queryOperator, checkField, isEnableQueryOperator) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let expression = {};
-
+        let result = true;
         try {
-            // logInfo(`checkValues: ${stringify(checkValues)}, attributes count: ${checkValuesCount}`, fileDetails, true);
+            const queryParamsKeys = Object.keys(queryParams);
+            logInfo(`queryParamsKeys: ${stringify(queryParamsKeys)}`, fileDetails, true);
 
-            if (!queryParams) {
-                throw new Error('Query params is required');
+            const isAnyFieldExists = this.isAnyFieldExists(queryParamsKeys);
+            logInfo(`isAnyFieldExists: ${stringify(isAnyFieldExists)}`, fileDetails, true);
+
+            if (!isAnyFieldExists) {
+                throw new Error('Invalid query parameters, please provide at least one field');
+            }
+            const isAuthenticityFieldsExists = validateFieldsAuthenticity(queryParamsKeys, 'User');
+            logInfo(`isAuthenticityFieldsExists: ${stringify(isAuthenticityFieldsExists)}`, fileDetails, true);
+
+            if (!isAuthenticityFieldsExists) {
+                throw new Error('Invalid query parameters, please provide authenticity fields');
             }
 
-            if (!queryOperator) {
-                throw new Error('Query operator is required');
-            }
+            const queryParamsValues = Object.values(queryParams);
+            // logInfo(`queryParamsValues: ${stringify(queryParamsValues)}`, fileDetails, true);
 
-            if (!checkField) {
-                throw new Error('Check field is required');
-            }
-
-            let value = null;
-            let mongoOperator = null;
-
-            logInfo(`isEnableQueryOperator: ${isEnableQueryOperator}`, fileDetails, true);
-
-            mongoOperator = isEnableQueryOperator ? this.getQueryOperator(queryOperator) : null;
-
-            if (mongoOperator) {
-                logInfo(`mongoOperator: ${stringify(mongoOperator)}`, fileDetails, true);
-                expression = { queryOperator: [expression] };
-            } else {
-                logInfo(`Disable mongodb query expression, status: ${isEnableQueryOperator}`, fileDetails, true);
-            }
-
-            if (checkField === 'id') {
-                value = queryParams.id;
-                expression = this.isMultValues(value) ? { _id: { $in: this.convertToArray(value) } } : { _id: value };
-                logInfo(`Add id field related to expression: ${stringify(expression)}`, fileDetails, true);
-            } else if (checkField === 'email') {
-                value = queryParams.email;
-                expression = this.isMultValues(value)
-                    ? { email: { $in: this.convertToArray(value) } }
-                    : { email: value };
-                logInfo(`Add email field related to expression: ${stringify(expression)}`, fileDetails, true);
-            } else if (checkField === 'username') {
-                value = queryParams.username;
-                expression = this.isMultValues(value)
-                    ? { username: { $in: this.convertToArray(value) } }
-                    : { username: value };
-                logInfo(`Add username field related to expression: ${stringify(expression)}`, fileDetails, true);
-            } else if (checkField === 'roles') {
-                value = queryParams.roles;
-                expression = this.isMultValues(value)
-                    ? { roles: { $in: this.convertToArray(value) } }
-                    : { roles: value };
-                logInfo(`Add roles field related to expression: ${stringify(expression)}`, fileDetails, true);
-            } else {
-                logInfo(
-                    `Check field ${checkField} is invalid, must be id, email, username or roles`,
-                    fileDetails,
-                    true
-                );
-                throw new Error(`Check field ${checkField} is invalid, must be id, email, username or roles`);
-            }
-            logInfo(`getSingleFieldExpression handle query expression: ${stringify(expression)}`, fileDetails, true);
-        } catch (err) {
-            expression = null;
-            logError(err, fileDetails, true);
-        }
-        return expression;
-    };
-
-    getMultFieldsExpression = async (queryParams, queryOperator) => {
-        let expression = {};
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        try {
-            if (!queryParams) {
-                throw new Error('Query params is required');
-            }
-
-            if (!queryOperator) {
-                throw new Error('Query operator is required');
-            }
-
-            const checkFields = Object.keys(queryParams);
-            const checkFieldsCount = checkFields.length;
-
-            logInfo(`checkFields: ${stringify(checkFields)}, attributes count: ${checkFieldsCount}`, fileDetails, true);
-
-            if (checkFieldsCount < 2) {
-                throw new Error('Query params is invalid, must be more than one field');
-            }
-
-            let mongodbQueryOperator = null;
-
-            mongodbQueryOperator = this.getQueryOperator(queryOperator);
-
-            if (!mongodbQueryOperator) {
-                throw new Error('Convert mongodb query operator failed, query operator is invalid');
-            }
-
+            const isValidateValuesContainsFilterFormat = this.validateValuesContainsFilterFormat(queryParamsValues);
             logInfo(
-                `getMultFieldsExpression mongodbQueryOperator: ${stringify(mongodbQueryOperator)}`,
+                `isValidateValuesContainsFilterFormat: ${stringify(isValidateValuesContainsFilterFormat)}`,
                 fileDetails,
                 true
             );
 
-            expression[mongodbQueryOperator] = [];
-
-            checkFields.forEach(async (field, index) => {
-                // logInfo(`index: ${index + 1}, field: ${field}`, true);
-                const currFieldExpression = await this.getSingleFieldExpression(
-                    queryParams,
-                    queryOperator,
-                    field,
-                    false
-                );
-                logInfo(
-                    `current field '${field}' get expression: ${stringify(currFieldExpression)}`,
-                    fileDetails,
-                    true
-                );
-                if (!currFieldExpression || Object.keys(currFieldExpression).length === 0) {
-                    throw new Error(`Get single field expression failed, field: ${field}`);
-                }
-                // await expression[mongodbQueryOperator].push(currFieldExpression);
-                expression[mongodbQueryOperator] = [...expression[mongodbQueryOperator], currFieldExpression];
-            });
+            if (!isValidateValuesContainsFilterFormat) {
+                throw new Error('Invalid query parameters, please provide correct filter values in query parameters');
+            }
         } catch (err) {
-            expression = null;
+            result = false;
             logError(err, fileDetails, true);
+            throw err;
         }
-        return expression;
-    };
-
-    ///TODO: Find one user by query params
-    findOne = async (expression={}) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result = [];
-
-        result = await this.unitOfWork.users.findOne(expression);
         return result;
     };
 
-    ///TODO: Find all users by query params
-    find = async (expression={}) => {
+    ///TODO: Search roles by name
+    searchRolesByName = async (roles = []) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = [];
-        result = await this.unitOfWork.users.find(expression);
+        try {
+            result = await this.unitOfWork.roles.find({ name: { $in: roles } });
+            // logInfo(`searchRolesByName result: ${stringify(result)}`, fileDetails, true);
+            if (!result) {
+                throw new Error('Search roles by name list failed, please provide correct roles list');
+            }
+            return result;
+        } catch (error) {
+            logError(error, fileDetails, true);
+            throw error;
+        }
+    };
+
+    convertQueryParamsToMongoQuery = async (queryParams) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {};
+        let newValue = [];
+        try {
+            if (!queryParams) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+            const queryParamsEntries = Object.entries(queryParams);
+            logInfo(`queryParamsEntries: ${stringify(queryParamsEntries)}`, fileDetails, true);
+
+            if (!queryParamsEntries) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+
+            for (const [key, value] of queryParamsEntries) {
+                logInfo(`key: ${stringify(key)}`, fileDetails, true);
+                logInfo(`value: ${stringify(value)}`, fileDetails, true);
+                newValue = String(value).split(',');
+
+                if (key === 'roles') {
+                    const searchRolesByNameResult = await this.searchRolesByName(newValue);
+                    logInfo(`searchRolesByNameResult: ${stringify(searchRolesByNameResult)}`, fileDetails, true);
+                    const searchRolesIds = searchRolesByNameResult.map((role) => role._id);
+                    newValue = searchRolesIds;
+                }
+                logInfo(`newValue: ${stringify(newValue)}`, fileDetails, true);
+                result[key] = { $in: newValue };
+            }
+            return result;
+        } catch (err) {
+            result = {};
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    };
+
+    getFilterQuery = async (queryParams) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {};
+        try {
+            if (!queryParams) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+            const validateQueryParamsResult = this.validateQueryParams(queryParams);
+            if (!validateQueryParamsResult) {
+                throw new Error(
+                    'Invalid query parameters, pleace check your query parameters whether they are correct or not'
+                );
+            }
+            result = await this.convertQueryParamsToMongoQuery(queryParams);
+            if (!result || result.error || Object.keys(result).length === 0) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+            logInfo(`getFilterQuery result: ${stringify(result)}`, fileDetails, true);
+        } catch (err) {
+            result = {};
+            logError(err, fileDetails, true);
+            throw err;
+        }
+        return result;
+    };
+
+    checkUserExistsByUsername = async (username) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = false;
+        try {
+            if (!username) {
+                throw new Error('Username is required');
+            }
+            result = await this.unitOfWork.users.findOne({ username: username }) ? true : false;
+        } catch (err) {
+            result = false;
+            logError(err, fileDetails, true);
+        }
+        return result;
+    };
+
+    checkUserExistsByEmail = async (email) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = false;
+        try {
+            if (!email) {
+                throw new Error('Email is required');
+            }
+            result = await this.unitOfWork.users.findOne({ email: email }) ? true : false;
+        } catch (err) {
+            result = false;
+            logError(err, fileDetails, true);
+        }
+        return result;
+    };
+
+    ///TODO: Find one user by query parameters
+    findOne = async (queryParams, userPermission='user') => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = [];
+
+        if (!userPermission) {
+            throw new Error('Unauthorized! You have no permission to access this resource.');
+        }
+
+        if (!queryParams) {
+            throw new Error('Invalid query parameters, please provide query parameters');
+        }
+
+        try {
+            logInfo(`userPermission: ${userPermission}`, fileDetails, true);
+
+            const queryParamsFieldsCount = Object.keys(queryParams).length;
+
+            if (queryParamsFieldsCount < 1 && userPermission !== 'admin') {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+            else if (queryParamsFieldsCount < 1 && userPermission === 'admin') {
+                result = await this.unitOfWork.users.findOne();
+                return result;
+            }
+
+            const validateQueryParamsResult = this.validateQueryParams(queryParams);
+
+            if (!validateQueryParamsResult) {
+                throw new Error(
+                    'Invalid query parameters, pleace check your query parameters whether they are correct or not'
+                );
+            }
+
+            const filterQuery = await this.getFilterQuery(queryParams);
+
+            logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
+
+            if (!filterQuery) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+
+            result = await this.unitOfWork.users.findOne(filterQuery);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+        return result;
+    };
+
+    ///TODO: Find all users by query parameters
+    find = async (queryParams, userPermission) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = [];
+
+        if (!userPermission) {
+            throw new Error('Unauthorized! You have no permission to access this resource.');
+        }
+
+        if (!queryParams) {
+            throw new Error('Invalid query parameters, please provide query parameters');
+        }
+
+        try {
+            logInfo(`userPermission: ${userPermission}`, fileDetails, true);
+
+            const queryParamsFieldsCount = Object.keys(queryParams).length;
+
+            if (queryParamsFieldsCount < 1 && userPermission !== 'admin') {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+            else if (queryParamsFieldsCount < 1 && userPermission === 'admin') {
+                result = await this.unitOfWork.users.find();
+                return result;
+            }
+
+            const validateQueryParamsResult = this.validateQueryParams(queryParams);
+
+            if (!validateQueryParamsResult) {
+                throw new Error(
+                    'Invalid query parameters, pleace check your query parameters whether they are correct or not'
+                );
+            }
+
+            const filterQuery = await this.getFilterQuery(queryParams);
+
+            logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
+
+            if (!filterQuery) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+
+            result = await this.unitOfWork.users.find(filterQuery);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
         return result;
     };
 }

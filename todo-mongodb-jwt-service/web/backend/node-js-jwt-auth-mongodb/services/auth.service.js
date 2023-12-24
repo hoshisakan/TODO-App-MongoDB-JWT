@@ -8,6 +8,7 @@ const UnitOfWork = require('../repositories/unitwork');
 const User = require('../models/user.model');
 const unitOfWork = new UnitOfWork();
 
+
 class AuthService {
     constructor() {
         this.unitOfWork = unitOfWork;
@@ -22,17 +23,22 @@ class AuthService {
     };
 
     getFileDetails = (classAndFuncName) => {
-        // const className = classAndFuncName.split('.')[0];
-        // const funcName = classAndFuncName.split('.')[1];
         const classAndFuncNameArr = classAndFuncName.split('.');
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
     findUserById = async (id) => {
+        if (!id) {
+            throw new Error('User id cannot be empty.');
+        }
         return await this.unitOfWork.users.findById(id);
     };
 
     findUserRolesById = async (userId) => {
+        if (!userId) {
+            throw new Error('User id cannot be empty.');
+        }
+
         const user = await this.findUserById(userId);
 
         if (!user) {
@@ -111,6 +117,8 @@ class AuthService {
             if (roles.length !== user.roles.length) {
                 throw new Error('Roles one or more cannot be found');
             }
+
+            logInfo(`roles: ${stringify(roles)}`, fileDetails, true);
             
             const registerUser = new User({
                 username: user.username,
@@ -140,11 +148,16 @@ class AuthService {
             }
         } catch (err) {
             logError(err, fileDetails, true);
+            throw err;
         }
         return result;
     };
 
     signin = async (user) => {
+        if (!user) {
+            throw new Error('User cannot be empty');
+        }
+
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
 

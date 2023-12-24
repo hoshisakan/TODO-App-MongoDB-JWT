@@ -66,7 +66,7 @@ class DatabackupExtension {
                         return;
                     }
                 });
-                log(`backupFilePath: ${backupFilePath} created`, true);
+                logInfo(`Created backupFilePath: ${backupFilePath}`, fileDetails, true);
                 tryCreatedDirCount++;
             }
 

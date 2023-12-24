@@ -4,7 +4,11 @@ class Repository {
     }
 
     async find(expression={}) {
-        return this.model.find(expression);
+        try {
+            return await this.model.find(expression);
+        } catch (err) {
+            throw err;
+        }
     }
 
     async findOne(expression={}) {
