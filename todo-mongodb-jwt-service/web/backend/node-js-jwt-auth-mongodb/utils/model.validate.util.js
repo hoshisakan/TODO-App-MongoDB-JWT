@@ -1,5 +1,5 @@
-const User = require('../models/user.model');
-const Role = require('../models/role.model');
+const User = require('../models/mongodb/user.model');
+const Role = require('../models/mongodb/role.model');
 
 const ModelValidateUtil = {
     validateOneFieldAuthenticity: (fieldKey, validateModelName) => {

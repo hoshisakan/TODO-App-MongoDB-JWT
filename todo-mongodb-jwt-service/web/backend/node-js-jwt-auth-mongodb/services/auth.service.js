@@ -5,7 +5,7 @@ const { filenameFilter } = require('../utils/regex.util');
 
 const { jwtSign } = require('../utils/jwt.util');
 const UnitOfWork = require('../repositories/unitwork');
-const User = require('../models/user.model');
+const User = require('../models/mongodb/user.model');
 const unitOfWork = new UnitOfWork();
 
 

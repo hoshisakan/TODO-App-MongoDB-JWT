@@ -2,7 +2,7 @@ const UserRepository = require('./user.repository');
 const RoleRepository = require('./role.repository');
 // const TodoRepository = require('./todo-repository');
 
-const db = require('../models');
+const db = require('../models/mongodb');
 const User = db.user;
 const Role = db.role;
 

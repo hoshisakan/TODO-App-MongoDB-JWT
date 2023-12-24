@@ -30,22 +30,22 @@ RUN apt update && apt install -y wget locales gnupg2 apt-transport-https \
     libicu-dev pkgconf mongodb-org-shell mongodb-org-tools
 
 # Enter postgresql-client install package directory
-WORKDIR ${SERVER_PACKAGES_PATH}
+# WORKDIR ${SERVER_PACKAGES_PATH}
 
-# Download postgresql-client specific version
-RUN wget https://ftp.postgresql.org/pub/source/v${SERVER_POSTGRES_VERSION}/postgresql-${SERVER_POSTGRES_VERSION}.tar.gz
+# # Download postgresql-client specific version
+# RUN wget https://ftp.postgresql.org/pub/source/v${SERVER_POSTGRES_VERSION}/postgresql-${SERVER_POSTGRES_VERSION}.tar.gz
 
-# Unzip postgresql-client specific version
-RUN tar -zxvf postgresql-${SERVER_POSTGRES_VERSION}.tar.gz -C ${SERVER_PACKAGES_PATH}
+# # Unzip postgresql-client specific version
+# RUN tar -zxvf postgresql-${SERVER_POSTGRES_VERSION}.tar.gz -C ${SERVER_PACKAGES_PATH}
 
-# Enter postgresql-client specific version directory
-WORKDIR ${SERVER_PACKAGES_PATH}/postgresql-${SERVER_POSTGRES_VERSION}
+# # Enter postgresql-client specific version directory
+# WORKDIR ${SERVER_PACKAGES_PATH}/postgresql-${SERVER_POSTGRES_VERSION}
 
-# Install postgresql-client specific version
-RUN ./configure --prefix=${SERVER_POSTGRES_CLIENT_HOME} && make && make install
+# # Install postgresql-client specific version
+# RUN ./configure --prefix=${SERVER_POSTGRES_CLIENT_HOME} && make && make install
 
-# Remove postgresql-client specific version install package files
-RUN rm -rf ${SERVER_PACKAGES_PATH}/postgresql-${SERVER_POSTGRES_VERSION}.tar.gz && rm -rf ${SERVER_PACKAGES_PATH}/postgresql-{$SERVER_POSTGRES_VERSION}
+# # Remove postgresql-client specific version install package files
+# RUN rm -rf ${SERVER_PACKAGES_PATH}/postgresql-${SERVER_POSTGRES_VERSION}.tar.gz && rm -rf ${SERVER_PACKAGES_PATH}/postgresql-{$SERVER_POSTGRES_VERSION}
 
 # Clean apt cache
 RUN rm -rf /var/cache/apt && apt-get clean && rm -rf /var/lib/apt/lists/*

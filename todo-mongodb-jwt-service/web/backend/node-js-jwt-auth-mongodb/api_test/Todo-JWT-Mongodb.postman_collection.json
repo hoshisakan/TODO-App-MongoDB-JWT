@@ -17,7 +17,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera1009992\",\r\n    \"email\": \"mod@bezkoder1009992.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": []\r\n}",
+							"raw": "{\r\n    \"username\": \"modera100009\",\r\n    \"email\": \"modera100009@bezkoder.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -45,7 +45,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera987\",\r\n    \"email\": \"mod@bezkoder987.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"moderator\"]\r\n}",
+							"raw": "{\r\n    \"username\": \"modera100002\",\r\n    \"email\": \"mod@bezkoder100002.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"moderator\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -73,7 +73,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera99\",\r\n    \"email\": \"mod@bezkoder99.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"admin\"]\r\n}",
+							"raw": "{\r\n    \"username\": \"modera10000\",\r\n    \"email\": \"mod@bezkoder10000.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"admin\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -101,7 +101,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera100\",\r\n    \"email\": \"mod@bezkoder100.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"]\r\n}",
+							"raw": "{\r\n    \"username\": \"modera100003\",\r\n    \"email\": \"mod@bezkoder100003.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -158,7 +158,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"modera98\",\r\n    \"password\": \"12345678a\"\r\n}",
+							"raw": "{\r\n    \"username\": \"modera100009\",\r\n    \"password\": \"12345678a\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -585,7 +585,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/user?roles=admin&username=modera1009992&email=mod@bezkoder.com,mod@bezkoder.com5&id=657a99ae1dd447cd7e3e74d7",
+							"raw": "{{url}}/api/user?username=modera1009992&username[]=modera100008,modera100009",
 							"host": [
 								"{{url}}"
 							],
@@ -595,7 +595,7 @@
 							],
 							"query": [
 								{
-									"key": "username",
+									"key": "username[]",
 									"value": "modera,modera2",
 									"disabled": true
 								},
@@ -606,7 +606,8 @@
 								},
 								{
 									"key": "roles",
-									"value": "admin"
+									"value": "user",
+									"disabled": true
 								},
 								{
 									"key": "username",
@@ -619,11 +620,42 @@
 								},
 								{
 									"key": "email",
-									"value": "mod@bezkoder.com,mod@bezkoder.com5"
+									"value": "mod@bezkoder.com,mod@bezkoder.com5",
+									"disabled": true
 								},
 								{
-									"key": "id",
-									"value": "657a99ae1dd447cd7e3e74d7"
+									"key": "_id",
+									"value": "657a99ae1dd447cd7e3e74d7",
+									"disabled": true
+								},
+								{
+									"key": "username",
+									"value": "modera100005",
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": "mod@bezkoder.com",
+									"disabled": true
+								},
+								{
+									"key": "username[]",
+									"value": "test",
+									"disabled": true
+								},
+								{
+									"key": "password",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "test[]",
+									"value": "test,ete",
+									"disabled": true
+								},
+								{
+									"key": "username[]",
+									"value": "modera100008,modera100009"
 								}
 							]
 						}
@@ -665,13 +697,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/user/",
+							"raw": "{{url}}/api/role/",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
-								"user",
+								"role",
 								""
 							]
 						}
@@ -708,7 +740,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/role/?name=admin,user",
+							"raw": "{{url}}/api/role/?name=moderator",
 							"host": [
 								"{{url}}"
 							],
@@ -720,16 +752,21 @@
 							"query": [
 								{
 									"key": "name",
-									"value": "admin,user"
+									"value": "admin,user",
+									"disabled": true
 								},
 								{
-									"key": "id",
-									"value": "6577e293255f0fec1c386624",
+									"key": "_id",
+									"value": "6577e293255f0fec1c386625",
 									"disabled": true
 								},
 								{
 									"key": "name",
-									"value": "moderator",
+									"value": "moderator"
+								},
+								{
+									"key": "_id",
+									"value": "6577e293255f0fec1c386624",
 									"disabled": true
 								}
 							]

@@ -28,7 +28,15 @@ const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).
 
 const fileDetails = `[${filenameWithoutPath}]`;
 
-require('./models/db_init');
+require('./models/mongodb/db_init');
+
+const client = require('./models/redis/db_init');
+
+const key = 'string key4';
+client.set(key, 'string val', client.print);
+const result = client.get(key, client.print);
+
+logInfo(`result: ${result}`, fileDetails, true);
 
 app.use(cors(corsOptions));
 

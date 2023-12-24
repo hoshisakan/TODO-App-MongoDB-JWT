@@ -1,6 +1,27 @@
 version: '3.9'
 
 services:
+    cache:
+        build:
+            context: ./conf/redis
+            dockerfile: Dockerfile
+        image: ${CONTAINER_AUTHOR}/${SERVICE_NAME}_redis
+        container_name: ${REDIS_CONTAINER_NAME}
+        environment:
+            TZ: ${TZ}
+        env_file:
+            - ${ENV_FILE_PATH}
+        volumes:
+            - ./data/redis:/data
+            - ./logs/redis:/var/log
+        ports:
+            - ${REDIS_OUTER_PORT}:${REDIS_INNER_PORT}
+        networks:
+            todo_mongodb_jwt_net:
+                ipv4_address: ${REDIS_HOST_IP}
+        command: redis-server --appendonly ${REDIS_AOF_ENABLED} --requirepass ${REDIS_PASSWORD}
+        restart: always
+
     server:
         build:
             context: ./web/backend/node-js-jwt-auth-mongodb

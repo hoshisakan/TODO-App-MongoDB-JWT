@@ -1,4 +1,4 @@
-const db = require('../models');
+const db = require('../models/mongodb');
 const ROLES = db.ROLES;
 const { logError, logInfo } = require('../utils/log.util');
 const http = require('../helpers/http.helper');
