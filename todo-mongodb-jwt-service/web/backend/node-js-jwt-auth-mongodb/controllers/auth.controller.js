@@ -12,6 +12,8 @@ const {
 
 const AuthService = require('../services/auth.service');
 
+
+
 class AuthController {
     constructor() {
         this.authService = new AuthService();
@@ -36,7 +38,7 @@ class AuthController {
         try {
             logInfo(`req.body: ${JSON.stringify(req.body)}`, fileDetails, true);
             const result = await this.authService.signup(req.body);
-            // return http.successResponse(res, CREATED, result);
+
             if (!result) {
                 throw new Error('User was not registered successfully!');
             }
@@ -52,8 +54,19 @@ class AuthController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             logInfo(`req.body: ${JSON.stringify(req.body)}`, fileDetails, true);
-            const result = await this.authService.signin(req.body);
-            return http.successResponse(res, OK, result);
+            const { clientResponse, clientCookie } = await this.authService.signin(req.body);
+
+            if (!clientResponse || !clientCookie) {
+                throw new Error('User was not authenticated successfully!');
+            }
+
+            res.cookie('__refresh_token', clientCookie.refreshToken, {
+                httpOnly: true, ///TODO: Disable other uesrs access to this cookie
+                secure: true, ///TODO: Only allow https access to this cookie
+                sameSite: 'none', ///TODO: only allow same site access to this cookie
+            });
+
+            return http.successResponse(res, OK, clientResponse);
         } catch (err) {
             logError(err, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, err.message);

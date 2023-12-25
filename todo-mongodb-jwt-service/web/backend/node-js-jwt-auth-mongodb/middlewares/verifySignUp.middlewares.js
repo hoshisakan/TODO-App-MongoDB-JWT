@@ -10,6 +10,7 @@ const userService = new UserService();
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 
+
 getFunctionCallerName = () => {
     const err = new Error();
     const stack = err.stack.split('\n');

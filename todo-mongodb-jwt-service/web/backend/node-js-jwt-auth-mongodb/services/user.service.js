@@ -253,13 +253,11 @@ class UserService extends BaseService {
             }
 
             const filterQuery = await this.getFilterQuery(queryParams);
-
             logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
 
             if (!filterQuery) {
                 throw new Error('Invalid query parameters, please provide query parameters');
             }
-
             result = await this.unitOfWork.users.findOne(filterQuery);
         } catch (err) {
             logError(err, fileDetails, true);

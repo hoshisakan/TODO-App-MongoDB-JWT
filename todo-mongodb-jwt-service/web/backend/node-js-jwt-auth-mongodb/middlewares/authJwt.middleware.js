@@ -6,9 +6,10 @@ const { BAD_REQUEST, UNAUTHORIZED } = require('../helpers/constants.helper.js');
 
 const AuthService = require('../services/auth.service');
 const authService = new AuthService();
-const { jwtVertify } = require('../utils/jwt.util.js');
+const { verifyToken } = require('../utils/jwt.util.js');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+
 
 getFunctionCallerName = () => {
     const err = new Error();
@@ -22,9 +23,25 @@ getFileDetails = (classAndFuncName) => {
     return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
 };
 
+///TODO:
+getUserHighestRoleNameById = async (userId) => {
+    const classNameAndFuncName = getFunctionCallerName();
+    const fileDetails = getFileDetails(classNameAndFuncName);
+    try {
+        const userOwnRoleList = await authService.findUserRolesById(userId, true);
+        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
+        const userOwnHighestPermission = userOwnRoleList[0].name;
+        logInfo(`userOwnHighestPermission: ${stringify(userOwnHighestPermission)}`, fileDetails, true);
+        return userOwnHighestPermission;
+    } catch (err) {
+        logError(err, fileDetails, true);
+        return null;
+    }
+};
+
 ///TODO: Verify token
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
-verifyToken = (req, res, next) => {
+verifyAcccessToken = (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
 
@@ -37,23 +54,25 @@ verifyToken = (req, res, next) => {
             return http.errorResponse(res, BAD_REQUEST, 'No token provided!');
         }
 
-        const decoded = jwtVertify(token);
+        const decoded = verifyToken(token, 'access')
 
         logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
 
         if (!decoded) {
             logInfo(`decoded is null`, fileDetails, true);
-            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
+            throw new Error('Unauthorized!');
         }
 
         req.user = {}
         req.user.id = decoded.id;
-        req.user.permission = 'user'
+        req.user.permission = getUserHighestRoleNameById(decoded.id);
+
+        logInfo(`req.user: ${stringify(req.user)}`, fileDetails, true);
 
         return next();
     } catch (err) {
         logError(err, fileDetails, true);
-        return http.errorResponse(res, BAD_REQUEST, err.message);
+        return http.errorResponse(res, UNAUTHORIZED, err.message);
     }
 };
 
@@ -73,8 +92,9 @@ isAdmin = async (req, res, next) => {
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userOwnRoleList = await authService.findUserRolesById(req.user.id);
-        const isAdmin = isMatchRole(userOwnRoleList, 'admin');
+        // logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
+        const isAdmin = isMatchRole(userOwnRoleList, 'admin');
         logInfo(`isAdmin: ${isAdmin}`, fileDetails, true);
 
         if (!isAdmin) {
@@ -94,11 +114,9 @@ isModerator = async (req, res, next) => {
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userOwnRoleList = await authService.findUserRolesById(req.user.id);
-
-        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
+        // logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
         const isModerator = isMatchRole(userOwnRoleList, 'moderator');
-
         logInfo(`isModerator: ${isModerator}`, fileDetails, true);
 
         if (!isModerator) {
@@ -114,7 +132,7 @@ isModerator = async (req, res, next) => {
 };
 
 const authJwt = {
-    verifyToken,
+    verifyAcccessToken,
     isAdmin,
     isModerator,
 };

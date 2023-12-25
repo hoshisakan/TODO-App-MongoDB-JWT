@@ -44,7 +44,3 @@ const createConnection = () => {
 };
 
 module.exports = createConnection();
-
-// client = createConnection();
-
-// module.exports = createConnection();

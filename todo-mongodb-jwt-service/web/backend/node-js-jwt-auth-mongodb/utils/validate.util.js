@@ -10,22 +10,6 @@ module.exports = {
         validateTextExtensions: ['txt'],
         validateCodeExtensions: ['js', 'ts', 'html', 'css', 'scss', 'json', 'xml'],
     },
-    endpoint: {
-        authPoint: {
-            validateRoles: ['user', 'admin', 'moderator'],
-        },
-        userEndpoint: {
-            validateMode: ['signup', 'find'],
-            authValidateRoles: ['admin'],
-            findValidateFields: ['id', 'username', 'email', 'roles'],
-            signUpValidateFields: ['username', 'email', 'password', 'roles'],
-        },
-        roleEndpoint: {
-            validateMode: ['signup', 'find'],
-            authValidateRoles: ['admin'],
-            findValidateFields: ['id', 'name'],
-        },
-    },
     queryOperator: {
         validateOperators: ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'in', 'nin', 'or', 'and', 'not', 'nor'],
         mongoOperators: {

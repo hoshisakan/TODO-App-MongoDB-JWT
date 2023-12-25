@@ -4,10 +4,10 @@ const { testController } = require('./base.route');
 
 router.get('/all', testController.allAccess);
 
-router.get('/user', [authJwt.verifyToken], testController.userBoard);
+router.get('/user', [authJwt.verifyAcccessToken], testController.userBoard);
 
-router.get('/mod', [authJwt.verifyToken, authJwt.isModerator], testController.moderatorBoard);
+router.get('/mod', [authJwt.verifyAcccessToken, authJwt.isModerator], testController.moderatorBoard);
 
-router.get('/admin', [authJwt.verifyToken, authJwt.isAdmin], testController.adminBoard);
+router.get('/admin', [authJwt.verifyAcccessToken, authJwt.isAdmin], testController.adminBoard);
 
 module.exports = router;

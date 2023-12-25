@@ -25,7 +25,7 @@ const DebugUtil = {
             if (outToConsole) {
                 console.log(message);
             }
-            logger.info(message, { fileDetails });
+            logger.error(message, { fileDetails });
         } catch (error) {
             console.log(message);
         }
