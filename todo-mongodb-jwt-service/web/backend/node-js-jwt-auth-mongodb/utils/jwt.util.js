@@ -1,20 +1,160 @@
 const jwt = require('jsonwebtoken');
 const { logError, logInfo } = require('../utils/log.util.js');
 const { filenameFilter } = require('../utils/regex.util.js');
+const redis_cache = require('../models/redis/db_init');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 const fileDetails = `[${filenameWithoutPath}]`;
 
-
 const JWTUtil = {
-    verifyToken: (jwtToken, authType) => {
-        if (!jwtToken) {
-            throw new Error('JWT token cannot be empty');
-        }
-        if (!authType) {
-            throw new Error('Auth type cannot be empty');
-        }
+    getCacheTokenKey: (userId, authType) => {
         try {
+            if (!userId) {
+                throw new Error('User ID cannot be empty');
+            }
+            if (!authType) {
+                throw new Error('Auth type cannot be empty');
+            }
+            return `${authType}Token:${userId}`;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+
+    storeTokensInCache: async (userId, token, authType) => {
+        try {
+            if (!token) {
+                throw new Error('Token cannot be empty');
+            }
+            if (!authType) {
+                throw new Error('Auth type cannot be empty');
+            }
+
+            const cacheKey = JWTUtil.getCacheTokenKey(userId, authType);
+            const result = await redis_cache.set(cacheKey, token);
+
+            logInfo(`storeTokensInCache result: ${result}`, fileDetails, true);
+
+            if (result !== 'OK') {
+                throw new Error('Failed to set the value in the cache.');
+            }
+            return result;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+
+    revokeTokensInCache: async (userId, authType) => {
+        try {
+            if (!userId) {
+                throw new Error('User ID cannot be empty');
+            }
+            if (!authType) {
+                throw new Error('Auth type cannot be empty');
+            }
+
+            const cacheKey = JWTUtil.getCacheTokenKey(userId, authType);
+            logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
+
+            const result = await redis_cache.del(cacheKey);
+            logInfo(`revokeTokensInCache result: ${result}`, fileDetails, true);
+
+            if (result !== 1) {
+                throw new Error('Failed to delete the value in the cache.');
+            }
+            return result;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+
+    verifyTokenExistsInCache: async (userId, authType) => {
+        try {
+            if (!userId) {
+                throw new Error('User ID cannot be empty');
+            }
+            if (!authType) {
+                throw new Error('Auth type cannot be empty');
+            }
+
+            const cacheKeys = JWTUtil.getCacheTokenKey(userId, authType);
+            logInfo(`cacheKeys: ${cacheKeys}`, fileDetails, true);
+
+            const result = (await redis_cache.exists(cacheKeys)) === 1;
+            logInfo(`verifyTokenExistsInCache result: ${result}`, fileDetails, true);
+
+            return result;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+
+    verifyTokensExistInCache: async (userId, authType) => {
+        try {
+            if (!userId) {
+                throw new Error('User ID cannot be empty');
+            }
+            if (!authType) {
+                throw new Error('Auth type cannot be empty');
+            }
+            const cacheKeys = [JWTUtil.getCacheTokenKey(userId, 'access'), JWTUtil.getCacheTokenKey(userId, 'token')];
+            logInfo(`cacheKeys: ${cacheKeys}`, fileDetails, true);
+
+            const result = (await redis_cache.exists(cacheKeys)) === 1;
+            logInfo(`verifyTokensExistInCache result: ${result}`, fileDetails, true);
+
+            return result;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+
+    getTokenInCache: async (userId, authType) => {
+        try {
+            if (!userId) {
+                throw new Error('User ID cannot be empty');
+            }
+            if (!authType) {
+                throw new Error('Auth type cannot be empty');
+            }
+            const cacheKey = `${authType}Token:${userId}`;
+            logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
+
+            const result = await redis_cache.get(cacheKey);
+            logInfo(`getTokensInCache result: ${result}`, fileDetails, true);
+
+            return result;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+
+    isTokenExpired: (token, authType) => {
+        try {
+            if (!token) {
+                throw new Error('Token cannot be empty');
+            }
+            if (!authType) {
+                throw new Error('Auth type cannot be empty');
+            }
+
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+
+    verifyToken: (jwtToken, authType) => {
+        try {
+            if (!jwtToken) {
+                throw new Error('JWT token cannot be empty');
+            }
             let privateKey = null;
             if (authType === 'access') {
                 privateKey = process.env.JWT_ACCESS_TOKEN_SECRET;
@@ -29,6 +169,7 @@ const JWTUtil = {
             throw err;
         }
     },
+
     generateToken: (payload, expiresIn, authType) => {
         try {
             if (!payload) {
@@ -43,8 +184,9 @@ const JWTUtil = {
             if (!authType) {
                 throw new Error('Auth type cannot be empty');
             }
-    
+
             let privateKey = null;
+
             if (authType === 'access') {
                 privateKey = process.env.JWT_ACCESS_TOKEN_SECRET;
             } else if (authType === 'refresh') {

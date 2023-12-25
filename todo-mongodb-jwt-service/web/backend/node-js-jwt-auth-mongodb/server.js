@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const path = require('path');
 
@@ -32,11 +33,14 @@ require('./models/mongodb/db_init');
 
 app.use(cors(corsOptions));
 
-// parse requests of content-type - application/json
+///TODO: parse requests of content-type - application/json
 app.use(express.json());
 
-// parse requests of content-type - application/x-www-form-urlencoded
+///TODO: parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
+
+///TODO: Add cookie parser
+app.use(cookieParser());
 
 require('./routes/index.route');
 
@@ -55,7 +59,7 @@ app.get('/', (req, res) => {
     res.json({ message: 'Welcome to bezkoder application.' });
 });
 
-// set port, listen for requests
+///TODO: set port, listen for requests
 const PORT = process.env.SERVER_PORT || 8080;
 app.listen(PORT, () => {
     logInfo(`Server is running on port ${PORT}.`, fileDetails, true);

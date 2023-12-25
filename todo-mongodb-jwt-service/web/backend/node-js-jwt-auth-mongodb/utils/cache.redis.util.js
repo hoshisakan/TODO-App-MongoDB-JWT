@@ -51,6 +51,20 @@ const CacheRedisUtil = {
             throw error;
         }
     },
+    mget: async (keys=[]) => {
+        try {
+            if (!Array.isArray(keys) || keys.length === 0) {
+                throw new Error('Keys must be an array.');
+            }
+            logInfo(`keys: ${keys}`, fileDetails, true);
+            const result = await redis_cache.mGet(keys);
+            logInfo(`result: ${result}`, fileDetails, true);
+            return result;
+        } catch (error) {
+            logError(error, fileDetails, true);
+            throw error;
+        }
+    },
     get: async (key) => {
         try {
             logInfo(`key: ${key}`, fileDetails, true);
@@ -100,10 +114,9 @@ const CacheRedisUtil = {
     exists: async (key) => {
         try {
             logInfo(`key: ${key}`, fileDetails, true);
-
             const result = await redis_cache.exists(key);
             logInfo(`result: ${result}`, fileDetails, true);
-            return result;
+            return result === 1;
         } catch (error) {
             logError(error, fileDetails, true);
             return null;

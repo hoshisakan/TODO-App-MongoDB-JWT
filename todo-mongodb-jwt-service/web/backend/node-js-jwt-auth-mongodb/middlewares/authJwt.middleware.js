@@ -39,7 +39,7 @@ getUserHighestRoleNameById = async (userId) => {
     }
 };
 
-///TODO: Verify token
+///TODO: Verify refresh token
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
 verifyAcccessToken = (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
@@ -67,7 +67,44 @@ verifyAcccessToken = (req, res, next) => {
         req.user.id = decoded.id;
         req.user.permission = getUserHighestRoleNameById(decoded.id);
 
-        logInfo(`req.user: ${stringify(req.user)}`, fileDetails, true);
+        logInfo(`verifyAcccessToken req.user: ${stringify(req.user)}`, fileDetails, true);
+
+        return next();
+    } catch (err) {
+        logError(err, fileDetails, true);
+        return http.errorResponse(res, UNAUTHORIZED, err.message);
+    }
+};
+
+///TODO: Verify token
+///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
+verifyRefreshToken = (req, res, next) => {
+    const classNameAndFuncName = getFunctionCallerName();
+    const fileDetails = getFileDetails(classNameAndFuncName);
+
+    try {
+        let token = req.headers['x-access-token'];
+
+        logInfo(`verifyToken: ${token}`, fileDetails, true);
+
+        if (!token) {
+            return http.errorResponse(res, BAD_REQUEST, 'No token provided!');
+        }
+
+        const decoded = verifyToken(token, 'refresh')
+
+        logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
+
+        if (!decoded) {
+            logInfo(`decoded is null`, fileDetails, true);
+            throw new Error('Unauthorized!');
+        }
+
+        req.user = {}
+        req.user.id = decoded.id;
+        req.user.permission = getUserHighestRoleNameById(decoded.id);
+
+        logInfo(`verifyRefreshToken req.user: ${stringify(req.user)}`, fileDetails, true);
 
         return next();
     } catch (err) {
