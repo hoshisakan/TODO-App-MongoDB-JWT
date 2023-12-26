@@ -28,7 +28,7 @@ const CacheRedisUtil = {
             return null;
         }
     },
-    setex: async (key, value, expiry) => {
+    setex: async (key, expiry, value) => {
         try {
             logInfo(`key: ${key}`, fileDetails, true);
             logInfo(`value: ${JSON.stringify(value)}`, fileDetails, true);

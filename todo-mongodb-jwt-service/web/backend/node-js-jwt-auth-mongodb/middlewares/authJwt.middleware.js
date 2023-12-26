@@ -23,21 +23,7 @@ getFileDetails = (classAndFuncName) => {
     return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
 };
 
-///TODO:
-getUserHighestRoleNameById = async (userId) => {
-    const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
-    try {
-        const userOwnRoleList = await authService.findUserRolesById(userId, true);
-        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
-        const userOwnHighestPermission = userOwnRoleList[0].name;
-        logInfo(`userOwnHighestPermission: ${stringify(userOwnHighestPermission)}`, fileDetails, true);
-        return userOwnHighestPermission;
-    } catch (err) {
-        logError(err, fileDetails, true);
-        return null;
-    }
-};
+
 
 ///TODO: Verify refresh token
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
@@ -64,9 +50,8 @@ verifyAcccessToken = (req, res, next) => {
         }
 
         req.user = {}
-        req.user.id = decoded.id;
-        req.user.permission = getUserHighestRoleNameById(decoded.id);
-
+        req.user._id = decoded._id;
+        req.user.permission = authService.getUserHighestRoleNameById(req.user._id);
         logInfo(`verifyAcccessToken req.user: ${stringify(req.user)}`, fileDetails, true);
 
         return next();
@@ -101,8 +86,8 @@ verifyRefreshToken = (req, res, next) => {
         }
 
         req.user = {}
-        req.user.id = decoded.id;
-        req.user.permission = getUserHighestRoleNameById(decoded.id);
+        req.user._id = decoded._id;
+        req.user.permission = authService.getUserHighestRoleNameById(req.user._id);
 
         logInfo(`verifyRefreshToken req.user: ${stringify(req.user)}`, fileDetails, true);
 
@@ -128,8 +113,8 @@ isAdmin = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
-        const userOwnRoleList = await authService.findUserRolesById(req.user.id);
-        // logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
+        const userOwnRoleList = await authService.findUserRolesById(req.user._id);
+        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
         const isAdmin = isMatchRole(userOwnRoleList, 'admin');
         logInfo(`isAdmin: ${isAdmin}`, fileDetails, true);
@@ -150,8 +135,8 @@ isModerator = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
-        const userOwnRoleList = await authService.findUserRolesById(req.user.id);
-        // logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
+        const userOwnRoleList = await authService.findUserRolesById(req.user._id);
+        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
         const isModerator = isMatchRole(userOwnRoleList, 'moderator');
         logInfo(`isModerator: ${isModerator}`, fileDetails, true);

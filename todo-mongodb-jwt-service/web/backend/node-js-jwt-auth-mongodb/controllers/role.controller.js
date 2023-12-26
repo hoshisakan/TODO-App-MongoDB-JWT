@@ -38,7 +38,7 @@ class RoleController {
             logInfo(`User id: ${userId}`, fileDetails);
             const userPermission = req.user.permission;
             logInfo(`User permission: ${userPermission}`, fileDetails);
-            const result = await this.roleService.find(req.query, userPermission);
+            const result = await this.roleService.find(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);

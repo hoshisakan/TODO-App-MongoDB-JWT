@@ -8,11 +8,10 @@ const {
     NO_CONTENT,
     BAD_REQUEST,
     CREATED,
+    UNAUTHORIZED,
 } = require('../helpers/constants.helper');
 
 const AuthService = require('../services/auth.service');
-
-
 
 class AuthController {
     constructor() {
@@ -49,6 +48,23 @@ class AuthController {
         }
     };
 
+    getItemFromCookie = (req, cookieName) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = null;
+        try {
+            // if (cookieName in req.cookies)
+            // {
+
+            // }
+            result = req.cookies[cookieName];
+            logInfo(`getItemFromCookie result: ${cookie}`, fileDetails, true);
+        } catch (err) {
+            logError(err, fileDetails, true);
+        }
+        return result;
+    };
+
     signin = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -58,17 +74,10 @@ class AuthController {
 
             const cookieName = '__refresh_token';
             let cookieRefreshToken = null;
+            cookieRefreshToken = this.getItemFromCookie(req, cookieName);
+            logInfo(`cookieRefreshToken: ${cookieRefreshToken}`, fileDetails, true);
 
-            if (cookieName in req.cookies) {
-                cookieRefreshToken = req.cookies.__refresh_token;
-                logInfo(`cookie exists: ${cookieRefreshToken}`, fileDetails, true);
-            }
-            else
-            {
-                logInfo(`cookie doesn't exists: ${req.cookies.__refresh_token}`, fileDetails, true);
-            }
-
-            const { clientResponse, clientCookie } = await this.authService.signin(loginDto, cookieRefreshToken);
+            const { clientResponse, clientCookie } = await this.authService.signin(loginDto);
 
             if (!clientResponse || !clientCookie) {
                 throw new Error('User was not authenticated successfully!');
@@ -93,12 +102,13 @@ class AuthController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const validateToken = req.cookies.__refresh_token;
-            logInfo(`refreshToken: ${refreshToken}`, fileDetails, true);
-            const { clientResponse } = await this.authService.refreshToken(validateToken);
+            const cookieName = '__refresh_token';
+            let cookieRefreshToken = null;
+            cookieRefreshToken = this.getItemFromCookie(req, cookieName);
+            logInfo(`cookieRefreshToken: ${cookieRefreshToken}`, fileDetails, true);
 
-
-
+            const { clientResponse } = await this.authService.refreshToken(cookieRefreshToken);
+            logInfo(`clientResponse: ${JSON.stringify(clientResponse)}`, fileDetails, true);
             return http.successResponse(res, OK, clientResponse);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -110,17 +120,19 @@ class AuthController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const token = req.headers['x-access-token'];
-            logInfo(`token: ${token}`, fileDetails, true);
-            const { clientResponse } = await this.authService.verifyToken(token);
+            const headerAccessToken = req.headers['x-access-token'];
+            logInfo(`headerAccessToken: ${headerAccessToken}`, fileDetails, true);
 
-            if (!clientResponse) {
-                throw new Error('User was not authenticated successfully!');
+            const result = await this.authService.verifyToken(headerAccessToken);
+            logInfo(`result: ${JSON.stringify(result)}`, fileDetails, true);
+
+            if (!result) {
+                throw new Error('Token was not verified successfully!');
             }
-            return http.successResponse(res, OK, clientResponse);
+            return http.successResponse(res, OK, result);
         } catch (err) {
             logError(err, fileDetails, true);
-            return http.errorResponse(res, BAD_REQUEST, err.message);
+            return http.errorResponse(res, UNAUTHORIZED, err.message);
         }
     };
 }

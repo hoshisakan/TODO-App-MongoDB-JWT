@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { logError, logInfo } = require('../utils/log.util.js');
 const { filenameFilter } = require('../utils/regex.util.js');
-const redis_cache = require('../models/redis/db_init');
+const { set, setex, del, exists, get, mget } = require('../utils/cache.redis.util.js');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 const fileDetails = `[${filenameWithoutPath}]`;
@@ -22,18 +22,44 @@ const JWTUtil = {
         }
     },
 
-    storeTokensInCache: async (userId, token, authType) => {
+    storeTokensInCache: async (userId, token, authType, expirationTime) => {
         try {
+            if (!userId) {
+                throw new Error('User ID cannot be empty');
+            }
             if (!token) {
                 throw new Error('Token cannot be empty');
             }
             if (!authType) {
                 throw new Error('Auth type cannot be empty');
             }
+            if (authType !== 'access' && authType !== 'refresh') {
+                throw new Error('Invalid auth type');
+            }
+            if (authType == 'access' && !expirationTime) {
+                throw new Error('Expiration time cannot be empty');
+            }
+
+            logInfo(`userId: ${userId}`, fileDetails, true);
+            logInfo(`token: ${token}`, fileDetails, true);
+            logInfo(`authType: ${authType}`, fileDetails, true);
 
             const cacheKey = JWTUtil.getCacheTokenKey(userId, authType);
-            const result = await redis_cache.set(cacheKey, token);
+            logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
+            let tokenExpirationTime = null;
+            
+            if (authType === 'access') {
+                tokenExpirationTime = parseInt(expirationTime, 10);
+            } else if (authType === 'refresh') {
+                tokenExpirationTime = parseInt(process.env.REFRESH_TOKEN_EXPIRATION_TIME, 10);
+            }
 
+            if (authType === 'refresh' && !tokenExpirationTime || tokenExpirationTime <= 0) {
+                throw new Error('Token expiration time cannot be empty');
+            }
+            logInfo(`tokenExpirationTime: ${tokenExpirationTime}`, fileDetails, true);
+
+            result = await setex(cacheKey, tokenExpirationTime, token);
             logInfo(`storeTokensInCache result: ${result}`, fileDetails, true);
 
             if (result !== 'OK') {
@@ -58,7 +84,7 @@ const JWTUtil = {
             const cacheKey = JWTUtil.getCacheTokenKey(userId, authType);
             logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
 
-            const result = await redis_cache.del(cacheKey);
+            const result = await del(cacheKey);
             logInfo(`revokeTokensInCache result: ${result}`, fileDetails, true);
 
             if (result !== 1) {
@@ -83,7 +109,7 @@ const JWTUtil = {
             const cacheKeys = JWTUtil.getCacheTokenKey(userId, authType);
             logInfo(`cacheKeys: ${cacheKeys}`, fileDetails, true);
 
-            const result = (await redis_cache.exists(cacheKeys)) === 1;
+            const result = await exists(cacheKeys);
             logInfo(`verifyTokenExistsInCache result: ${result}`, fileDetails, true);
 
             return result;
@@ -104,7 +130,7 @@ const JWTUtil = {
             const cacheKeys = [JWTUtil.getCacheTokenKey(userId, 'access'), JWTUtil.getCacheTokenKey(userId, 'token')];
             logInfo(`cacheKeys: ${cacheKeys}`, fileDetails, true);
 
-            const result = (await redis_cache.exists(cacheKeys)) === 1;
+            const result = (await exists(cacheKeys)) === 1;
             logInfo(`verifyTokensExistInCache result: ${result}`, fileDetails, true);
 
             return result;
@@ -125,7 +151,7 @@ const JWTUtil = {
             const cacheKey = `${authType}Token:${userId}`;
             logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
 
-            const result = await redis_cache.get(cacheKey);
+            const result = await get(cacheKey);
             logInfo(`getTokensInCache result: ${result}`, fileDetails, true);
 
             return result;

@@ -3,7 +3,6 @@ const { stringify } = require('../utils/json.util');
 const { filenameFilter } = require('../utils/regex.util');
 const { validateFieldsAuthenticity } = require('../utils/model.validate.util');
 
-
 const BaseService = require('./base.service');
 const UnitOfWork = require('../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
@@ -184,101 +183,65 @@ class RoleService extends BaseService {
     };
 
     ///TODO: Find one user by query parameters
-    findOne = async (queryParams, userPermission) => {
+    findOne = async (queryParams) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = [];
-
-        if (!userPermission) {
-            throw new Error('Unauthorized! You have no permission to access this resource.');
-        }
-
-        if (!queryParams) {
-            throw new Error('Invalid query parameters, please provide query parameters');
-        }
+        let filterQuery = {};
 
         try {
-            logInfo(`userPermission: ${userPermission}`, fileDetails, true);
+            if (!queryParams || Object.keys(queryParams).length === 0) {
+                filterQuery = {};
+            } else {
+                const validateQueryParamsResult = this.validateQueryParams(queryParams);
 
-            const queryParamsFieldsCount = Object.keys(queryParams).length;
+                if (!validateQueryParamsResult) {
+                    throw new Error(
+                        'Invalid query parameters, pleace check your query parameters whether they are correct or not'
+                    );
+                }
+                filterQuery = await this.getFilterQuery(queryParams);
+                logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
 
-            if (queryParamsFieldsCount < 1 && userPermission !== 'admin') {
-                throw new Error('Invalid query parameters, please provide query parameters');
-            } else if (queryParamsFieldsCount < 1 && userPermission === 'admin') {
-                result = await this.unitOfWork.roles.findOne();
-                return result;
+                if (!filterQuery) {
+                    throw new Error('Invalid query parameters, please provide query parameters');
+                }
             }
-
-            const validateQueryParamsResult = this.validateQueryParams(queryParams);
-
-            if (!validateQueryParamsResult) {
-                throw new Error(
-                    'Invalid query parameters, pleace check your query parameters whether they are correct or not'
-                );
-            }
-
-            const filterQuery = await this.getFilterQuery(queryParams);
-
-            logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
-
-            if (!filterQuery) {
-                throw new Error('Invalid query parameters, please provide query parameters');
-            }
-
             result = await this.unitOfWork.roles.findOne(filterQuery);
-        } catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
+        } catch (error) {
+            logError(error, fileDetails, true);
         }
         return result;
     };
 
-    ///TODO: Find all users by query parameters
-    find = async (queryParams, userPermission) => {
+    ///TODO: Find one user by query parameters
+    find = async (queryParams) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = [];
-
-        if (!userPermission) {
-            throw new Error('Unauthorized! You have no permission to access this resource.');
-        }
-
-        if (!queryParams) {
-            throw new Error('Invalid query parameters, please provide query parameters');
-        }
+        let filterQuery = {};
 
         try {
-            logInfo(`userPermission: ${userPermission}`, fileDetails, true);
+            if (!queryParams || Object.keys(queryParams).length === 0) {
+                filterQuery = {};
+            } else {
+                const validateQueryParamsResult = this.validateQueryParams(queryParams);
 
-            const queryParamsFieldsCount = Object.keys(queryParams).length;
+                if (!validateQueryParamsResult) {
+                    throw new Error(
+                        'Invalid query parameters, pleace check your query parameters whether they are correct or not'
+                    );
+                }
+                filterQuery = await this.getFilterQuery(queryParams);
+                logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
 
-            if (queryParamsFieldsCount < 1 && userPermission !== 'admin') {
-                throw new Error('Invalid query parameters, please provide query parameters');
-            } else if (queryParamsFieldsCount < 1 && userPermission === 'admin') {
-                result = await this.unitOfWork.roles.find();
-                return result;
+                if (!filterQuery) {
+                    throw new Error('Invalid query parameters, please provide query parameters');
+                }
             }
-
-            const validateQueryParamsResult = this.validateQueryParams(queryParams);
-
-            if (!validateQueryParamsResult) {
-                throw new Error(
-                    'Invalid query parameters, pleace check your query parameters whether they are correct or not'
-                );
-            }
-
-            const filterQuery = await this.getFilterQuery(queryParams);
-
-            logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
-
-            if (!filterQuery) {
-                throw new Error('Invalid query parameters, please provide query parameters');
-            }
-
             result = await this.unitOfWork.roles.find(filterQuery);
-        } catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
+        } catch (error) {
+            logError(error, fileDetails, true);
         }
         return result;
     };
