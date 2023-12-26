@@ -32,7 +32,7 @@ class UserController {
             logInfo(`User id: ${userId}`, fileDetails);
             const userPermission = req.user.permission;
             logInfo(`User permission: ${userPermission}`, fileDetails);
-            const result = await this.userService.find(req.query, userPermission);
+            const result = await this.userService.find(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);

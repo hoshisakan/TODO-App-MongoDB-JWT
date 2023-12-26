@@ -2,9 +2,14 @@ var bcrypt = require('bcryptjs');
 const { logInfo, logError } = require('../utils/log.util');
 const { stringify } = require('../utils/json.util');
 const { filenameFilter } = require('../utils/regex.util');
-// const { set, setex, get, exists } = require('../utils/cache.redis.util');
 
-const { generateToken, verifyTokenExistsInCache, verifyToken, getTokenInCache, getCacheTokenKey, storeTokensInCache } = require('../utils/jwt.util');
+const {
+    generateToken,
+    verifyTokenExistsInCache,
+    verifyToken,
+    getTokenInCache,
+    storeTokensInCache,
+} = require('../utils/jwt.util');
 const UnitOfWork = require('../repositories/unitwork');
 const User = require('../models/mongodb/user.model');
 const { log } = require('winston');
@@ -46,23 +51,20 @@ class AuthService {
             throw new Error('User not found.');
         }
 
-        if (!isDesc) {
-            return await this.unitOfWork.roles
-                .find({
-                    _id: { $in: user.roles },
-                })
-                .then((roles) => {
-                    return roles.sort((a, b) => a.level < b.level);
-                });
-        } else {
-            return await this.unitOfWork.roles
-                .find({
-                    _id: { $in: user.roles },
-                })
-                .then((roles) => {
-                    return roles.sort((a, b) => b.level > a.level);
-                });
+        let result = await this.unitOfWork.roles.find({
+            _id: { $in: user.roles },
+        });
+
+        if (!result) {
+            throw new Error('User roles not found.');
         }
+
+        if (isDesc) {
+            result = result.sort((a, b) => b.level - a.level);
+        } else {
+            result = result.sort((a, b) => a.level - b.level);
+        }
+        return result;
     };
 
     ///TODO: Generate access token with expiration time, store in redis cache with expiration time, return token
@@ -117,7 +119,7 @@ class AuthService {
                     throw new Error('Access token generation failed');
                 }
                 result.accessToken = accessToken;
-                result.cacheResult = await storeTokensInCache(payload._id, accessToken, 'access');
+                result.cacheResult = await storeTokensInCache(payload._id, accessToken, 'access', tokenExpirationTime);
 
                 if (!result.cacheResult || result.cacheResult !== 'OK') {
                     throw new Error('Set access token in cache failed');
@@ -182,7 +184,7 @@ class AuthService {
                 if (!result.cacheResult || result.cacheResult !== 'OK') {
                     throw new Error('Set refresh token in cache failed');
                 }
-                result.isRefreshTokenExpired = false;
+                result.isRefreshTokenExpired = true;
             } else {
                 result.refreshToken = await getTokenInCache(payload._id, 'refresh');
 
@@ -194,6 +196,22 @@ class AuthService {
             }
             logInfo(`result: ${stringify(result)}`, fileDetails, true);
             return result;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    };
+
+    ///TODO: Get user highest role name by user id
+    getUserHighestRoleNameById = async (userId) => {
+        const classNameAndFuncName = getFunctionCallerName();
+        const fileDetails = getFileDetails(classNameAndFuncName);
+        try {
+            const userOwnRoleList = await this.findUserRolesById(userId, true);
+            logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
+            const userOwnHighestPermission = userOwnRoleList[0].name;
+            logInfo(`userOwnHighestPermission: ${stringify(userOwnHighestPermission)}`, fileDetails, true);
+            return userOwnHighestPermission;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
@@ -236,22 +254,12 @@ class AuthService {
     };
 
     refreshToken = async (validateToken) => {
-        let result = false;
+        let result = null;
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             if (!validateToken) {
                 throw new Error('Token cannot be empty');
-            }
-
-            const checkTokenExistsKey = `refreshToken:${validateToken}`;
-            logInfo(`checkTokenExistsKey: ${checkTokenExistsKey}`, fileDetails, true);
-
-            const isTokenExistsInCache = await verifyTokenExistsInCache(validateToken);
-            logInfo(`isTokenExistsInCache: ${isTokenExistsInCache}`, fileDetails, true);
-
-            if (!isTokenExistsInCache) {
-                throw new Error('Token does not exist in cache');
             }
 
             const decoded = verifyToken(validateToken, 'refresh');
@@ -261,7 +269,7 @@ class AuthService {
                 throw new Error('Token is invalid');
             }
 
-            const validateUserId = decoded.id;
+            const validateUserId = decoded._id;
             logInfo(`validateUserId: ${validateUserId}`, fileDetails, true);
 
             const userValidateResult = await this.validateUserIdentity({ _id: validateUserId });
@@ -271,11 +279,41 @@ class AuthService {
                 throw new Error('User not found');
             }
 
-            const newAccessToken = generateToken(userValidateResult, 'access');
+            const isTokenExistsInCache = await verifyTokenExistsInCache(validateUserId, 'refresh');
+            logInfo(`isTokenExistsInCache: ${isTokenExistsInCache}`, fileDetails, true);
 
-            if (!newAccessToken) {
-                throw new Error('New access token generation failed');
+            if (!isTokenExistsInCache) {
+                throw new Error('Token does not exist in cache');
             }
+
+            const tokenPayload = {
+                _id: userValidateResult._id,
+            };
+            logInfo(`tokenPayload: ${stringify(tokenPayload)}`, fileDetails, true);
+
+            const accessTokenCreatedResult = await this.generateAccessToken(
+                tokenPayload,
+                userValidateResult.highestRole
+            );
+            logInfo(`accessTokenCreatedResult: ${stringify(accessTokenCreatedResult)}`, fileDetails, true);
+
+            if (!accessTokenCreatedResult) {
+                throw new Error('Access token creation failed');
+            }
+
+            const accessToken = accessTokenCreatedResult.accessToken;
+
+            if (!accessToken) {
+                throw new Error('Access token cannot be empty');
+            }
+
+            if (accessTokenCreatedResult.cacheResult !== 'OK') {
+                throw new Error('Access token cannot be cached');
+            }
+
+            const isAccessTokenExpired = accessTokenCreatedResult.isAccessTokenExpired;
+
+            logInfo(`isAccessTokenExpired: ${isAccessTokenExpired}`, fileDetails, true);
 
             result = {
                 clientResponse: {
@@ -283,11 +321,29 @@ class AuthService {
                     username: userValidateResult.username,
                     email: userValidateResult.email,
                     roles: userValidateResult.roles,
-                    accessToken: newAccessToken,
+                    accessToken: accessToken,
+                    // isAccessTokenExpired: isAccessTokenExpired,
                 },
             };
             return result;
         } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    };
+
+    verifyToken = async (validateToken) => {
+        let result = null;
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            if (!validateToken) {
+                throw new Error('Token cannot be empty');
+            }
+            result = verifyToken(validateToken, 'access');
+            return result;
+        }
+        catch (err) {
             logError(err, fileDetails, true);
             throw err;
         }
@@ -350,7 +406,7 @@ class AuthService {
         return result;
     };
 
-    signin = async (user, cookieRefreshToken) => {
+    signin = async (user) => {
         let result = null;
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -359,12 +415,6 @@ class AuthService {
                 throw new Error('User cannot be empty');
             }
             logInfo(`signin username: ${user.username}`, fileDetails, true);
-
-            if (!cookieRefreshToken) {
-                throw new Error('Refresh token cannot be empty');
-            }
-
-            logInfo(`signin cookieRefreshToken: ${cookieRefreshToken}`, fileDetails, true);
 
             const userFilterExpression = {
                 username: user.username,
