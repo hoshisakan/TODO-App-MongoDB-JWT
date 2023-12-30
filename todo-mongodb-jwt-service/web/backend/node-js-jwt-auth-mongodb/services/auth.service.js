@@ -13,7 +13,6 @@ const {
 } = require('../utils/jwt.util');
 const UnitOfWork = require('../repositories/unitwork');
 const User = require('../models/mongodb/user.model');
-const { log } = require('winston');
 const unitOfWork = new UnitOfWork();
 
 class AuthService {
@@ -103,17 +102,17 @@ class AuthService {
                 throw new Error('Token was not verified successfully!');
             }
 
-            const isAccessTokenExistsInCache = await checkTokenExistsFromCache(
-                refreshTokenValidateResult.id,
-                'access'
-            );
+            const isAccessTokenExistsInCache = await checkTokenExistsFromCache(refreshTokenValidateResult.id, 'access');
 
             logInfo(`isAccessTokenExistsInCache: ${stringify(isAccessTokenExistsInCache)}`, fileDetails, true);
 
             if (isAccessTokenExistsInCache) {
                 const cacheAccessTokenItems = parse(await getTokenFromCache(refreshTokenValidateResult.id, 'access'));
-                logInfo(`Get old access token from redis cache: ${stringify(cacheAccessTokenItems)}`, fileDetails, true);
-
+                logInfo(
+                    `Get old access token from redis cache: ${stringify(cacheAccessTokenItems)}`,
+                    fileDetails,
+                    true
+                );
 
                 if (cacheAccessTokenItems) {
                     createAccessTokenResult.token = cacheAccessTokenItems.token;
@@ -132,11 +131,7 @@ class AuthService {
                 id: userValidateResult.id,
             };
 
-            createAccessTokenResult = await this.generateTokenAndStorageCache(
-                payload,
-                'access',
-                userValidateResult
-            );
+            createAccessTokenResult = await this.generateTokenAndStorageCache(payload, 'access', userValidateResult);
 
             if (!createAccessTokenResult) {
                 throw new Error('Access token create failed');
@@ -215,7 +210,7 @@ class AuthService {
             const cacheValue = {
                 token: createResult.token,
                 expireTime: createResult.expireTime,
-            }
+            };
 
             // const isSetTokenToCache = await setTokenToCache(createResult.token, authType, userValidateResult.highestRolePermission);
             const isSetTokenToCache = await setTokenToCache(
@@ -480,22 +475,40 @@ class AuthService {
         });
     };
 
-    ///TODO: 需要驗證 access token 是否有效，如果有效，才進行撤銷，否則，拋出錯誤
     ///TODO: Signout user, remove access token and refresh token from redis cache, return items in success response, otherwise throw error
-    signout = async (revokeItem) => {
+    signout = async (logoutDto) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
-        // let validateResult = {
-        //     isAccessTokenValid: false,
-        //     isRefreshTokenValid: false,
-        // };
+        const result = {
+            isAllowedLogout: true,
+            message: null,
+        };
         try {
-            const { accessToken, refreshToken } = revokeItem;
-            return isRevoked;
+            const isUserExists = await this.unitOfWork.users.findOne({
+                username: logoutDto.username,
+                email: logoutDto.email,
+            });
+
+            if (!isUserExists) {
+                throw new Error('User not found');
+            }
+
+            const isDeletedAccessToken = await removeTokenFromCache(isUserExists._id, 'access');
+            logInfo(`isDeletedAccessToken: ${stringify(isDeletedAccessToken)}`, fileDetails, true);
+
+            const isDeletedRefreshToken = await removeTokenFromCache(isUserExists._id, 'refresh');
+            logInfo(`isDeletedRefreshToken: ${stringify(isDeletedRefreshToken)}`, fileDetails, true);
+
+            if (!isDeletedAccessToken || !isDeletedRefreshToken) {
+                logError(`Delete token from cache failed`, fileDetails, true);
+                ///TODO: 未來必須要將錯誤寫入資料庫
+            }
+            result.message = 'Logout success';
         } catch (err) {
             logError(err, fileDetails, true);
-            throw err;
+            result.message = err.message;
         }
+        return result;
     };
 }
 

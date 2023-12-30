@@ -105,11 +105,6 @@ class AuthController {
             loginDto = req.body;
             logInfo(`req.body: ${stringify(loginDto)}`, fileDetails, true);
 
-            // this.clearCookie(res);
-
-            // const isDeleteAllCacheSuccess = await delAll();
-            // logInfo(`isDeleteAllCacheSuccess: ${stringify(isDeleteAllCacheSuccess)}`, fileDetails, true);
-
             loginDto.cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
             loginDto.cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
             logInfo(`loginDto: ${stringify(loginDto)}`, fileDetails, true);
@@ -139,9 +134,7 @@ class AuthController {
                     clientCookie.refreshTokenExpireTime
                 );
             }
-
             logInfo(`clientResponse: ${stringify(clientResponse)}`, fileDetails, true);
-
             return http.successResponse(res, OK, clientResponse);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -218,17 +211,36 @@ class AuthController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
+            const cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
+            const cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
+
+            logInfo(`cookieAccessToken: ${stringify(cookieAccessToken)}`, fileDetails, true);
+            logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
+
+            const logoutDto = {
+                username: req.body.username || null,
+                email: req.body.email || null,
+                cookieAccessToken,
+                cookieRefreshToken,
+            };
+
+            logInfo(`logoutDto: ${stringify(logoutDto)}`, fileDetails, true);
+
+            if (!cookieAccessToken && !cookieRefreshToken) {
+                logInfo(`No token provided!`, fileDetails, true);
+            }
+
+            const result = await this.authService.signout(logoutDto);
+
+            if (!result || !result.isAllowedLogout) {
+                throw new Error('User was not signed out successfully!');
+            }
             this.clearCookie(res);
 
-            
-
-            if (!isDeleteAllCacheSuccess) {
-                logError('Failed to delete all cache!', fileDetails, true);
-            }
-            return http.successResponse(res, NO_CONTENT, null);
+            return http.successResponse(res, OK, result);
         } catch (err) {
             logError(err, fileDetails, true);
-            return http.errorResponse(res, INTERNAL_SERVER_ERROR, err.message);
+            return http.errorResponse(res, BAD_REQUEST, err.message);
         }
     };
 }

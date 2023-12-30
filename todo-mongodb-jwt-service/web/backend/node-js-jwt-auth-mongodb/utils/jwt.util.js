@@ -205,19 +205,14 @@ const JWTUtil = {
     },
     removeTokenFromCache: async (key, authType) => {
         fileDetails = `[${filenameWithoutPath}] [removeTokenFromCache]`;
+        let isRemoved = false;
         try {
             const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
-
-            const isDeleted = await del(cacheTokenKey);
-
-            if (!isDeleted) {
-                throw new Error('Token delete failed');
-            }
-            return true;
+            isRemoved = (await del(cacheTokenKey)) === 1;
         } catch (err) {
             logError(err, fileDetails, true);
-            throw err;
         }
+        return isRemoved;
     },
     checkTokenExistsFromCache: async (key, authType) => {
         fileDetails = `[${filenameWithoutPath}] [checkTokenExistsFromCache]`;

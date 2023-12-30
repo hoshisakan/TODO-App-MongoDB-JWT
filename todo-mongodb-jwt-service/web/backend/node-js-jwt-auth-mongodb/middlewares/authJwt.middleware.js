@@ -45,6 +45,11 @@ verifyAcccessToken = (req, res, next) => {
             logInfo(`decoded is null`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
+
+        req.userId = decoded.id;
+
+        logInfo(`req.userId: ${req.userId}`, fileDetails, true);
+
         return next();
     } catch (err) {
         logError(err, fileDetails, true);
@@ -76,11 +81,9 @@ verifyRefreshToken = (req, res, next) => {
             throw new Error('Unauthorized!');
         }
 
-        req.user = {};
-        req.user._id = decoded._id;
-        req.user.permission = authService.getUserHighestRoleNameById(req.user._id);
+        req.userId = decoded.id;
 
-        logInfo(`verifyRefreshToken req.user: ${stringify(req.user)}`, fileDetails, true);
+        logInfo(`res.userId: ${res.userId}`, fileDetails, true);
 
         return next();
     } catch (err) {
@@ -104,7 +107,14 @@ isAdmin = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
-        const userOwnRoleList = await authService.findUserRolesById(req.user._id);
+        const userId = req.userId || null;
+
+        if (!userId) {
+            throw new Error('Unauthorized!');
+        }
+        logInfo(`userId: ${userId}`, fileDetails, true);
+
+        const userOwnRoleList = await authService.findUserRolesById(userId);
         logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
         const isAdmin = isMatchRole(userOwnRoleList, 'admin');
@@ -114,7 +124,6 @@ isAdmin = async (req, res, next) => {
             logInfo(`Admin role not found.`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
-        req.user.permission = 'admin';
         return next();
     } catch (err) {
         logError(err, fileDetails, true);
@@ -126,7 +135,14 @@ isModerator = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
     try {
-        const userOwnRoleList = await authService.findUserRolesById(req.user._id);
+        const userId = req.userId || null;
+
+        if (!userId) {
+            throw new Error('Unauthorized!');
+        }
+        logInfo(`userId: ${userId}`, fileDetails, true);
+
+        const userOwnRoleList = await authService.findUserRolesById(userId);
         logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
 
         const isModerator = isMatchRole(userOwnRoleList, 'moderator');
@@ -136,7 +152,6 @@ isModerator = async (req, res, next) => {
             logInfo(`Moderator role not found.`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
-        res.user.permission = 'moderator';
         return next();
     } catch (err) {
         logError(err, fileDetails, true);

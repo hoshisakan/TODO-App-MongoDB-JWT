@@ -28,10 +28,6 @@ class UserController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const userId = req.user.id;
-            logInfo(`User id: ${userId}`, fileDetails);
-            const userPermission = req.user.permission;
-            logInfo(`User permission: ${userPermission}`, fileDetails);
             const result = await this.userService.find(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
