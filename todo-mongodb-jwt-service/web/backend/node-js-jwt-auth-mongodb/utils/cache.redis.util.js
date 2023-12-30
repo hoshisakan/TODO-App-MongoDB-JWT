@@ -51,7 +51,7 @@ const CacheRedisUtil = {
             throw error;
         }
     },
-    mget: async (keys=[]) => {
+    mget: async (keys = []) => {
         try {
             if (!Array.isArray(keys) || keys.length === 0) {
                 throw new Error('Keys must be an array.');
@@ -84,6 +84,22 @@ const CacheRedisUtil = {
             const result = await redis_cache.del(key);
             logInfo(`result: ${result}`, fileDetails, true);
             return result;
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return null;
+        }
+    },
+    delAll: async () => {
+        try {
+            const keys = await CacheRedisUtil.keys('*');
+            logInfo(`keys: ${keys}`, fileDetails, true);
+
+            if (keys && keys.length > 0) {
+                const result = await redis_cache.del(keys);
+                logInfo(`result: ${result}`, fileDetails, true);
+                return result;
+            }
+            return null;
         } catch (error) {
             logError(error, fileDetails, true);
             return null;

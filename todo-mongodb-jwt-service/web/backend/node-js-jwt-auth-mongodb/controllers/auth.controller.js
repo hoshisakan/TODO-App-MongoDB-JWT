@@ -1,5 +1,6 @@
 const { logError, logInfo } = require('../utils/log.util');
 const http = require('../helpers/http.helper');
+const { stringify } = require('../utils/json.util');
 const { filenameFilter } = require('../utils/regex.util');
 const {
     OK,
@@ -10,6 +11,9 @@ const {
     CREATED,
     UNAUTHORIZED,
 } = require('../helpers/constants.helper');
+const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../config/cookie.config.js');
+// const { delAll, del } = require('../utils/cache.redis.util.js');
+const { removeTokenFromCache } = require('../utils/jwt.util.js');
 
 const AuthService = require('../services/auth.service');
 
@@ -17,6 +21,7 @@ class AuthController {
     constructor() {
         this.authService = new AuthService();
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+        this.cookieNameList = [ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME];
     }
 
     getFunctionCallerName = () => {
@@ -35,7 +40,7 @@ class AuthController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            logInfo(`req.body: ${JSON.stringify(req.body)}`, fileDetails, true);
+            logInfo(`req.body: ${stringify(req.body)}`, fileDetails, true);
             const result = await this.authService.signup(req.body);
 
             if (!result) {
@@ -48,49 +53,95 @@ class AuthController {
         }
     };
 
-    getItemFromCookie = (req, cookieName) => {
+    getItemFromCookie = (req, key) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = null;
         try {
-            // if (cookieName in req.cookies)
-            // {
-
-            // }
-            result = req.cookies[cookieName];
-            logInfo(`getItemFromCookie result: ${cookie}`, fileDetails, true);
+            if (!req || !req.cookies) {
+                throw new Error('Invalid request or cookies!');
+            }
+            result = req.cookies[key] || null;
         } catch (err) {
             logError(err, fileDetails, true);
         }
         return result;
     };
 
-    signin = async (req, res) => {
+    setItemToCookie = (res, key, value, expireTime) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const loginDto = req.body;
-            logInfo(`req.body: ${JSON.stringify(loginDto)}`, fileDetails, true);
+            if (!key || !value) {
+                throw new Error('Invalid key or value!');
+            }
+            res.cookie(key, value, {
+                httpOnly: true,
+                secure: true,
+                maxAge: expireTime * 1000, //TODO: convert to milliseconds
+            });
+        } catch (err) {
+            logError(err, fileDetails, true);
+        }
+    };
 
-            const cookieName = '__refresh_token';
-            let cookieRefreshToken = null;
-            cookieRefreshToken = this.getItemFromCookie(req, cookieName);
-            logInfo(`cookieRefreshToken: ${cookieRefreshToken}`, fileDetails, true);
+    clearCookie = (res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            this.cookieNameList.forEach((cookieName) => {
+                res.clearCookie(cookieName);
+            });
+        } catch (err) {
+            logError(err, fileDetails, true);
+        }
+    };
+
+    signin = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let loginDto = null;
+        try {
+            loginDto = req.body;
+            logInfo(`req.body: ${stringify(loginDto)}`, fileDetails, true);
+
+            // this.clearCookie(res);
+
+            // const isDeleteAllCacheSuccess = await delAll();
+            // logInfo(`isDeleteAllCacheSuccess: ${stringify(isDeleteAllCacheSuccess)}`, fileDetails, true);
+
+            loginDto.cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
+            loginDto.cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
+            logInfo(`loginDto: ${stringify(loginDto)}`, fileDetails, true);
 
             const { clientResponse, clientCookie } = await this.authService.signin(loginDto);
 
             if (!clientResponse || !clientCookie) {
-                throw new Error('User was not authenticated successfully!');
+                throw new Error('User was not signed in successfully!');
             }
 
-            if (clientCookie.isRefreshTokenExpired) {
-                logInfo(`cookie is expired: ${clientCookie.refreshToken}`, fileDetails, true);
-                res.cookie(cookieName, clientCookie.refreshToken, {
-                    httpOnly: true, ///TODO: Disable other uesrs access to this cookie
-                    secure: true, ///TODO: Only allow https access to this cookie
-                    sameSite: 'none', ///TODO: only allow same site access to this cookie
-                });
+            logInfo(`clientCookie: ${stringify(clientCookie)}`, fileDetails, true);
+
+            if (!clientCookie.isAccessTokenExistsInCookie && clientCookie.accessToken) {
+                this.setItemToCookie(
+                    res,
+                    ACCESS_TOKEN_COOKIE_NAME,
+                    clientCookie.accessToken,
+                    clientCookie.accessTokenExpireTime
+                );
             }
+
+            if (!clientCookie.isRefreshTokenExistsInCookie && clientCookie.refreshToken) {
+                this.setItemToCookie(
+                    res,
+                    REFRESH_TOKEN_COOKIE_NAME,
+                    clientCookie.refreshToken,
+                    clientCookie.refreshTokenExpireTime
+                );
+            }
+
+            logInfo(`clientResponse: ${stringify(clientResponse)}`, fileDetails, true);
+
             return http.successResponse(res, OK, clientResponse);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -101,15 +152,20 @@ class AuthController {
     refreshToken = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = null;
         try {
-            const cookieName = '__refresh_token';
-            let cookieRefreshToken = null;
-            cookieRefreshToken = this.getItemFromCookie(req, cookieName);
-            logInfo(`cookieRefreshToken: ${cookieRefreshToken}`, fileDetails, true);
-
-            const { clientResponse } = await this.authService.refreshToken(cookieRefreshToken);
-            logInfo(`clientResponse: ${JSON.stringify(clientResponse)}`, fileDetails, true);
-            return http.successResponse(res, OK, clientResponse);
+            const cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
+            logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
+            if (!cookieRefreshToken) {
+                throw new Error('Invalid cookieRefreshToken!');
+            }
+            result = await this.authService.refreshToken(cookieRefreshToken);
+            logInfo(`result: ${stringify(result)}`, fileDetails, true);
+            if (!result) {
+                throw new Error('Token was not refreshed successfully!');
+            }
+            this.setItemToCookie(res, ACCESS_TOKEN_COOKIE_NAME, result.token, result.expireTime);
+            return http.successResponse(res, OK, result);
         } catch (err) {
             logError(err, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, err.message);
@@ -119,20 +175,60 @@ class AuthController {
     verifyToken = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let validateTokenResult = null;
         try {
-            const headerAccessToken = req.headers['x-access-token'];
-            logInfo(`headerAccessToken: ${headerAccessToken}`, fileDetails, true);
+            const authType = req.body.authType || null;
 
-            const result = await this.authService.verifyToken(headerAccessToken);
-            logInfo(`result: ${JSON.stringify(result)}`, fileDetails, true);
-
-            if (!result) {
-                throw new Error('Token was not verified successfully!');
+            if (!authType) {
+                throw new Error('Invalid authType!');
             }
-            return http.successResponse(res, OK, result);
+
+            logInfo(`authType: ${stringify(authType)}`, fileDetails, true);
+
+            if (authType !== 'access' && authType !== 'refresh') {
+                throw new Error('Invalid authType!');
+            }
+
+            if (authType === 'refresh') {
+                const cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME) || null;
+                logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
+                if (!cookieRefreshToken) {
+                    throw new Error('Invalid cookieRefreshToken!');
+                }
+                validateTokenResult = await this.authService.verifyTokenValidity(cookieRefreshToken, authType);
+            } else {
+                // const headerAccessToken = req.headers['x-access-token'];
+                // logInfo(`headerAccessToken: ${headerAccessToken}`, fileDetails, true);
+                const cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME) || null;
+                logInfo(`cookieAccessToken: ${stringify(cookieAccessToken)}`, fileDetails, true);
+                if (!cookieAccessToken) {
+                    throw new Error('Invalid cookieAccessToken!');
+                }
+                validateTokenResult = await this.authService.verifyTokenValidity(cookieAccessToken, 'access');
+            }
+            logInfo(`validateTokenResult: ${stringify(validateTokenResult)}`, fileDetails, true);
+            return http.successResponse(res, OK, validateTokenResult);
         } catch (err) {
             logError(err, fileDetails, true);
             return http.errorResponse(res, UNAUTHORIZED, err.message);
+        }
+    };
+
+    signout = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            this.clearCookie(res);
+
+            
+
+            if (!isDeleteAllCacheSuccess) {
+                logError('Failed to delete all cache!', fileDetails, true);
+            }
+            return http.successResponse(res, NO_CONTENT, null);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            return http.errorResponse(res, INTERNAL_SERVER_ERROR, err.message);
         }
     };
 }

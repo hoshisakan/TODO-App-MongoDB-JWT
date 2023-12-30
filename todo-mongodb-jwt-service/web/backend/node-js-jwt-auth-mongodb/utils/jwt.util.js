@@ -4,225 +4,259 @@ const { filenameFilter } = require('../utils/regex.util.js');
 const { set, setex, del, exists, get, mget } = require('../utils/cache.redis.util.js');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
-const fileDetails = `[${filenameWithoutPath}]`;
+let fileDetails = `[${filenameWithoutPath}]`;
+
+const authTypeList = ['access', 'refresh'];
 
 const JWTUtil = {
-    getCacheTokenKey: (userId, authType) => {
+    getCacheTokenKey: (key, authType) => {
+        fileDetails = `[${filenameWithoutPath}] [getCacheTokenKey]`;
         try {
-            if (!userId) {
-                throw new Error('User ID cannot be empty');
+            const isValidate = JWTUtil.checkAnalyzeTokenItems(key, authType);
+            if (!isValidate.isValid) {
+                throw new Error(isValidate.message);
             }
-            if (!authType) {
-                throw new Error('Auth type cannot be empty');
-            }
-            return `${authType}Token:${userId}`;
+            return `${authType}:${key}`;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
         }
     },
-
-    storeTokensInCache: async (userId, token, authType, expirationTime) => {
+    getPrivateKey: (authType) => {
+        fileDetails = `[${filenameWithoutPath}] [getPrivateKey]`;
         try {
-            if (!userId) {
-                throw new Error('User ID cannot be empty');
+            switch (authType) {
+                case 'access':
+                    return process.env.JWT_ACCESS_TOKEN_SECRET;
+                case 'refresh':
+                    return process.env.JWT_REFRESH_TOKEN_SECRET;
+                default:
+                    throw new Error(`Invalid auth type: ${authType}`);
             }
-            if (!token) {
-                throw new Error('Token cannot be empty');
-            }
-            if (!authType) {
-                throw new Error('Auth type cannot be empty');
-            }
-            if (authType !== 'access' && authType !== 'refresh') {
-                throw new Error('Invalid auth type');
-            }
-            if (authType == 'access' && !expirationTime) {
-                throw new Error('Expiration time cannot be empty');
-            }
-
-            logInfo(`userId: ${userId}`, fileDetails, true);
-            logInfo(`token: ${token}`, fileDetails, true);
-            logInfo(`authType: ${authType}`, fileDetails, true);
-
-            const cacheKey = JWTUtil.getCacheTokenKey(userId, authType);
-            logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
-            let tokenExpirationTime = null;
-            
-            if (authType === 'access') {
-                tokenExpirationTime = parseInt(expirationTime, 10);
-            } else if (authType === 'refresh') {
-                tokenExpirationTime = parseInt(process.env.REFRESH_TOKEN_EXPIRATION_TIME, 10);
-            }
-
-            if (authType === 'refresh' && !tokenExpirationTime || tokenExpirationTime <= 0) {
-                throw new Error('Token expiration time cannot be empty');
-            }
-            logInfo(`tokenExpirationTime: ${tokenExpirationTime}`, fileDetails, true);
-
-            result = await setex(cacheKey, tokenExpirationTime, token);
-            logInfo(`storeTokensInCache result: ${result}`, fileDetails, true);
-
-            if (result !== 'OK') {
-                throw new Error('Failed to set the value in the cache.');
-            }
-            return result;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
         }
     },
-
-    revokeTokensInCache: async (userId, authType) => {
+    getAccessTokenExpireTime: (roleHighestPermission) => {
+        fileDetails = `[${filenameWithoutPath}] [getAccessTokenExpireTime]`;
         try {
-            if (!userId) {
-                throw new Error('User ID cannot be empty');
+            switch (roleHighestPermission) {
+                case 'admin':
+                    return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_ADMIN;
+                case 'moderator':
+                    return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_USER;
+                case 'user':
+                    return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_USER;
+                default:
+                    throw new Error(`Invalid role highest permission: ${roleHighestPermission}`);
             }
-            if (!authType) {
-                throw new Error('Auth type cannot be empty');
-            }
-
-            const cacheKey = JWTUtil.getCacheTokenKey(userId, authType);
-            logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
-
-            const result = await del(cacheKey);
-            logInfo(`revokeTokensInCache result: ${result}`, fileDetails, true);
-
-            if (result !== 1) {
-                throw new Error('Failed to delete the value in the cache.');
-            }
-            return result;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
         }
     },
-
-    verifyTokenExistsInCache: async (userId, authType) => {
+    getTokenExpireTime: (authType, roleHighestPermission) => {
+        fileDetails = `[${filenameWithoutPath}] [getTokenExpireTime]`;
         try {
-            if (!userId) {
-                throw new Error('User ID cannot be empty');
+            switch (authType) {
+                case 'access':
+                    return JWTUtil.getAccessTokenExpireTime(roleHighestPermission);
+                case 'refresh':
+                    return process.env.JWT_REFRESH_TOKEN_EXPIRE_TIME;
+                default:
+                    throw new Error(`Invalid auth type: ${authType}`);
             }
-            if (!authType) {
-                throw new Error('Auth type cannot be empty');
-            }
-
-            const cacheKeys = JWTUtil.getCacheTokenKey(userId, authType);
-            logInfo(`cacheKeys: ${cacheKeys}`, fileDetails, true);
-
-            const result = await exists(cacheKeys);
-            logInfo(`verifyTokenExistsInCache result: ${result}`, fileDetails, true);
-
-            return result;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
         }
     },
-
-    verifyTokensExistInCache: async (userId, authType) => {
+    checkAnalyzeTokenItems: (key, authType) => {
+        fileDetails = `[${filenameWithoutPath}] [checkAnalyzeTokenItems]`;
+        let result = {
+            isValid: true,
+            message: null,
+        };
         try {
-            if (!userId) {
-                throw new Error('User ID cannot be empty');
+            if (!key) {
+                result = {
+                    isValid: false,
+                    message: 'Token cannot be empty',
+                };
             }
             if (!authType) {
-                throw new Error('Auth type cannot be empty');
+                result = {
+                    isValid: false,
+                    message: 'Auth type cannot be empty',
+                };
             }
-            const cacheKeys = [JWTUtil.getCacheTokenKey(userId, 'access'), JWTUtil.getCacheTokenKey(userId, 'token')];
-            logInfo(`cacheKeys: ${cacheKeys}`, fileDetails, true);
-
-            const result = (await exists(cacheKeys)) === 1;
-            logInfo(`verifyTokensExistInCache result: ${result}`, fileDetails, true);
-
-            return result;
+            if (!authTypeList.includes(authType)) {
+                result = {
+                    isValid: false,
+                    message: 'Invalid auth type',
+                };
+            }
         } catch (err) {
+            result = {
+                isValid: false,
+                message: err.message,
+            };
             logError(err, fileDetails, true);
-            throw err;
         }
+        return result;
     },
-
-    getTokenInCache: async (userId, authType) => {
-        try {
-            if (!userId) {
-                throw new Error('User ID cannot be empty');
-            }
-            if (!authType) {
-                throw new Error('Auth type cannot be empty');
-            }
-            const cacheKey = `${authType}Token:${userId}`;
-            logInfo(`cacheKey: ${cacheKey}`, fileDetails, true);
-
-            const result = await get(cacheKey);
-            logInfo(`getTokensInCache result: ${result}`, fileDetails, true);
-
-            return result;
-        } catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
-        }
-    },
-
-    isTokenExpired: (token, authType) => {
+    verifyToken: (token, authType) => {
+        fileDetails = `[${filenameWithoutPath}] [verifyToken]`;
+        let result = null;
         try {
             if (!token) {
-                throw new Error('Token cannot be empty');
+                throw new Error('Token invalid');
             }
-            if (!authType) {
-                throw new Error('Auth type cannot be empty');
+            const privateKey = JWTUtil.getPrivateKey(authType);
+            if (!privateKey) {
+                throw new Error('Private token obtained failed');
             }
-
+            const params = {
+                token: token,
+                privateKey: privateKey,
+            };
+            logInfo(`verifyToken params: ${JSON.stringify(params)}`, fileDetails, true);
+            result = jwt.verify(token, privateKey);
         } catch (err) {
             logError(err, fileDetails, true);
-            throw err;
         }
+        return result;
     },
-
-    verifyToken: (jwtToken, authType) => {
-        try {
-            if (!jwtToken) {
-                throw new Error('JWT token cannot be empty');
-            }
-            let privateKey = null;
-            if (authType === 'access') {
-                privateKey = process.env.JWT_ACCESS_TOKEN_SECRET;
-            } else if (authType === 'refresh') {
-                privateKey = process.env.JWT_REFRESH_TOKEN_SECRET;
-            } else {
-                throw new Error('Invalid auth type');
-            }
-            return jwt.verify(jwtToken, privateKey);
-        } catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
-        }
-    },
-
-    generateToken: (payload, expiresIn, authType) => {
+    checkGenerateTokenItems: (payload, authType) => {
+        fileDetails = `[${filenameWithoutPath}] [checkGenerateTokenItems]`;
+        let result = {
+            isValid: true,
+            message: null,
+        };
         try {
             if (!payload) {
-                throw new Error('Payload cannot be empty');
-            }
-            if (!expiresIn) {
-                throw new Error('ExpiresIn cannot be empty');
-            }
-            if (expiresIn <= 0) {
-                throw new Error('ExpiresIn must be greater than 0');
+                result = {
+                    isValid: false,
+                    message: 'Payload cannot be empty',
+                };
             }
             if (!authType) {
-                throw new Error('Auth type cannot be empty');
+                result = {
+                    isValid: false,
+                    message: 'Auth type cannot be empty',
+                };
+            }
+            if (!authTypeList.includes(authType)) {
+                result = {
+                    isValid: false,
+                    message: 'Invalid auth type',
+                };
+            }
+        } catch (err) {
+            result = {
+                isValid: false,
+                message: err.message,
+            };
+            logError(err, fileDetails, true);
+        }
+        return result;
+    },
+    generateToken: (payload, authType, roleHighestPermission) => {
+        fileDetails = `[${filenameWithoutPath}] [generateToken]`;
+        let result = {
+            token: null,
+            expireTime: null,
+        };
+        try {
+            const isValidate = JWTUtil.checkGenerateTokenItems(payload, authType);
+
+            if (!isValidate.isValid) {
+                throw new Error(isValidate.message);
             }
 
-            let privateKey = null;
+            logInfo(`payload: ${JSON.stringify(payload)}`, fileDetails, true);
 
-            if (authType === 'access') {
-                privateKey = process.env.JWT_ACCESS_TOKEN_SECRET;
-            } else if (authType === 'refresh') {
-                privateKey = process.env.JWT_REFRESH_TOKEN_SECRET;
-            } else {
-                throw new Error('Invalid auth type');
+            const privateKey = JWTUtil.getPrivateKey(authType);
+
+            logInfo(`privateKey: ${privateKey}`, fileDetails, true);
+
+            if (!privateKey) {
+                throw new Error('Private key obtained failed');
             }
-            return jwt.sign(payload, privateKey, {
-                expiresIn: expiresIn,
-            });
+
+            const expireTime = parseInt(JWTUtil.getTokenExpireTime(authType, roleHighestPermission));
+
+            if (expireTime <= 0) {
+                throw new Error('Invalid expire time, obtained failed');
+            }
+
+            result = {
+                token: jwt.sign(payload, privateKey, { expiresIn: expireTime }),
+                expireTime: expireTime,
+            };
+
+            // const decoded = jwt.verify(result.token, privateKey);
+            // logInfo(`decoded: ${JSON.stringify(decoded)}`, fileDetails, true);
+        } catch (err) {
+            logError(err, fileDetails, true);
+        }
+        return result;
+    },
+    removeTokenFromCache: async (key, authType) => {
+        fileDetails = `[${filenameWithoutPath}] [removeTokenFromCache]`;
+        try {
+            const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
+
+            const isDeleted = await del(cacheTokenKey);
+
+            if (!isDeleted) {
+                throw new Error('Token delete failed');
+            }
+            return true;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+    checkTokenExistsFromCache: async (key, authType) => {
+        fileDetails = `[${filenameWithoutPath}] [checkTokenExistsFromCache]`;
+        try {
+            const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
+
+            const isExists = await exists(cacheTokenKey);
+            return isExists;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+    setTokenToCache: async (authType, key, value, roleHighestPermission) => {
+        fileDetails = `[${filenameWithoutPath}] [setTokenToCache]`;
+        let isSet = false;
+        try {
+            const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
+
+            const expireTime = JWTUtil.getTokenExpireTime(authType, roleHighestPermission);
+
+            isSet = (await setex(cacheTokenKey, expireTime, value)) === 'OK';
+            return isSet;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    },
+    getTokenFromCache: async (key, authType) => {
+        fileDetails = `[${filenameWithoutPath}] [getTokenFromCache]`;
+        try {
+            const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
+
+            const value = await get(cacheTokenKey);
+
+            if (!value) {
+                throw new Error('Token not exists');
+            }
+            return value;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;

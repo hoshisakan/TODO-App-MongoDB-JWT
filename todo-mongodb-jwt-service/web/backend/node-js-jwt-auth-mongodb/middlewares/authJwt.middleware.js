@@ -7,9 +7,9 @@ const { BAD_REQUEST, UNAUTHORIZED } = require('../helpers/constants.helper.js');
 const AuthService = require('../services/auth.service');
 const authService = new AuthService();
 const { verifyToken } = require('../utils/jwt.util.js');
+const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../config/cookie.config.js');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
-
 
 getFunctionCallerName = () => {
     const err = new Error();
@@ -23,8 +23,6 @@ getFileDetails = (classAndFuncName) => {
     return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
 };
 
-
-
 ///TODO: Verify refresh token
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
 verifyAcccessToken = (req, res, next) => {
@@ -32,28 +30,21 @@ verifyAcccessToken = (req, res, next) => {
     const fileDetails = getFileDetails(classNameAndFuncName);
 
     try {
-        let token = req.headers['x-access-token'];
-
+        // const token = req.headers['x-access-token'];
+        const token = req.cookies[ACCESS_TOKEN_COOKIE_NAME];
         logInfo(`verifyToken: ${token}`, fileDetails, true);
 
         if (!token) {
             return http.errorResponse(res, BAD_REQUEST, 'No token provided!');
         }
 
-        const decoded = verifyToken(token, 'access')
-
+        const decoded = verifyToken(token, 'access');
         logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
 
         if (!decoded) {
             logInfo(`decoded is null`, fileDetails, true);
             throw new Error('Unauthorized!');
         }
-
-        req.user = {}
-        req.user._id = decoded._id;
-        req.user.permission = authService.getUserHighestRoleNameById(req.user._id);
-        logInfo(`verifyAcccessToken req.user: ${stringify(req.user)}`, fileDetails, true);
-
         return next();
     } catch (err) {
         logError(err, fileDetails, true);
@@ -68,15 +59,15 @@ verifyRefreshToken = (req, res, next) => {
     const fileDetails = getFileDetails(classNameAndFuncName);
 
     try {
-        let token = req.headers['x-access-token'];
-
+        // const token = req.headers['x-access-token'];
+        const token = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
         logInfo(`verifyToken: ${token}`, fileDetails, true);
 
         if (!token) {
             return http.errorResponse(res, BAD_REQUEST, 'No token provided!');
         }
 
-        const decoded = verifyToken(token, 'refresh')
+        const decoded = verifyToken(token, 'refresh');
 
         logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
 
@@ -85,7 +76,7 @@ verifyRefreshToken = (req, res, next) => {
             throw new Error('Unauthorized!');
         }
 
-        req.user = {}
+        req.user = {};
         req.user._id = decoded._id;
         req.user.permission = authService.getUserHighestRoleNameById(req.user._id);
 

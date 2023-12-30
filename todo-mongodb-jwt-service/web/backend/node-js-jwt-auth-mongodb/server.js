@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
+// const expressSession = require('express-session');
 const path = require('path');
 
 const env = process.env.NODE_ENV || 'development';
@@ -16,6 +17,30 @@ console.log(`env.trim(): ${env.trim()}`);
 console.log(`Logfile path: ${process.env.LOG_FILE_PATH}`);
 
 const app = express();
+
+
+
+// const sess = {
+//     secret: process.env.SESSION_SECRET,
+//     name: process.env.SESSION_NAME,
+//     cookie: {
+//         path: '/',
+//         secure: true,
+//         httpOnly: true,
+//         maxAge: 60000,
+//     },
+//     ///TODO: resave - forces the session to be saved back to the session store, even if the session was never modified during the request
+//     resave: true,
+//     ///TODO: saveUninitialized - forces a session that is "uninitialized" to be saved to the store
+//     saveUninitialized: true,
+// };
+
+// if (env.trim() === 'development') {
+//     app.set('trust proxy', 1);
+//     sess.cookie.secure = false;
+// }
+
+// app.use(expressSession(sess));
 
 const corsOptions = require('./config/corsOptions').corsOptions;
 

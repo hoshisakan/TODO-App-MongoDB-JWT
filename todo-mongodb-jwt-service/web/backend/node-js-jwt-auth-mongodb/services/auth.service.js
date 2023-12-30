@@ -1,14 +1,15 @@
 var bcrypt = require('bcryptjs');
 const { logInfo, logError } = require('../utils/log.util');
-const { stringify } = require('../utils/json.util');
+const { stringify, parse } = require('../utils/json.util');
 const { filenameFilter } = require('../utils/regex.util');
 
 const {
     generateToken,
-    verifyTokenExistsInCache,
     verifyToken,
-    getTokenInCache,
-    storeTokensInCache,
+    setTokenToCache,
+    getTokenFromCache,
+    checkTokenExistsFromCache,
+    removeTokenFromCache,
 } = require('../utils/jwt.util');
 const UnitOfWork = require('../repositories/unitwork');
 const User = require('../models/mongodb/user.model');
@@ -67,141 +68,6 @@ class AuthService {
         return result;
     };
 
-    ///TODO: Generate access token with expiration time, store in redis cache with expiration time, return token
-    generateAccessToken = async (payload, highestRole) => {
-        let result = {
-            accessToken: null,
-            cacheResult: null,
-            isAccessTokenExpired: false,
-        };
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        try {
-            if (!payload) {
-                throw new Error('User cannot be empty');
-            }
-            if (!highestRole) {
-                throw new Error('Highest role cannot be empty');
-            }
-
-            logInfo(`payload: ${stringify(payload)}`, fileDetails, true);
-            logInfo(`highestRole: ${highestRole}`, fileDetails, true);
-
-            const isTokenExistsInCache = await verifyTokenExistsInCache(payload._id, 'access');
-            logInfo(`isTokenExistsInCache: ${isTokenExistsInCache}`, fileDetails, true);
-
-            if (!isTokenExistsInCache) {
-                let accessToken = null;
-                let tokenExpirationTime = null;
-
-                switch (highestRole) {
-                    case 'admin':
-                        tokenExpirationTime = parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME_FOR_ADMIN, 10);
-                        break;
-                    case 'moderator':
-                        tokenExpirationTime = parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME_FOR_MODERATOR, 10);
-                        break;
-                    case 'user':
-                        tokenExpirationTime = parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME_FOR_USER, 10);
-                        break;
-                    default:
-                        throw new Error('Role name is invalid');
-                }
-
-                if (tokenExpirationTime === -1) {
-                    throw new Error('Token expiration time is invalid');
-                }
-                logInfo(`tokenExpirationTime: ${tokenExpirationTime}`, fileDetails, true);
-
-                accessToken = generateToken(payload, tokenExpirationTime, 'access');
-
-                if (!accessToken) {
-                    throw new Error('Access token generation failed');
-                }
-                result.accessToken = accessToken;
-                result.cacheResult = await storeTokensInCache(payload._id, accessToken, 'access', tokenExpirationTime);
-
-                if (!result.cacheResult || result.cacheResult !== 'OK') {
-                    throw new Error('Set access token in cache failed');
-                }
-                result.isAccessTokenExpired = true;
-            } else {
-                result.accessToken = await getTokenInCache(payload._id, 'access');
-
-                if (!result.accessToken) {
-                    throw new Error('Get access token from cache failed');
-                }
-                result.cacheResult = 'OK';
-                result.isAccessTokenExpired = false;
-            }
-            logInfo(`result: ${stringify(result)}`, fileDetails, true);
-            return result;
-        } catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
-        }
-    };
-
-    ///TODO: Generate refresh token with expiration time, store in redis cache with expiration time, return token
-    generateRefreshToken = async (payload) => {
-        let result = {
-            refreshToken: null,
-            cacheResult: null,
-            isRefreshTokenExpired: false,
-        };
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        try {
-            if (!payload) {
-                throw new Error('Payload cannot be empty');
-            }
-
-            logInfo(`payload: ${stringify(payload)}`, fileDetails, true);
-
-            const isTokenExistsInCache = await verifyTokenExistsInCache(payload._id, 'refresh');
-
-            logInfo(`isTokenExistsInCache: ${isTokenExistsInCache}`, fileDetails, true);
-
-            if (!isTokenExistsInCache) {
-                let refreshToken = null;
-                let tokenExpirationTime = null;
-
-                tokenExpirationTime = parseInt(process.env.REFRESH_TOKEN_EXPIRATION_TIME, 10);
-
-                if (tokenExpirationTime === -1) {
-                    throw new Error('Token expiration time is invalid');
-                }
-                logInfo(`tokenExpirationTime: ${tokenExpirationTime}`, fileDetails, true);
-
-                refreshToken = generateToken(payload, tokenExpirationTime, 'refresh');
-
-                if (!refreshToken) {
-                    throw new Error('Refresh token generation failed');
-                }
-                result.refreshToken = refreshToken;
-                result.cacheResult = await storeTokensInCache(payload._id, refreshToken, 'refresh');
-
-                if (!result.cacheResult || result.cacheResult !== 'OK') {
-                    throw new Error('Set refresh token in cache failed');
-                }
-                result.isRefreshTokenExpired = true;
-            } else {
-                result.refreshToken = await getTokenInCache(payload._id, 'refresh');
-
-                if (!result.refreshToken) {
-                    throw new Error('Get refresh token from cache failed');
-                }
-                result.cacheResult = 'OK';
-                result.isRefreshTokenExpired = false;
-            }
-            logInfo(`result: ${stringify(result)}`, fileDetails, true);
-            return result;
-        } catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
-        }
-    };
-
     ///TODO: Get user highest role name by user id
     getUserHighestRoleNameById = async (userId) => {
         const classNameAndFuncName = getFunctionCallerName();
@@ -212,6 +78,70 @@ class AuthService {
             const userOwnHighestPermission = userOwnRoleList[0].name;
             logInfo(`userOwnHighestPermission: ${stringify(userOwnHighestPermission)}`, fileDetails, true);
             return userOwnHighestPermission;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    };
+
+    refreshToken = async (token) => {
+        const classNameAndFuncName = getFunctionCallerName();
+        const fileDetails = getFileDetails(classNameAndFuncName);
+        let createAccessTokenResult = {
+            token: null,
+            expireTime: null,
+        };
+        try {
+            if (!token) {
+                throw new Error('Refresh token cannot be empty');
+            }
+
+            const refreshTokenValidateResult = verifyToken(token, 'refresh');
+            logInfo(`refreshTokenValidateResult: ${stringify(refreshTokenValidateResult)}`, fileDetails, true);
+
+            if (!refreshTokenValidateResult) {
+                throw new Error('Token was not verified successfully!');
+            }
+
+            const isAccessTokenExistsInCache = await checkTokenExistsFromCache(
+                refreshTokenValidateResult.id,
+                'access'
+            );
+
+            logInfo(`isAccessTokenExistsInCache: ${stringify(isAccessTokenExistsInCache)}`, fileDetails, true);
+
+            if (isAccessTokenExistsInCache) {
+                const cacheAccessTokenItems = parse(await getTokenFromCache(refreshTokenValidateResult.id, 'access'));
+                logInfo(`Get old access token from redis cache: ${stringify(cacheAccessTokenItems)}`, fileDetails, true);
+
+
+                if (cacheAccessTokenItems) {
+                    createAccessTokenResult.token = cacheAccessTokenItems.token;
+                    createAccessTokenResult.expireTime = cacheAccessTokenItems.expireTime;
+                    return createAccessTokenResult;
+                }
+            }
+
+            const userValidateResult = await this.validateUserIdentity({ _id: refreshTokenValidateResult.id });
+
+            if (!userValidateResult) {
+                throw new Error('User not found');
+            }
+
+            const payload = {
+                id: userValidateResult.id,
+            };
+
+            createAccessTokenResult = await this.generateTokenAndStorageCache(
+                payload,
+                'access',
+                userValidateResult
+            );
+
+            if (!createAccessTokenResult) {
+                throw new Error('Access token create failed');
+            }
+            return createAccessTokenResult;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
@@ -238,12 +168,12 @@ class AuthService {
             logInfo(`userRolesName: ${stringify(userRolesName)}`, fileDetails, true);
 
             result = {
-                _id: userValidateResult._id,
+                id: userValidateResult._id,
                 username: userValidateResult.username,
                 password: userValidateResult.password,
                 email: userValidateResult.email,
                 roles: userRolesName,
-                highestRole: userRolesName[0],
+                highestRolePermission: userRolesName[0],
             };
             logInfo(`result: ${stringify(result)}`, fileDetails, true);
             return result;
@@ -253,78 +183,74 @@ class AuthService {
         }
     };
 
-    refreshToken = async (validateToken) => {
-        let result = null;
+    isExistsBlacklistToken = async (key, authType) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!validateToken) {
-                throw new Error('Token cannot be empty');
+            if (!key || !authType) {
+                throw new Error('Token or auth type cannot be empty');
+            }
+            return await checkTokenExistsFromCache(key, authType);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    };
+
+    generateTokenAndStorageCache = async (payload, authType, userValidateResult) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let createResult = {
+            token: null,
+            expireTime: null,
+        };
+        try {
+            createResult = generateToken(payload, authType, userValidateResult.highestRolePermission);
+            logInfo(`Create result: ${stringify(createResult)}`, fileDetails, true);
+
+            if (!createResult.token || !createResult.expireTime) {
+                throw new Error('Token create failed');
             }
 
-            const decoded = verifyToken(validateToken, 'refresh');
-            logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
-
-            if (!decoded) {
-                throw new Error('Token is invalid');
+            const cacheValue = {
+                token: createResult.token,
+                expireTime: createResult.expireTime,
             }
 
-            const validateUserId = decoded._id;
-            logInfo(`validateUserId: ${validateUserId}`, fileDetails, true);
-
-            const userValidateResult = await this.validateUserIdentity({ _id: validateUserId });
-            logInfo(`user: ${stringify(userValidateResult)}`, fileDetails, true);
-
-            if (!userValidateResult) {
-                throw new Error('User not found');
-            }
-
-            const isTokenExistsInCache = await verifyTokenExistsInCache(validateUserId, 'refresh');
-            logInfo(`isTokenExistsInCache: ${isTokenExistsInCache}`, fileDetails, true);
-
-            if (!isTokenExistsInCache) {
-                throw new Error('Token does not exist in cache');
-            }
-
-            const tokenPayload = {
-                _id: userValidateResult._id,
-            };
-            logInfo(`tokenPayload: ${stringify(tokenPayload)}`, fileDetails, true);
-
-            const accessTokenCreatedResult = await this.generateAccessToken(
-                tokenPayload,
-                userValidateResult.highestRole
+            // const isSetTokenToCache = await setTokenToCache(createResult.token, authType, userValidateResult.highestRolePermission);
+            const isSetTokenToCache = await setTokenToCache(
+                authType,
+                userValidateResult.id,
+                stringify(cacheValue),
+                userValidateResult.highestRolePermission
             );
-            logInfo(`accessTokenCreatedResult: ${stringify(accessTokenCreatedResult)}`, fileDetails, true);
+            logInfo(`isSetTokenToCache: ${stringify(isSetTokenToCache)}`, fileDetails, true);
 
-            if (!accessTokenCreatedResult) {
-                throw new Error('Access token creation failed');
+            if (!isSetTokenToCache) {
+                logError(`Set token to cache failed`, fileDetails, true);
+                ///TODO: 未來必須要將錯誤寫入資料庫
             }
+            return createResult;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            createResult = {};
+        }
+        return createResult;
+    };
 
-            const accessToken = accessTokenCreatedResult.accessToken;
-
-            if (!accessToken) {
-                throw new Error('Access token cannot be empty');
+    ///TODO: Valiate access token, verify success response items, otherwise throw error
+    verifyTokenValidity = async (token, authType) => {
+        let result = {};
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            if (!token) {
+                throw new Error('Token invalid');
             }
-
-            if (accessTokenCreatedResult.cacheResult !== 'OK') {
-                throw new Error('Access token cannot be cached');
+            if (!authType) {
+                throw new Error('Auth type invalid');
             }
-
-            const isAccessTokenExpired = accessTokenCreatedResult.isAccessTokenExpired;
-
-            logInfo(`isAccessTokenExpired: ${isAccessTokenExpired}`, fileDetails, true);
-
-            result = {
-                clientResponse: {
-                    id: userValidateResult.id,
-                    username: userValidateResult.username,
-                    email: userValidateResult.email,
-                    roles: userValidateResult.roles,
-                    accessToken: accessToken,
-                    // isAccessTokenExpired: isAccessTokenExpired,
-                },
-            };
+            result = verifyToken(token, authType);
             return result;
         } catch (err) {
             logError(err, fileDetails, true);
@@ -332,23 +258,7 @@ class AuthService {
         }
     };
 
-    verifyToken = async (validateToken) => {
-        let result = null;
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        try {
-            if (!validateToken) {
-                throw new Error('Token cannot be empty');
-            }
-            result = verifyToken(validateToken, 'access');
-            return result;
-        }
-        catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
-        }
-    };
-
+    ///TODO: Register user, success response items, otherwise throw error
     signup = async (user) => {
         let userCreated = null;
         let result = null;
@@ -403,21 +313,26 @@ class AuthService {
             logError(err, fileDetails, true);
             throw err;
         }
-        return result;
     };
 
-    signin = async (user) => {
-        let result = null;
+    ///TODO: Signin user, generate access token, store in redis cache, return items in success response, otherwise throw error
+    signin = async (loginDto) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+        let result = {
+            clientResponse: null,
+            clientCookie: null,
+        };
+
         try {
-            if (!user) {
+            if (!loginDto) {
                 throw new Error('User cannot be empty');
             }
-            logInfo(`signin username: ${user.username}`, fileDetails, true);
+            logInfo(`loginDto: ${stringify(loginDto)}`, fileDetails, true);
 
             const userFilterExpression = {
-                username: user.username,
+                username: loginDto.username,
             };
 
             const userValidateResult = await this.validateUserIdentity(userFilterExpression);
@@ -426,73 +341,157 @@ class AuthService {
                 throw new Error('User not found');
             }
 
-            const validatePassword = bcrypt.compareSync(user.password, userValidateResult.password);
+            const validatePassword = bcrypt.compareSync(loginDto.password, userValidateResult.password);
 
             if (!validatePassword) {
                 throw new Error('Invalid password');
             }
 
-            const tokenPayload = {
-                _id: userValidateResult._id,
+            let createAccessTokenResult = {
+                token: null,
+                expireTime: null,
+            };
+            let createRefreshTokenResult = {
+                token: null,
+                expireTime: null,
+            };
+            const payload = {
+                id: userValidateResult.id,
             };
 
-            const accessTokenCreatedResult = await this.generateAccessToken(
-                tokenPayload,
-                userValidateResult.highestRole
-            );
-
-            if (!accessTokenCreatedResult) {
-                throw new Error('Access token creation failed');
-            }
-
-            const accessToken = accessTokenCreatedResult.accessToken;
-
-            if (!accessToken) {
-                throw new Error('Access token cannot be empty');
-            }
-
-            if (accessTokenCreatedResult.cacheResult !== 'OK') {
-                throw new Error('Access token cannot be cached');
-            }
-
-            const isAccessTokenExpired = accessTokenCreatedResult.isAccessTokenExpired;
-
-            logInfo(`isAccessTokenExpired: ${isAccessTokenExpired}`, fileDetails, true);
-
-            const refreshTokenCreatedResult = await this.generateRefreshToken(tokenPayload);
-
-            if (!refreshTokenCreatedResult) {
-                throw new Error('Refresh token creation failed');
-            }
-
-            const refreshToken = refreshTokenCreatedResult.refreshToken;
-
-            if (!refreshToken) {
-                throw new Error('Refresh token cannot be empty');
-            }
-
-            if (refreshTokenCreatedResult.cacheResult !== 'OK') {
-                throw new Error('Refresh token cannot be cached');
-            }
-
-            const isRefreshTokenExpired = refreshTokenCreatedResult.isRefreshTokenExpired;
-
-            result = {
-                clientResponse: {
-                    id: userValidateResult.id,
-                    username: userValidateResult.username,
-                    email: userValidateResult.email,
-                    roles: userValidateResult.roles,
-                    accessToken: accessToken,
-                    // isAccessTokenExpired: isAccessTokenExpired,
-                },
-                clientCookie: {
-                    refreshToken: refreshToken,
-                    isRefreshTokenExpired: isRefreshTokenExpired, ///TODO: If refresh token is expired, client should redirect to login page, otherwise, client should set refresh token in cookie and redirect to home page
-                },
+            let isTokenExistsInCookie = {
+                accessToken: false,
+                refreshToken: false,
             };
-            logInfo(`signin result: ${stringify(result)}`, fileDetails, true);
-            return result;
+
+            ///TODO: 檢查存放在 cookie 中 access token 是否為空，如果不為空，則進行驗證，如果驗證失敗，則重新產生 access token
+            ///TODO: 反之，視為第一次登入，產生 access token
+            if (loginDto.cookieAccessToken) {
+                isTokenExistsInCookie.accessToken = true;
+                const isVerifyAccessToken = verifyToken(loginDto.cookieAccessToken, 'access');
+                logInfo(`isVerifyAccessToken: ${stringify(isVerifyAccessToken)}`, fileDetails, true);
+                if (!isVerifyAccessToken) {
+                    logInfo(`isVerifyAccessToken is false`, fileDetails, true);
+                    createAccessTokenResult = await this.generateTokenAndStorageCache(
+                        payload,
+                        'access',
+                        userValidateResult
+                    );
+                } else {
+                    logInfo(`isVerifyAccessToken is true`, fileDetails, true);
+                    createAccessTokenResult.token = loginDto.cookieAccessToken;
+                }
+            } else {
+                isTokenExistsInCookie.accessToken = false;
+                const isExistsBlacklistToken = await this.isExistsBlacklistToken(userValidateResult.id, 'access');
+                logInfo(`isExistsBlacklistToken: ${stringify(isExistsBlacklistToken)}`, fileDetails, true);
+                if (!isExistsBlacklistToken) {
+                    logInfo(`isExistsBlacklistToken is false`, fileDetails, true);
+                    createAccessTokenResult = await this.generateTokenAndStorageCache(
+                        payload,
+                        'access',
+                        userValidateResult
+                    );
+                } else {
+                    logInfo(`isExistsBlacklistToken is true`, fileDetails, true);
+                    // createAccessTokenResult.token = await getTokenFromCache(userValidateResult.id, 'access');
+                    const cacheAccessTokenItems = parse(await getTokenFromCache(userValidateResult.id, 'access'));
+                    createAccessTokenResult.token = cacheAccessTokenItems.token;
+                    createAccessTokenResult.expireTime = cacheAccessTokenItems.expireTime;
+                }
+            }
+
+            if (!createAccessTokenResult && !loginDto.cookieAccessToken) {
+                throw new Error('Access token create failed');
+            }
+
+            logInfo(`createAccessTokenResult: ${stringify(createAccessTokenResult)}`, fileDetails, true);
+
+            if (loginDto.cookieRefreshToken) {
+                isTokenExistsInCookie.refreshToken = true;
+                const isVerifyRefreshToken = verifyToken(loginDto.cookieRefreshToken, 'refresh');
+                logInfo(`isVerifyRefreshToken: ${stringify(isVerifyRefreshToken)}`, fileDetails, true);
+                if (!isVerifyRefreshToken) {
+                    logInfo(`isVerifyRefreshToken is false`, fileDetails, true);
+                    createRefreshTokenResult = await this.generateTokenAndStorageCache(
+                        payload,
+                        'refresh',
+                        userValidateResult
+                    );
+                } else {
+                    logInfo(`isVerifyRefreshToken is true`, fileDetails, true);
+                    createRefreshTokenResult.token = loginDto.cookieRefreshToken;
+                }
+            } else {
+                isTokenExistsInCookie.refreshToken = false;
+                const isExistsBlacklistToken = await this.isExistsBlacklistToken(userValidateResult.id, 'refresh');
+                logInfo(`isExistsBlacklistToken: ${stringify(isExistsBlacklistToken)}`, fileDetails, true);
+                if (!isExistsBlacklistToken) {
+                    logInfo(`isExistsBlacklistToken is false`, fileDetails, true);
+                    createRefreshTokenResult = await this.generateTokenAndStorageCache(
+                        payload,
+                        'refresh',
+                        userValidateResult
+                    );
+                } else {
+                    logInfo(`isExistsBlacklistToken is true`, fileDetails, true);
+                    // createRefreshTokenResult.token = await getTokenFromCache(userValidateResult.id, 'refresh');
+                    const cacheRefreshTokenItems = parse(await getTokenFromCache(userValidateResult.id, 'refresh'));
+                    createRefreshTokenResult.token = cacheRefreshTokenItems.token;
+                    createRefreshTokenResult.expireTime = cacheRefreshTokenItems.expireTime;
+                }
+            }
+
+            if (!createRefreshTokenResult && !loginDto.cookieRefreshToken) {
+                throw new Error('Refresh token create failed');
+            }
+
+            logInfo(`createRefreshTokenResult: ${stringify(createRefreshTokenResult)}`, fileDetails, true);
+
+            result.clientResponse = {
+                id: userValidateResult.id,
+                username: userValidateResult.username,
+                email: userValidateResult.email,
+                roles: userValidateResult.roles,
+            };
+
+            result.clientCookie = {
+                accessToken: createAccessTokenResult.token,
+                accessTokenExpireTime: createAccessTokenResult.expireTime,
+                isAccessTokenExistsInCookie: isTokenExistsInCookie.accessToken,
+                refreshToken: createRefreshTokenResult.token,
+                refreshTokenExpireTime: createRefreshTokenResult.expireTime,
+                isRefreshTokenExistsInCookie: isTokenExistsInCookie.refreshToken,
+            };
+            logInfo(`loginSuccessResult: ${stringify(result)}`, fileDetails, true);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            result = {};
+        }
+        return result;
+    };
+
+    traceErrorAndWriteDB = async (err) => {
+        logError(err, true);
+        await this.unitOfWork.errors.create({
+            message: err.message,
+            stack: err.stack,
+            createdAt: new Date(),
+        });
+    };
+
+    ///TODO: 需要驗證 access token 是否有效，如果有效，才進行撤銷，否則，拋出錯誤
+    ///TODO: Signout user, remove access token and refresh token from redis cache, return items in success response, otherwise throw error
+    signout = async (revokeItem) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        // let validateResult = {
+        //     isAccessTokenValid: false,
+        //     isRefreshTokenValid: false,
+        // };
+        try {
+            const { accessToken, refreshToken } = revokeItem;
+            return isRevoked;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;

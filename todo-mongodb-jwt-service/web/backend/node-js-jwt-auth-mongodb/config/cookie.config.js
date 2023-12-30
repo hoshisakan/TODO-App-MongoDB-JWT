@@ -1,0 +1,4 @@
+module.exports = {
+    ACCESS_TOKEN_COOKIE_NAME: '__ACCESS_TOKEN',
+    REFRESH_TOKEN_COOKIE_NAME: '__REFRESH_TOKEN',
+};
