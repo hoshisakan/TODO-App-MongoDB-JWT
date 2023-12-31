@@ -3,7 +3,7 @@ const { filenameFilter } = require('../utils/regex.util');
 
 const Repository = require('./repository');
 
-class UserRepository extends Repository {
+class TodoRepository extends Repository {
     constructor(model) {
         super(model);
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
@@ -21,35 +21,23 @@ class UserRepository extends Repository {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    addRoles = async (userId, roleIds) => {
+    addTodoCategory = async (todoId, todoCategoryId) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const user = await this.model.findById(userId);
+            const todo = await this.model.findById(todoId);
 
-            if (!user) {
-                throw new Error('User Not Found');
+            if (!todo) {
+                throw new Error('Todo Not Found');
             }
 
-            user.roles = roleIds;
-            return await user.save();
+            todo.todoCategories = [todoCategoryId];
+            return await todo.save();
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
         }
     };
-
-    addRole = async (userId, roleId) => {
-        const user = await this.model.findById(userId);
-
-        if (!user) {
-            throw new Error('User Not Found');
-        }
-
-        user.roles = [roleId];
-
-        return await user.save();
-    };
 }
 
-module.exports = UserRepository;
+module.exports = TodoRepository;
