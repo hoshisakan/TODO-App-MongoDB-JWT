@@ -23,6 +23,30 @@ class TodoController {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
+    bulkCreate = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.todoService.bulkCreate(req.body);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    // bulkUpdate = async (req, res) => {
+    //     const classNameAndFuncName = this.getFunctionCallerName();
+    //     const fileDetails = this.getFileDetails(classNameAndFuncName);
+    //     try {
+    //         const result = await this.todoService.bulkUpdate(req.body);
+    //         return http.successResponse(res, OK, result);
+    //     } catch (error) {
+    //         logError(error, fileDetails, true);
+    //         return http.errorResponse(res, BAD_REQUEST, error.message);
+    //     }
+    // };
+
     create = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -34,6 +58,67 @@ class TodoController {
             return http.errorResponse(res, BAD_REQUEST, error.message);
         }
     };
+
+    updateById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.todoService.updateById(req.params.id, req.body);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    patchUpdateById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.todoService.patchUpdateById(req.params.id, req.body);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    deleteById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.todoService.deleteById(req.params.id);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    findById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.todoService.findById(req.params.id);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    // deleteAll = async (req, res) => {
+    //     const classNameAndFuncName = this.getFunctionCallerName();
+    //     const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+    //     try {
+    //         const result = await this.todoService.deleleAll()
+    //         return http.successResponse(res, OK, result);
+    //     } catch (error) {
+    //         logError(error, fileDetails, true);
+    //         return http.errorResponse(res, BAD_REQUEST, error.message);
+    //     }
+    // }
 
     findAll = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();

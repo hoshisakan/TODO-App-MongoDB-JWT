@@ -2,6 +2,7 @@ const { logError, logInfo } = require('../utils/log.util.js');
 const { stringify } = require('../utils/json.util');
 const { filenameFilter } = require('../utils/regex.util.js');
 const { validateFieldsAuthenticity } = require('../utils/model.validate.util');
+const { fieldValidation } = require('../utils/validate.util.js').crudOperations;
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 const UnitOfWork = require('../repositories/unitwork');
@@ -244,6 +245,131 @@ const LogicCheckUtil = {
             // logError(err, fileDetails, true);
         }
         return result;
+    },
+    ///TODO: Check duplicate existing todo category, return filter query
+    checkDuplicateExisting: async (entity, validateModelName) => {
+        // const fileDetails = `[${filenameWithoutPath}] [checkDuplicateExisting]`;
+        let filterQuery = {};
+
+        try {
+            if (!entity || Object.keys(entity).length === 0) {
+                throw new Error('Invalid entity');
+            }
+
+            if (!validateModelName || !fieldValidation[validateModelName]) {
+                throw new Error('Invalid validate model name');
+            }
+
+            filterQuery = {
+                $or: [],
+            };
+
+            const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
+
+            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
+
+            if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
+                throw new Error('Invalid allowed fields');
+            }
+
+            allowedFields.forEach((field) => {
+                // logInfo(`Current check field: ${stringify(field)}`, fileDetails, true);
+                if (entity[field]) {
+                    filterQuery.$or.push({ [field]: entity[field] });
+                }
+            });
+            return filterQuery;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    },
+    ///TODO: Check multiple duplicate existing todo category, return filter query
+    checkMultipleDuplicateExisting: async (entities, validateModelName) => {
+        // const fileDetails = `[${filenameWithoutPath}] [checkMultipleDuplicateExisting]`;
+        let filterQuery = {};
+
+        try {
+            if (!entities || entities.length === 0 || !Array.isArray(entities)) {
+                throw new Error('Invalid entities');
+            }
+
+            if (!validateModelName || !fieldValidation[validateModelName]) {
+                throw new Error('Invalid validate model name');
+            }
+
+            filterQuery = {
+                $or: [],
+            };
+
+            const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
+
+            if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
+                throw new Error('Invalid allowed fields');
+            }
+
+            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
+
+            entities.forEach((entity) => {
+                allowedFields.forEach((field) => {
+                    if (entity[field]) {
+                        const filterQueryField = filterQuery.$or.find((filter) => filter[field]);
+
+                        if (!filterQueryField) {
+                            filterQuery.$or.push({ [field]: { $in: [entity[field]] } });
+                        } else {
+                            filterQueryField[field].$in = [...filterQueryField[field].$in, entity[field]];
+                        }
+                    }
+                });
+            });
+
+            return filterQuery;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    },
+    ///TODO: Set one and update fields, return update query
+    setOneAndUpdateFields: (entity, validateModelName) => {
+        // const fileDetails = `[${filenameWithoutPath}] [setOneAndUpdateFields]`;
+        const fields = {};
+
+        try {
+            if (!entity || Object.keys(entity).length === 0) {
+                throw new Error('Invalid entity');
+            }
+
+            if (!validateModelName || !fieldValidation[validateModelName]) {
+                throw new Error('Invalid validate model name');
+            }
+
+            const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
+
+            if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
+                throw new Error('Invalid allowed fields');
+            }
+
+            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
+
+            ///TODO: Method 1
+            Object.keys(entity).forEach((key) => {
+                if (allowedFields.includes(key)) {
+                    fields[key] = entity[key];
+                }
+            });
+
+            ///TODO: Method 2
+            // allowedFields.forEach((field) => {
+            //     if (entity[field]) {
+            //         fields[field] = entity[field];
+            //     }
+            // });
+            return fields;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+        }
+        return fields;
     },
 };
 

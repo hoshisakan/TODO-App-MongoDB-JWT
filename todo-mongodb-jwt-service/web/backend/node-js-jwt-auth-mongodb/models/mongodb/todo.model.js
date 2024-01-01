@@ -20,6 +20,11 @@ const Todo = mongoose.model(
             required: true,
             enum: ['pending', 'ongoing', 'completed', 'deleted', 'archived'],
         },
+        priority: {
+            type: String,
+            required: true,
+            enum: ['low', 'medium', 'high'],
+        },
         isCompleted: {
             type: Boolean,
             default: false,
@@ -28,6 +33,13 @@ const Todo = mongoose.model(
             type: String,
             required: true,
             enum: ['public', 'private'],
+        },
+        startDate: {
+            type: Date,
+            default: Date.now,
+        },
+        dueDate: {
+            type: Date,
         },
         user: {
             type: mongoose.Schema.Types.ObjectId,

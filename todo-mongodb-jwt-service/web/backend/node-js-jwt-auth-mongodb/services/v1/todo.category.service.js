@@ -1,7 +1,14 @@
 const { logInfo, logError } = require('../../utils/log.util');
 const { stringify } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
-const { getFilterQuery, validateEntityParams, validateEntitiesParams } = require('../../utils/logic.check.util');
+const {
+    getFilterQuery,
+    validateEntityParams,
+    validateEntitiesParams,
+    checkDuplicateExisting,
+    checkMultipleDuplicateExisting,
+    setOneAndUpdateFields,
+} = require('../../utils/logic.check.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
@@ -27,34 +34,6 @@ class TodoCategoryService extends BaseService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    ///TODO: Check duplicate existing todo category, return filter query
-    checkDuplicateExisting = async (entity) => {
-        // const classAndFuncName = this.getFunctionCallerName();
-        // const fileDetails = this.getFileDetails(classAndFuncName);
-        let filterQuery = {};
-
-        try {
-            if (!entity) {
-                throw new Error('Invalid entity');
-            }
-
-            filterQuery = {
-                $or: [],
-            };
-
-            if (entity.name) {
-                filterQuery.$or.push({ name: entity.name });
-            }
-            if (entity.value) {
-                filterQuery.$or.push({ value: entity.value });
-            }
-            return filterQuery;
-        } catch (error) {
-            // logError(error, fileDetails, true);
-            throw error;
-        }
-    };
-
     create = async (entity) => {
         const classAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classAndFuncName);
@@ -69,7 +48,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const duplicateExistingQuery = await this.checkDuplicateExisting(entity);
+            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
 
             logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
@@ -97,47 +76,6 @@ class TodoCategoryService extends BaseService {
         }
     };
 
-    checkMultipleDuplicateExisting = async (entities) => {
-        // const classAndFuncName = this.getFunctionCallerName();
-        // const fileDetails = this.getFileDetails(classAndFuncName);
-        let filterQuery = {};
-
-        try {
-            if (!entities || entities.length === 0) {
-                throw new Error('Invalid entities');
-            }
-
-            filterQuery = {
-                $or: [],
-            };
-
-            entities.forEach((entity) => {
-                if (entity.name) {
-                    const nameFilterQuery = filterQuery.$or.find((filter) => filter.name);
-
-                    if (!nameFilterQuery) {
-                        filterQuery.$or.push({ name: { $in: [entity.name] } });
-                    } else {
-                        nameFilterQuery.name.$in = [...nameFilterQuery.name.$in, entity.name];
-                    }
-                }
-                if (entity.value) {
-                    const valueFilterQuery = filterQuery.$or.find((filter) => filter.value);
-
-                    if (!valueFilterQuery) {
-                        filterQuery.$or.push({ value: { $in: [entity.value] } });
-                    } else {
-                        valueFilterQuery.value.$in = [...valueFilterQuery.value.$in, entity.value];
-                    }
-                }
-            });
-            return filterQuery;
-        } catch (error) {
-            // logError(error, fileDetails, true);
-            throw error;
-        }
-    };
-
     ///TODO: Bulk create todo category
     bulkCreate = async (entities) => {
         const classAndFuncName = this.getFunctionCallerName();
@@ -153,7 +91,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const duplicateExistingQuery = await this.checkMultipleDuplicateExisting(entities);
+            const duplicateExistingQuery = await checkMultipleDuplicateExisting(entities, this.modelName);
 
             logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
@@ -175,7 +113,6 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Todo category creation failed');
             }
             return todoCategoryCreated;
-            return 'bulkCreate';
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
@@ -218,29 +155,6 @@ class TodoCategoryService extends BaseService {
     //     }
     // };
 
-    ///TODO: Set one and update fields, return update query
-    setOneAndUpdateFields = (entity) => {
-        const classAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classAndFuncName);
-        const fields = {};
-
-        try {
-            if (!entity) {
-                throw new Error('Invalid entity');
-            }
-            if (entity.name) {
-                fields.name = entity.name;
-            }
-            if (entity.value) {
-                fields.value = entity.value;
-            }
-            return fields;
-        } catch (error) {
-            // logError(error, fileDetails, true);
-        }
-        return fields;
-    };
-
     patchUpdateById = async (id, entity) => {
         const classAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classAndFuncName);
@@ -259,7 +173,54 @@ class TodoCategoryService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const updateQuery = this.setOneAndUpdateFields(entity);
+            const todoCategoryFound = await this.unitOfWork.todoCategories.findById(id);
+
+            if (!todoCategoryFound) {
+                throw new Error('Todo category not found with the provided id');
+            }
+
+            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
+
+            // logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
+
+            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
+                throw new Error('Invalid duplicate existing query');
+            }
+
+            const duplicateItemsFound = await this.unitOfWork.todoCategories.find(duplicateExistingQuery);
+
+            // logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
+
+            ///TODO: check duplicate items found, cannnot use some or every, because it will return true if the first item is duplicate
+            ///TODO: reminder: some and every will return true if the first item is duplicate
+            ///TODO: reminder: _id is not a string, it is an object, so we need to convert it to string
+            const duplicateItems = duplicateItemsFound.filter(
+                (item) =>
+                    item._id.toString() !== entity._id.toString() &&
+                    (item.name.toString() === entity.name.toString() ||
+                        item.value.toString() === entity.value.toString())
+            );
+
+            // const duplicateItems = duplicateItemsFound.filter((item) => {
+            //     const isSameId = item._id.toString() === entity._id.toString();
+            //     const isSameName = item.name.toString() === entity.name.toString();
+            //     const isSameValue = item.value.toString() === entity.value.toString();
+
+            //     logInfo(
+            //         `Checking item ${item._id}: isSameId=${isSameId}, isSameName=${isSameName}, isSameValue=${isSameValue}`,
+            //         fileDetails
+            //     );
+
+            //     return !isSameId && (isSameName || isSameValue);
+            // });
+
+            // logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
+
+            if (duplicateItems.length > 0) {
+                throw new Error('Todo category already exists, because of duplicate name or value');
+            }
+
+            const updateQuery = setOneAndUpdateFields(entity, this.modelName);
 
             if (!updateQuery || Object.keys(updateQuery).length === 0) {
                 throw new Error('Invalid update query');
@@ -305,7 +266,54 @@ class TodoCategoryService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const updateQuery = this.setOneAndUpdateFields(entity);
+            const todoCategoryFound = await this.unitOfWork.todoCategories.findById(id);
+
+            if (!todoCategoryFound) {
+                throw new Error('Todo category not found with the provided id');
+            }
+
+            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
+
+            // logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
+
+            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
+                throw new Error('Invalid duplicate existing query');
+            }
+
+            const duplicateItemsFound = await this.unitOfWork.todoCategories.find(duplicateExistingQuery);
+
+            // logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
+
+            ///TODO: check duplicate items found, cannnot use some or every, because it will return true if the first item is duplicate
+            ///TODO: reminder: some and every will return true if the first item is duplicate
+            ///TODO: reminder: _id is not a string, it is an object, so we need to convert it to string
+            const duplicateItems = duplicateItemsFound.filter(
+                (item) =>
+                    item._id.toString() !== entity._id.toString() &&
+                    (item.name.toString() === entity.name.toString() ||
+                        item.value.toString() === entity.value.toString())
+            );
+
+            // const duplicateItems = duplicateItemsFound.filter((item) => {
+            //     const isSameId = item._id.toString() === entity._id.toString();
+            //     const isSameName = item.name.toString() === entity.name.toString();
+            //     const isSameValue = item.value.toString() === entity.value.toString();
+
+            //     logInfo(
+            //         `Checking item ${item._id}: isSameId=${isSameId}, isSameName=${isSameName}, isSameValue=${isSameValue}`,
+            //         fileDetails
+            //     );
+
+            //     return !isSameId && (isSameName || isSameValue);
+            // });
+
+            // logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
+
+            if (duplicateItems.length > 0) {
+                throw new Error('Todo category already exists, because of duplicate name or value');
+            }
+
+            const updateQuery = setOneAndUpdateFields(entity, this.modelName);
 
             if (!updateQuery || Object.keys(updateQuery).length === 0) {
                 throw new Error('Invalid update query');
@@ -331,7 +339,7 @@ class TodoCategoryService extends BaseService {
 
     deleteById = async (id) => {
         const classAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classAndFuncName);
+        // const fileDetails = this.getFileDetails(classAndFuncName);
         try {
             if (!id) {
                 throw new Error('Invalid id');
@@ -348,8 +356,22 @@ class TodoCategoryService extends BaseService {
             if (!todoCategoryDeleted) {
                 throw new Error('Todo category deletion failed');
             }
-
             return todoCategoryDeleted;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    };
+
+    deleteAll = async () => {
+        // const classNameAndFuncName = this.getFunctionCallerName();
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const deleteResult = await this.unitOfWork.todoCategories.deleteMany({});
+            if (!deleteResult) {
+                throw new Error('Todo category deletion failed');
+            }
+            return deleteResult;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;

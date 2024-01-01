@@ -1,7 +1,14 @@
 const { logInfo, logError } = require('../../utils/log.util');
 const { stringify } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
-const { getFilterQuery } = require('../../utils/logic.check.util');
+const {
+    getFilterQuery,
+    validateEntityParams,
+    validateEntitiesParams,
+    checkDuplicateExisting,
+    checkMultipleDuplicateExisting,
+    setOneAndUpdateFields,
+} = require('../../utils/logic.check.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
@@ -27,234 +34,201 @@ class TodoService extends BaseService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    isAnyFieldExists = (queryParamsKeys = []) => {
-        return queryParamsKeys.length > 0;
-    };
-
-    validateValuesContainsFilterFormat = (queryParamsValues = []) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result = false;
+    create = async (entity) => {
+        const classAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classAndFuncName);
         try {
-            if (!queryParamsValues) {
-                throw new Error('Invalid query parameters, please provide values');
-            }
-            const predicate = (value) => typeof value == 'string' || typeof value == 'object';
-            result = queryParamsValues.every((value) => predicate(value));
-
-            return result;
-        } catch (err) {
-            result = false;
-            logError(err, fileDetails, true);
-        }
-        return result;
-    };
-
-    regexCheckIncludeSpecialCharacters = (value) => {
-        if (!value) {
-            throw new Error('Value is required');
-        }
-        const regex = /[,|]+/;
-        return regex.test(value);
-    };
-
-    validateQueryParams = (queryParams) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result = true;
-        try {
-            const queryParamsKeys = Object.keys(queryParams);
-            logInfo(`queryParamsKeys: ${stringify(queryParamsKeys)}`, fileDetails, true);
-
-            const isAnyFieldExists = this.isAnyFieldExists(queryParamsKeys);
-            logInfo(`isAnyFieldExists: ${stringify(isAnyFieldExists)}`, fileDetails, true);
-
-            if (!isAnyFieldExists) {
-                throw new Error('Invalid query parameters, please provide at least one field');
-            }
-            const isAuthenticityFieldsExists = validateFieldsAuthenticity(queryParamsKeys, 'Role');
-            logInfo(`isAuthenticityFieldsExists: ${stringify(isAuthenticityFieldsExists)}`, fileDetails, true);
-
-            if (!isAuthenticityFieldsExists) {
-                throw new Error('Invalid query parameters, please provide authenticity fields');
+            if (!entity) {
+                throw new Error('Invalid entity');
             }
 
-            const queryParamsValues = Object.values(queryParams);
-            // logInfo(`queryParamsValues: ${stringify(queryParamsValues)}`, fileDetails, true);
+            const validateResult = validateEntityParams(entity, this.modelName);
 
-            const isValidateValuesContainsFilterFormat = this.validateValuesContainsFilterFormat(queryParamsValues);
-            logInfo(
-                `isValidateValuesContainsFilterFormat: ${stringify(isValidateValuesContainsFilterFormat)}`,
-                fileDetails,
-                true
-            );
-
-            if (!isValidateValuesContainsFilterFormat) {
-                throw new Error('Invalid query parameters, please provide correct filter values in query parameters');
+            if (!validateResult.isValid) {
+                throw new Error(validateResult.error);
             }
-        } catch (err) {
-            result = false;
-            logError(err, fileDetails, true);
-            throw err;
-        }
-        return result;
-    };
 
-    ///TODO: Search roles by name
-    searchRolesByName = async (roles = []) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result = [];
-        try {
-            result = await this.unitOfWork.roles.find({ name: { $in: roles } });
-            // logInfo(`searchRolesByName result: ${stringify(result)}`, fileDetails, true);
-            if (!result) {
-                throw new Error('Search roles by name list failed, please provide correct roles list');
+            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
+
+            logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
+
+            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
+                throw new Error('Invalid duplicate existing query');
             }
-            return result;
+
+            const todoCategoryFound = await this.unitOfWork.todos.findOne(duplicateExistingQuery);
+
+            if (todoCategoryFound) {
+                throw new Error('Todo category already exists');
+            }
+
+            logInfo(`todoCategoryFound: ${stringify(todoCategoryFound)}`, fileDetails, true);
+
+            const todoCategoryCreated = await this.unitOfWork.todos.create(entity);
+
+            if (!todoCategoryCreated) {
+                throw new Error('Todo category creation failed');
+            }
+            return todoCategoryCreated;
         } catch (error) {
-            logError(error, fileDetails, true);
+            // logError(error, fileDetails, true);
             throw error;
         }
     };
 
-    convertQueryParamsToMongoQuery = async (queryParams) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result = {};
-        let newValue = [];
+    ///TODO: Bulk create todo category
+    bulkCreate = async (entities) => {
+        const classAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classAndFuncName);
         try {
-            if (!queryParams) {
-                throw new Error('Invalid query parameters, please provide query parameters');
-            }
-            const queryParamsEntries = Object.entries(queryParams);
-            logInfo(`queryParamsEntries: ${stringify(queryParamsEntries)}`, fileDetails, true);
-
-            if (!queryParamsEntries) {
-                throw new Error('Invalid query parameters, please provide query parameters');
+            if (!entities) {
+                throw new Error('Invalid entity');
             }
 
-            for (const [key, value] of queryParamsEntries) {
-                logInfo(`key: ${stringify(key)}`, fileDetails, true);
-                logInfo(`value: ${stringify(value)}`, fileDetails, true);
-                newValue = String(value).split(',');
+            const validateResult = validateEntitiesParams(entities, this.modelName);
 
-                if (key === 'roles') {
-                    const searchRolesByNameResult = await this.searchRolesByName(newValue);
-                    logInfo(`searchRolesByNameResult: ${stringify(searchRolesByNameResult)}`, fileDetails, true);
-                    const searchRolesIds = searchRolesByNameResult.map((role) => role._id);
-                    newValue = searchRolesIds;
-                }
-                logInfo(`newValue: ${stringify(newValue)}`, fileDetails, true);
-                result[key] = { $in: newValue };
-            }
-            return result;
-        } catch (err) {
-            result = {};
-            logError(err, fileDetails, true);
-            throw err;
-        }
-    };
-
-    getFilterQuery = async (queryParams) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result = {};
-        try {
-            if (!queryParams) {
-                throw new Error('Invalid query parameters, please provide query parameters');
-            }
-            const validateQueryParamsResult = this.validateQueryParams(queryParams);
-            if (!validateQueryParamsResult) {
-                throw new Error(
-                    'Invalid query parameters, pleace check your query parameters whether they are correct or not'
-                );
-            }
-            result = await this.convertQueryParamsToMongoQuery(queryParams);
-            if (!result || result.error || Object.keys(result).length === 0) {
-                throw new Error('Invalid query parameters, please provide query parameters');
-            }
-            logInfo(`getFilterQuery result: ${stringify(result)}`, fileDetails, true);
-        } catch (err) {
-            result = {};
-            logError(err, fileDetails, true);
-            throw err;
-        }
-        return result;
-    };
-
-    create = async (entity) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result;
-        try {
-            if (!entity) {
-                throw new Error('Invalid entity, please provide entity');
-            }
-            result = await this.unitOfWork.todos.create(entity);
-
-            if (!result) {
-                throw new Error('Create todo failed, please provide correct entity');
-            }
-            logInfo(`create result: ${stringify(result)}`, fileDetails, true);
-
-            const todoId = result._id;
-
-            if (!todoId) {
-                throw new Error('Create todo failed, please provide correct entity');
+            if (!validateResult.isValid) {
+                throw new Error(validateResult.error);
             }
 
-            const todoCategoryId = entity.todos;
+            const duplicateExistingQuery = await checkMultipleDuplicateExisting(entities, this.modelName);
 
-            if (!todoCategoryId) {
-                throw new Error('Create todo failed, please provide correct entity');
+            logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
+
+            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
+                throw new Error('Invalid duplicate existing query');
             }
 
-            const addTodoCategoryResult = await this.unitOfWork.todos.addTodoCategory(todoId, todoCategoryId);
+            const todoCategoryFound = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
-            if (!addTodoCategoryResult) {
-                throw new Error('Create todo failed, please provide correct entity');
+            if (todoCategoryFound && todoCategoryFound.length > 0) {
+                throw new Error('Todo category already exists');
             }
 
-            logInfo(`addTodoCategoryResult: ${stringify(addTodoCategoryResult)}`, fileDetails, true);
+            logInfo(`todoCategoryFound: ${stringify(todoCategoryFound)}`, fileDetails, true);
 
-            return result;
+            const todoCategoryCreated = await this.unitOfWork.todos.createMany(entities);
+
+            if (!todoCategoryCreated) {
+                throw new Error('Todo category creation failed');
+            }
+            return todoCategoryCreated;
         } catch (error) {
-            logError(error, fileDetails, true);
+            // logError(error, fileDetails, true);
+            throw error;
         }
-        return result;
     };
 
-    ///TODO: Find one user by query parameters
-    findOne = async (queryParams) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let result = [];
-        let filterQuery = {};
-
+    patchUpdateById = async (id, entity) => {
+        const classAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classAndFuncName);
         try {
-            if (!queryParams || Object.keys(queryParams).length === 0) {
-                filterQuery = {};
-            } else {
-                const validateQueryParamsResult = this.validateQueryParams(queryParams);
-
-                if (!validateQueryParamsResult) {
-                    throw new Error(
-                        'Invalid query parameters, pleace check your query parameters whether they are correct or not'
-                    );
-                }
-                filterQuery = await this.getFilterQuery(queryParams);
-                logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
-
-                if (!filterQuery) {
-                    throw new Error('Invalid query parameters, please provide query parameters');
-                }
+            if (!id || !entity) {
+                throw new Error('Invalid parameters');
             }
-            result = await this.unitOfWork.todos.findOne(filterQuery);
+
+            if (entity._id !== id) {
+                throw new Error('Invalid parameters, id not match');
+            }
+
+            const validateResult = validateEntityParams(entity, this.modelName);
+
+            if (!validateResult.isValid) {
+                throw new Error(validateResult.error);
+            }
+
+            const updateQuery = setOneAndUpdateFields(entity, this.modelName);
+
+            if (!updateQuery || Object.keys(updateQuery).length === 0) {
+                throw new Error('Invalid update query');
+            }
+
+            logInfo(`updateQuery: ${stringify(updateQuery)}`, fileDetails, true);
+
+            updateQuery.updatedAt = Date.now();
+
+            const filterCondition = { _id: id };
+
+            ///TODO: option add new attribute for return modified document instead of original
+            const todoCategoryUpdated = await this.unitOfWork.todos.findOneAndUpdate(filterCondition, updateQuery);
+
+            if (!todoCategoryUpdated) {
+                throw new Error('Todo category update failed');
+            }
+            return todoCategoryUpdated;
         } catch (error) {
-            logError(error, fileDetails, true);
+            // logError(error, fileDetails, true);
+            throw error;
         }
-        return result;
+    };
+
+    updateById = async (id, entity) => {
+        const classAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classAndFuncName);
+        try {
+            if (!id || !entity) {
+                throw new Error('Invalid parameters');
+            }
+
+            if (entity._id !== id) {
+                throw new Error('Invalid parameters, id not match');
+            }
+
+            const validateResult = validateEntityParams(entity, this.modelName);
+
+            if (!validateResult.isValid) {
+                throw new Error(validateResult.error);
+            }
+
+            const updateQuery = setOneAndUpdateFields(entity);
+
+            if (!updateQuery || Object.keys(updateQuery).length === 0) {
+                throw new Error('Invalid update query');
+            }
+
+            logInfo(`updateQuery: ${stringify(updateQuery)}`, fileDetails, true);
+
+            updateQuery.updatedAt = Date.now();
+
+            const filterCondition = { _id: entity._id };
+
+            const todoCategoryUpdated = await this.unitOfWork.todos.updateOne(filterCondition, updateQuery);
+
+            if (!todoCategoryUpdated) {
+                throw new Error('Todo category update failed');
+            }
+            return todoCategoryUpdated;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    };
+
+    deleteById = async (id) => {
+        const classAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classAndFuncName);
+        try {
+            if (!id) {
+                throw new Error('Invalid id');
+            }
+
+            const todoCategoryFound = await this.unitOfWork.todos.findById(id);
+
+            if (!todoCategoryFound) {
+                throw new Error('Todo category not found with the provided id');
+            }
+
+            const todoCategoryDeleted = await this.unitOfWork.todos.deleteOne({ _id: id });
+
+            if (!todoCategoryDeleted) {
+                throw new Error('Todo category deletion failed');
+            }
+
+            return todoCategoryDeleted;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
     };
 
     ///TODO: Find one todo category by query parameters
@@ -275,7 +249,26 @@ class TodoService extends BaseService {
             }
             return searchResult;
         } catch (error) {
-            logError(error, fileDetails, true);
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    };
+
+    findById = async (id) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            if (!id) {
+                throw new Error('Invalid id');
+            }
+            const searchResult = await this.unitOfWork.todos.findById(id);
+
+            if (!searchResult) {
+                throw new Error('Todo category not found with the provided id');
+            }
+            return searchResult;
+        } catch (error) {
+            // logError(error, fileDetails, true);
             throw error;
         }
     };
@@ -298,7 +291,7 @@ class TodoService extends BaseService {
             }
             return searchResult;
         } catch (error) {
-            logError(error, fileDetails, true);
+            // logError(error, fileDetails, true);
             throw error;
         }
     };

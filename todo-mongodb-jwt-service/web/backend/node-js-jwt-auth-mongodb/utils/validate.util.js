@@ -27,4 +27,20 @@ module.exports = {
             nor: '$nor',
         },
     },
+    crudOperations: {
+        fieldValidation: {
+            User: {
+                createOrUpdate: ['username', 'email', 'password', 'roles'],
+            },
+            Role: {
+                createOrUpdate: ['name'],
+            },
+            TodoCategory: {
+                createOrUpdate: ['name', 'value'],
+            },
+            Todo: {
+                createOrUpdate: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
+            },
+        },
+    },
 };

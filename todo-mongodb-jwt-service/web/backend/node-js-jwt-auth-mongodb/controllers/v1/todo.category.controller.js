@@ -23,18 +23,6 @@ class TodoCategoryController {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    create = async (req, res) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        try {
-            const result = await this.todoCategoryService.create(req.body);
-            return http.successResponse(res, OK, result);
-        } catch (error) {
-            logError(error, fileDetails, true);
-            return http.errorResponse(res, BAD_REQUEST, error.message);
-        }
-    };
-
     bulkCreate = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -58,6 +46,18 @@ class TodoCategoryController {
     //         return http.errorResponse(res, BAD_REQUEST, error.message);
     //     }
     // };
+
+    create = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.todoCategoryService.create(req.body);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
 
     updateById = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
@@ -106,6 +106,18 @@ class TodoCategoryController {
             return http.errorResponse(res, BAD_REQUEST, error.message);
         }
     };
+
+    deleteAll = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.todoCategoryService.deleteAll();
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    }
 
     findAll = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
