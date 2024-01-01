@@ -1,7 +1,7 @@
-const { logError, logInfo } = require('../utils/log.util');
-const http = require('../helpers/http.helper');
-const { stringify } = require('../utils/json.util');
-const { filenameFilter } = require('../utils/regex.util');
+const { logError, logInfo } = require('../../utils/log.util.js');
+const http = require('../../helpers/http.helper.js');
+const { stringify } = require('../../utils/json.util.js');
+const { filenameFilter } = require('../../utils/regex.util.js');
 const {
     OK,
     INTERNAL_SERVER_ERROR,
@@ -10,12 +10,10 @@ const {
     BAD_REQUEST,
     CREATED,
     UNAUTHORIZED,
-} = require('../helpers/constants.helper');
-const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../config/cookie.config.js');
-// const { delAll, del } = require('../utils/cache.redis.util.js');
-const { removeTokenFromCache } = require('../utils/jwt.util.js');
+} = require('../../helpers/constants.helper.js');
+const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../../config/cookie.config.js');
 
-const AuthService = require('../services/auth.service');
+const AuthService = require('../../services/v1/auth.service.js');
 
 class AuthController {
     constructor() {

@@ -1,10 +1,9 @@
-const { logError, logInfo } = require('../utils/log.util');
-const http = require('../helpers/http.helper');
-const { filenameFilter } = require('../utils/regex.util');
-const { OK, BAD_REQUEST } = require('../helpers/constants.helper');
+const { logError, logInfo } = require('../../utils/log.util');
+const http = require('../../helpers/http.helper');
+const { filenameFilter } = require('../../utils/regex.util');
+const { OK, BAD_REQUEST } = require('../../helpers/constants.helper');
 
-const TodoService = require('../services/todo.service');
-
+const TodoService = require('../../services/v1/todo.service');
 
 class TodoController {
     constructor() {

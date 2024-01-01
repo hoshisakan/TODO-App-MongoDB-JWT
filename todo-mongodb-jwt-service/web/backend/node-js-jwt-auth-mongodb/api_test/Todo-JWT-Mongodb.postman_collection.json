@@ -28,12 +28,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signup",
+									"raw": "{{url}}/api/v1/auth/signup",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signup"
 									]
@@ -56,12 +57,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signup",
+									"raw": "{{url}}/api/v1/auth/signup",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signup"
 									]
@@ -84,12 +86,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signup",
+									"raw": "{{url}}/api/v1/auth/signup",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signup"
 									]
@@ -112,12 +115,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signup",
+									"raw": "{{url}}/api/v1/auth/signup",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signup"
 									]
@@ -174,12 +178,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signin",
+									"raw": "{{url}}/api/v1/auth/signin",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signin"
 									]
@@ -226,12 +231,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signin",
+									"raw": "{{url}}/api/v1/auth/signin",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signin"
 									]
@@ -284,12 +290,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signin",
+									"raw": "{{url}}/api/v1/auth/signin",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signin"
 									]
@@ -342,12 +349,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signin",
+									"raw": "{{url}}/api/v1/auth/signin",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signin"
 									]
@@ -396,12 +404,13 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{url}}/api/auth/refresh-token",
+									"raw": "{{url}}/api/v1/auth/refresh-token",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"refresh-token"
 									]
@@ -410,7 +419,7 @@
 							"response": []
 						},
 						{
-							"name": "Verify Toekn",
+							"name": "Verify Access Toekn",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -423,7 +432,49 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    // \"authType\": \"refresh\"\r\n    \"authType\": \"access\"\r\n}",
+									"raw": "{\r\n    \"authType\": \"access\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/auth/verify-token",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"verify-token"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify Refresh Token",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-access-token",
+										"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ODk0MDY0YjEzYjVmOGFjMTlhM2JkYiIsImlhdCI6MTcwMzkzNDI0NiwiZXhwIjoxNzAzOTM0MjQ5fQ.Gv2vrDhSzYDrJLmfdToIcjX0yzek_IaoAnfaI_ptrd8",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"authType\": \"refresh\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -504,12 +555,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/api/test/all",
+							"raw": "{{url}}/api/v1/test/all",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"test",
 								"all"
 							]
@@ -548,12 +600,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/test/user",
+							"raw": "{{url}}/api/v1/test/user",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"test",
 								"user"
 							]
@@ -592,12 +645,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/test/mod",
+							"raw": "{{url}}/api/v1/test/mod",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"test",
 								"mod"
 							]
@@ -636,12 +690,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/test/admin",
+							"raw": "{{url}}/api/v1/test/admin",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"test",
 								"admin"
 							]
@@ -716,12 +771,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/user/",
+							"raw": "{{url}}/api/v1/user/",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"user",
 								""
 							]
@@ -747,12 +803,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/user?roles=moderator",
+							"raw": "{{url}}/api/v1/user?email=mod@bezkoder100000.com,mod@bezkoder200000.com",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"user"
 							],
 							"query": [
@@ -768,7 +825,8 @@
 								},
 								{
 									"key": "roles",
-									"value": "moderator"
+									"value": "moderator",
+									"disabled": true
 								},
 								{
 									"key": "username",
@@ -782,8 +840,7 @@
 								},
 								{
 									"key": "email",
-									"value": "mod@bezkoder100000.com,mod@bezkoder200000.com",
-									"disabled": true
+									"value": "mod@bezkoder100000.com,mod@bezkoder200000.com"
 								},
 								{
 									"key": "_id",
@@ -821,7 +878,7 @@
 									"disabled": true
 								},
 								{
-									"key": "_id",
+									"key": "_id[]",
 									"value": "65894059b13b5f8ac19a3bcd,65894064b13b5f8ac19a3bdb",
 									"disabled": true
 								}
@@ -865,12 +922,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/role/",
+							"raw": "{{url}}/api/v1/role/",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"role",
 								""
 							]
@@ -908,38 +966,667 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/role/?name=admin,user",
+							"raw": "{{url}}/api/v1/role/?level=10",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
+								"v1",
 								"role",
 								""
 							],
 							"query": [
 								{
 									"key": "name",
-									"value": "admin,user"
+									"value": "admin,user",
+									"disabled": true
 								},
 								{
 									"key": "_id",
-									"value": "6577e293255f0fec1c386625",
+									"value": "658930c85ca48f75f1e3b844",
 									"disabled": true
 								},
 								{
 									"key": "name",
-									"value": "moderator",
+									"value": "moderator,admin",
 									"disabled": true
 								},
 								{
 									"key": "_id",
-									"value": "6577e293255f0fec1c386624",
+									"value": "658930c85ca48f75f1e3b843,658930c85ca48f75f1e3b842",
 									"disabled": true
 								},
 								{
 									"key": "level",
-									"value": "10",
+									"value": "10"
+								},
+								{
+									"key": "test",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "todo.category",
+			"item": [
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Test\",\r\n    \"value\": \"9\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"name\": \"Test3\",\r\n        \"value\": \"49\"\r\n    },\r\n    {\r\n        \"name\": \"Test2\",\r\n        \"value\": \"50\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/bulkCreate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								"bulkCreate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Update (Not Implement)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e58909059\",\r\n        \"name\": \"Test3\",\r\n        \"value\": \"49\"\r\n    },\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e5890905a\",\r\n        \"name\": \"Test2\",\r\n        \"value\": \"50\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/bulkUpdate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								"bulkUpdate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Update",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"_id\": \"659268d9ddfcc8205e3fec9b\",\r\n    \"name\": \"Gift\",\r\n    \"value\": \"7\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/659268d9ddfcc8205e3fec9b",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								"659268d9ddfcc8205e3fec9b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"_id\": \"659268d9ddfcc8205e3fec9b\",\r\n    \"name\": \"Gift\",\r\n    \"value\": \"7\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/659268d9ddfcc8205e3fec9b",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								"659268d9ddfcc8205e3fec9b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/659268d9ddfcc8205e3fec9b",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								"659268d9ddfcc8205e3fec9b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/65925ff5cc9bcf416bdc025a",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								"65925ff5cc9bcf416bdc025a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all with condition",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/?name=Test2,Test3",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								""
+							],
+							"query": [
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b844",
+									"disabled": true
+								},
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b843,658930c85ca48f75f1e3b842",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Gift",
+									"disabled": true
+								},
+								{
+									"key": "name[]",
+									"value": "Vacation,Health",
+									"disabled": true
+								},
+								{
+									"key": "value",
+									"value": "658",
+									"disabled": true
+								},
+								{
+									"key": "test",
+									"value": "5555",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Test2,Test3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "todo",
+			"item": [
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todo/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all with condition",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todo/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								""
+							],
+							"query": [
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b844",
+									"disabled": true
+								},
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b843,658930c85ca48f75f1e3b842",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Gift",
+									"disabled": true
+								},
+								{
+									"key": "title",
+									"value": "Vacation,Health",
+									"disabled": true
+								},
+								{
+									"key": "description",
+									"value": "658",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "5555",
+									"disabled": true
+								},
+								{
+									"key": "isCompleted",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "test",
+									"disabled": true
+								},
+								{
+									"key": "categories[]",
+									"value": "test,test1",
 									"disabled": true
 								}
 							]

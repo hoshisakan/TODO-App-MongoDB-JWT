@@ -25,7 +25,7 @@ const LogicCheckUtil = {
             }
             return result;
         } catch (error) {
-            logError(error, fileDetails, true);
+            // logError(error, fileDetails, true);
             throw error;
         }
     },
@@ -43,7 +43,7 @@ const LogicCheckUtil = {
             result.isValid = queryParamsValues.every((value) => predicate(value));
         } catch (err) {
             result.error = err.message;
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
         }
         return result;
     },
@@ -102,17 +102,86 @@ const LogicCheckUtil = {
             result.isValid = true;
         } catch (err) {
             result.error = err.message;
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
+        }
+        return result;
+    },
+    validateEntityParams: (entity, validateModelName) => {
+        const fileDetails = `[${filenameWithoutPath}] [validateQueryParams]`;
+        let result = {
+            isValid: false,
+            error: null,
+        };
+        try {
+            if (!entity) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+
+            if (!validateModelName) {
+                throw new Error('Invalid validate model name, please provide validate model name');
+            }
+
+            const queryParamsKeys = Object.keys(entity);
+            logInfo(`queryParamsKeys: ${stringify(queryParamsKeys)}`, fileDetails, true);
+
+            const isAnyFieldExists = LogicCheckUtil.checkAnyFieldExists(queryParamsKeys);
+            logInfo(`isAnyFieldExists: ${stringify(isAnyFieldExists)}`, fileDetails, true);
+
+            if (!isAnyFieldExists.isValid || isAnyFieldExists.error) {
+                throw new Error(isAnyFieldExists.error);
+            }
+            const isAuthenticityFieldsExists = validateFieldsAuthenticity(queryParamsKeys, validateModelName);
+            logInfo(`isAuthenticityFieldsExists: ${stringify(isAuthenticityFieldsExists)}`, fileDetails, true);
+
+            if (!isAuthenticityFieldsExists.isValid || isAuthenticityFieldsExists.error) {
+                throw new Error(isAuthenticityFieldsExists.error);
+            }
+            result.isValid = true;
+        } catch (err) {
+            result.error = err.message;
+            // logError(err, fileDetails, true);
+        }
+        return result;
+    },
+    validateEntitiesParams: (entities, validateModelName) => {
+        // const fileDetails = `[${filenameWithoutPath}] [validateQueryParams]`;
+        let result = {
+            isValid: false,
+            error: null,
+        };
+        try {
+            if (!entities) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+
+            if (!Array.isArray(entities) || entities.length === 0) {
+                throw new Error('Invalid query parameters, please provide query parameters');
+            }
+
+            if (!validateModelName) {
+                throw new Error('Invalid validate model name, please provide validate model name');
+            }
+
+            for (const entity of entities) {
+                const isValidateEntityParams = LogicCheckUtil.validateEntityParams(entity, validateModelName);
+                if (!isValidateEntityParams.isValid || isValidateEntityParams.error) {
+                    throw new Error(isValidateEntityParams.error);
+                }
+            }
+            result.isValid = true;
+        } catch (err) {
+            result.error = err.message;
+            // logError(err, fileDetails, true);
         }
         return result;
     },
     convertQueryParamsToMongoQuery: async (queryParams) => {
+        const fileDetails = `[${filenameWithoutPath}] [convertQueryParamsToMongoQuery]`;
         let result = {
             query: {},
             error: null,
         };
         let newValue = [];
-        const fileDetails = `[${filenameWithoutPath}] [convertQueryParamsToMongoQuery]`;
         try {
             if (!queryParams) {
                 throw new Error('Invalid query parameters, please provide query parameters');
@@ -140,16 +209,16 @@ const LogicCheckUtil = {
             }
         } catch (err) {
             result.error = err.message;
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
         }
         return result;
     },
     getFilterQuery: async (queryParams, validateModelName) => {
+        const fileDetails = `[${filenameWithoutPath}] [getFilterQuery]`;
         let result = {
             query: {},
             error: null,
         };
-        const fileDetails = `[${filenameWithoutPath}] [getFilterQuery]`;
         try {
             if (!queryParams) {
                 throw new Error('Invalid query parameters, please provide query parameters');
@@ -162,9 +231,7 @@ const LogicCheckUtil = {
             logInfo(`validateQueryParamsResult: ${stringify(validateQueryParamsResult)}`, fileDetails, true);
 
             if (!validateQueryParamsResult.isValid || validateQueryParamsResult.error) {
-                throw new Error(
-                    validateQueryParamsResult.error
-                );
+                throw new Error(validateQueryParamsResult.error);
             }
 
             result = await LogicCheckUtil.convertQueryParamsToMongoQuery(queryParams);
@@ -174,7 +241,7 @@ const LogicCheckUtil = {
             logInfo(`getFilterQuery result: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
             result.error = err.message;
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
         }
         return result;
     },

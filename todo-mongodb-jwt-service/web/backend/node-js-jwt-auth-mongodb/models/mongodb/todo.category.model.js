@@ -14,7 +14,7 @@ const TodoCategory = mongoose.model(
         value: {
             type: Number,
             required: true,
-            min: 3,
+            min: 1,
             max: 50,
             uqiue: true,
             dropDups: true,

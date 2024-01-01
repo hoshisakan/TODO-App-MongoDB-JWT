@@ -1,7 +1,7 @@
 var bcrypt = require('bcryptjs');
-const { logInfo, logError } = require('../utils/log.util');
-const { stringify, parse } = require('../utils/json.util');
-const { filenameFilter } = require('../utils/regex.util');
+const { logInfo, logError } = require('../../utils/log.util');
+const { stringify, parse } = require('../../utils/json.util');
+const { filenameFilter } = require('../../utils/regex.util');
 
 const {
     generateToken,
@@ -10,9 +10,9 @@ const {
     getTokenFromCache,
     checkTokenExistsFromCache,
     removeTokenFromCache,
-} = require('../utils/jwt.util');
-const UnitOfWork = require('../repositories/unitwork');
-const User = require('../models/mongodb/user.model');
+} = require('../../utils/jwt.util');
+const UnitOfWork = require('../../repositories/unitwork');
+const User = require('../../models/mongodb/user.model');
 const unitOfWork = new UnitOfWork();
 
 class AuthService {

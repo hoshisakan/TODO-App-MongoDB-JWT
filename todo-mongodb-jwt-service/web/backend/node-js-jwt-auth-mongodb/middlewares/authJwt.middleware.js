@@ -4,7 +4,7 @@ const { stringify } = require('../utils/json.util.js');
 const { filenameFilter } = require('../utils/regex.util');
 const { BAD_REQUEST, UNAUTHORIZED } = require('../helpers/constants.helper.js');
 
-const AuthService = require('../services/auth.service');
+const AuthService = require('../services/v1/auth.service.js');
 const authService = new AuthService();
 const { verifyToken } = require('../utils/jwt.util.js');
 const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../config/cookie.config.js');

@@ -43,12 +43,10 @@ app.use(express.urlencoded({ extended: true }));
 ///TODO: Add cookie parser
 app.use(cookieParser());
 
-require('./routes/index.route');
+const apiV1Router = require('./routes/v1/index.route');
 
-const apiRouter = require('./routes/index.route');
-
-app.use('/api', apiRouter, (req, res, next) => {
-    res.header('Access-Control-Allow-Headers', 'x-access-token, Origin, Content-Type, Accept');
+app.use('/api/v1', apiV1Router, (req, res, next) => {
+    // res.header('Access-Control-Allow-Headers', 'x-access-token, Origin, Content-Type, Accept');
     logInfo(`Request URL: ${req.originalUrl}`, fileDetails, true);
     next();
 });

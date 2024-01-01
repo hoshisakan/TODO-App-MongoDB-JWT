@@ -5,11 +5,10 @@ const http = require('../helpers/http.helper');
 const { BAD_REQUEST } = require('../helpers/constants.helper');
 const { filenameFilter } = require('../utils/regex.util');
 
-const UserService = require('../services/user.service');
+const UserService = require('../services/v1/user.service');
 const userService = new UserService();
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
-
 
 getFunctionCallerName = () => {
     const err = new Error();

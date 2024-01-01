@@ -1,4 +1,4 @@
-const { authJwt } = require('../../middlewares/authJwt.middleware');
+const { authJwt } = require('../../../middlewares/authJwt.middleware');
 const router = require('express').Router();
 const { roleController } = require('./base.route');
 

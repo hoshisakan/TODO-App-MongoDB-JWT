@@ -1,7 +1,7 @@
-const { logError, logInfo } = require('../utils/log.util');
-const http = require('../helpers/http.helper');
-const { filenameFilter } = require('../utils/regex.util');
-const { OK } = require('../helpers/constants.helper');
+const { logError, logInfo } = require('../../utils/log.util');
+const http = require('../../helpers/http.helper');
+const { filenameFilter } = require('../../utils/regex.util');
+const { OK } = require('../../helpers/constants.helper');
 
 class TestController {
     constructor() {

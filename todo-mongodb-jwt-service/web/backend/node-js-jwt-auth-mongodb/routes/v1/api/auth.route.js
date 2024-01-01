@@ -1,4 +1,4 @@
-const { verifySignUp } = require('../../middlewares/authJwt.middleware');
+const { verifySignUp } = require('../../../middlewares/authJwt.middleware');
 const router = require('express').Router();
 const { authController } = require('./base.route');
 

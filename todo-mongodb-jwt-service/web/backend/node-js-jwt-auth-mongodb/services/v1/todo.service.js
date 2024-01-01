@@ -1,10 +1,10 @@
-const { logInfo, logError } = require('../utils/log.util');
-const { stringify } = require('../utils/json.util');
-const { filenameFilter } = require('../utils/regex.util');
-const { getFilterQuery } = require('../utils/logic.check.util');
+const { logInfo, logError } = require('../../utils/log.util');
+const { stringify } = require('../../utils/json.util');
+const { filenameFilter } = require('../../utils/regex.util');
+const { getFilterQuery } = require('../../utils/logic.check.util');
 
 const BaseService = require('./base.service');
-const UnitOfWork = require('../repositories/unitwork');
+const UnitOfWork = require('../../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
 
 class TodoService extends BaseService {

@@ -1,23 +1,16 @@
-const { logError, logInfo } = require('../utils/log.util');
-const http = require('../helpers/http.helper');
-const { filenameFilter } = require('../utils/regex.util');
-const {
-    OK,
-    INTERNAL_SERVER_ERROR,
-    NOT_FOUND,
-    NO_CONTENT,
-    BAD_REQUEST,
-    CREATED,
-} = require('../helpers/constants.helper');
+const { logError, logInfo } = require('../../utils/log.util');
+const http = require('../../helpers/http.helper');
+const { filenameFilter } = require('../../utils/regex.util');
+const { OK, BAD_REQUEST } = require('../../helpers/constants.helper');
 
-const RoleService = require('../services/role.service');
+const UserService = require('../../services/v1/user.service');
 
-
-class RoleController {
+class UserController {
     constructor() {
-        this.roleService = new RoleService();
+        this.userService = new UserService();
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
     }
+
     getFunctionCallerName = () => {
         const err = new Error();
         const stack = err.stack.split('\n');
@@ -34,7 +27,7 @@ class RoleController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.roleService.find(req.query);
+            const result = await this.userService.find(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);
@@ -43,4 +36,4 @@ class RoleController {
     };
 }
 
-module.exports = RoleController;
+module.exports = UserController;
