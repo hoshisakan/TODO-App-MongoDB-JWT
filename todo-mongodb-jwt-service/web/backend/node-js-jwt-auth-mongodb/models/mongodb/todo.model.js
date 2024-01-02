@@ -11,7 +11,7 @@ const Todo = mongoose.model(
         },
         description: {
             type: String,
-            required: true,
+            default: '',
             min: 3,
             max: 200,
         },
@@ -40,12 +40,13 @@ const Todo = mongoose.model(
         },
         dueDate: {
             type: Date,
+            required: true,
         },
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
-        categories: {
+        category: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'TodoCategory',
         },

@@ -42,12 +42,14 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid entity');
             }
 
+            ///TODO: Step 1: Validate entity params
             const validateResult = validateEntityParams(entity, this.modelName);
 
             if (!validateResult.isValid) {
                 throw new Error(validateResult.error);
             }
 
+            ///TODO: Step 2: Get duplicate existing query
             const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
 
             logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
@@ -56,6 +58,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
+            ///TODO: Step 3: Check duplicate existing by query, if found, throw error
             const todoCategoryFound = await this.unitOfWork.todoCategories.findOne(duplicateExistingQuery);
 
             if (todoCategoryFound) {
@@ -64,11 +67,15 @@ class TodoCategoryService extends BaseService {
 
             logInfo(`todoCategoryFound: ${stringify(todoCategoryFound)}`, fileDetails, true);
 
+            ///TODO: Step 4: Create todo category
             const todoCategoryCreated = await this.unitOfWork.todoCategories.create(entity);
 
             if (!todoCategoryCreated) {
                 throw new Error('Todo category creation failed');
             }
+
+            logInfo(`todoCategoryCreated: ${stringify(todoCategoryCreated)}`, fileDetails, true);
+
             return todoCategoryCreated;
         } catch (error) {
             // logError(error, fileDetails, true);

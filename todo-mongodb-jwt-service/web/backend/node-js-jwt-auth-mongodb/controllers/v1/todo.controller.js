@@ -51,7 +51,7 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoService.create(req.body);
+            const result = await this.todoService.create(req.body, req.userId);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);

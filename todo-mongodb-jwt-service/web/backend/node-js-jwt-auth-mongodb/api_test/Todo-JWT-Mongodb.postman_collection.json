@@ -440,12 +440,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/verify-token",
+									"raw": "{{url}}/api/v1/auth/verify-token",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"verify-token"
 									],
@@ -482,12 +483,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/verify-token",
+									"raw": "{{url}}/api/v1/auth/verify-token",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"verify-token"
 									],
@@ -1091,7 +1093,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Test\",\r\n    \"value\": \"9\"\r\n}",
+							"raw": "{\r\n    \"name\": \"Test47\",\r\n    \"value\": \"47\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1144,7 +1146,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\r\n    {\r\n        \"name\": \"Test3\",\r\n        \"value\": \"49\"\r\n    },\r\n    {\r\n        \"name\": \"Test2\",\r\n        \"value\": \"50\"\r\n    }\r\n]",
+							"raw": "[\r\n    {\r\n        \"name\": \"Test1\",\r\n        \"value\": \"1\"\r\n    },\r\n    {\r\n        \"name\": \"Test2\",\r\n        \"value\": \"2\"\r\n    }\r\n]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1250,7 +1252,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"659268d9ddfcc8205e3fec9b\",\r\n    \"name\": \"Gift\",\r\n    \"value\": \"7\"\r\n}",
+							"raw": "{\r\n    \"_id\": \"6592fb27b0adadf24e0922d1\",\r\n    \"name\": \"TestUpdate\",\r\n    \"value\": \"7\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1258,7 +1260,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/659268d9ddfcc8205e3fec9b",
+							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d1",
 							"host": [
 								"{{url}}"
 							],
@@ -1266,7 +1268,7 @@
 								"api",
 								"v1",
 								"todoCategory",
-								"659268d9ddfcc8205e3fec9b"
+								"6592fb27b0adadf24e0922d1"
 							]
 						}
 					},
@@ -1303,7 +1305,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"659268d9ddfcc8205e3fec9b\",\r\n    \"name\": \"Gift\",\r\n    \"value\": \"7\"\r\n}",
+							"raw": "{\r\n    \"_id\": \"6592fb27b0adadf24e0922d1\",\r\n    \"name\": \"Health\",\r\n    \"value\": \"3\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1311,7 +1313,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/659268d9ddfcc8205e3fec9b",
+							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d1",
 							"host": [
 								"{{url}}"
 							],
@@ -1319,7 +1321,7 @@
 								"api",
 								"v1",
 								"todoCategory",
-								"659268d9ddfcc8205e3fec9b"
+								"6592fb27b0adadf24e0922d1"
 							]
 						}
 					},
@@ -1356,7 +1358,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/659268d9ddfcc8205e3fec9b",
+							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d1",
 							"host": [
 								"{{url}}"
 							],
@@ -1364,7 +1366,7 @@
 								"api",
 								"v1",
 								"todoCategory",
-								"659268d9ddfcc8205e3fec9b"
+								"6592fb27b0adadf24e0922d1"
 							]
 						}
 					},
@@ -1415,6 +1417,50 @@
 					"response": []
 				},
 				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoCategory/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoCategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Find all with condition",
 					"request": {
 						"method": "GET",
@@ -1444,7 +1490,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/?name=Test2,Test3",
+							"raw": "{{url}}/api/v1/todoCategory/?name=Gift5",
 							"host": [
 								"{{url}}"
 							],
@@ -1487,7 +1533,12 @@
 								},
 								{
 									"key": "name",
-									"value": "Test2,Test3"
+									"value": "Gift5"
+								},
+								{
+									"key": "value",
+									"value": "8",
+									"disabled": true
 								}
 							]
 						}
@@ -1544,6 +1595,59 @@
 					"response": []
 				},
 				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Test Create Todo List1\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"category\": \"2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todo/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Find all with condition",
 					"request": {
 						"method": "GET",
@@ -1573,7 +1677,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todo/",
+							"raw": "{{url}}/api/v1/todo/?priority=high,low",
 							"host": [
 								"{{url}}"
 							],
@@ -1628,6 +1732,15 @@
 									"key": "categories[]",
 									"value": "test,test1",
 									"disabled": true
+								},
+								{
+									"key": "_id",
+									"value": "6594421b0be881611b50038e",
+									"disabled": true
+								},
+								{
+									"key": "priority",
+									"value": "high,low"
 								}
 							]
 						}

@@ -9,6 +9,7 @@ const UnitOfWork = require('../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
 
 const LogicCheckUtil = {
+    ///TODO: Check any field exists, if exists then return true else return false
     checkAnyFieldExists: (queryParamsKeys = []) => {
         return queryParamsKeys.length > 0
             ? { isValid: true, error: null }
@@ -30,6 +31,7 @@ const LogicCheckUtil = {
             throw error;
         }
     },
+    ///TODO: Validate values contains filter format, only string or object
     validateValuesContainsFilterFormat: (queryParamsValues = []) => {
         const fileDetails = `[${filenameWithoutPath}] [validateValuesContainsFilterFormat]`;
         let result = {
@@ -48,6 +50,7 @@ const LogicCheckUtil = {
         }
         return result;
     },
+    ///TODO: Match regex check include special characters
     regexCheckIncludeSpecialCharacters: (value) => {
         if (!value) {
             throw new Error('Value is required');
@@ -55,6 +58,7 @@ const LogicCheckUtil = {
         const regex = /[,|]+/;
         return regex.test(value);
     },
+    ///TODO: Validate query params with validate model
     validateQueryParams: (queryParams, validateModelName) => {
         const fileDetails = `[${filenameWithoutPath}] [validateQueryParams]`;
         let result = {
@@ -70,15 +74,19 @@ const LogicCheckUtil = {
                 throw new Error('Invalid validate model name, please provide validate model name');
             }
 
+            ///TODO: Step 1: Get query params keys
             const queryParamsKeys = Object.keys(queryParams);
             logInfo(`queryParamsKeys: ${stringify(queryParamsKeys)}`, fileDetails, true);
 
+            ///TODO: Step 2: Check any field exists
             const isAnyFieldExists = LogicCheckUtil.checkAnyFieldExists(queryParamsKeys);
             logInfo(`isAnyFieldExists: ${stringify(isAnyFieldExists)}`, fileDetails, true);
 
             if (!isAnyFieldExists.isValid || isAnyFieldExists.error) {
                 throw new Error(isAnyFieldExists.error);
             }
+
+            ///TODO: Step 3: Check fields authenticity exists in validate model
             const isAuthenticityFieldsExists = validateFieldsAuthenticity(queryParamsKeys, validateModelName);
             logInfo(`isAuthenticityFieldsExists: ${stringify(isAuthenticityFieldsExists)}`, fileDetails, true);
 
@@ -86,9 +94,11 @@ const LogicCheckUtil = {
                 throw new Error(isAuthenticityFieldsExists.error);
             }
 
+            ///TODO: Step 4: Get query params values
             const queryParamsValues = Object.values(queryParams);
             // logInfo(`queryParamsValues: ${stringify(queryParamsValues)}`, fileDetails, true);
 
+            ///TODO: Step 5: Check values contains filter format, only string or object
             const isValidateValuesContainsFilterFormat =
                 LogicCheckUtil.validateValuesContainsFilterFormat(queryParamsValues);
             logInfo(
@@ -107,6 +117,7 @@ const LogicCheckUtil = {
         }
         return result;
     },
+    ///TODO: Validate entity params with validate model
     validateEntityParams: (entity, validateModelName) => {
         const fileDetails = `[${filenameWithoutPath}] [validateQueryParams]`;
         let result = {
@@ -122,15 +133,19 @@ const LogicCheckUtil = {
                 throw new Error('Invalid validate model name, please provide validate model name');
             }
 
+            ///TODO: Step 1: Get query params keys
             const queryParamsKeys = Object.keys(entity);
             logInfo(`queryParamsKeys: ${stringify(queryParamsKeys)}`, fileDetails, true);
 
+            ///TODO: Step 2: Check any field exists
             const isAnyFieldExists = LogicCheckUtil.checkAnyFieldExists(queryParamsKeys);
             logInfo(`isAnyFieldExists: ${stringify(isAnyFieldExists)}`, fileDetails, true);
 
             if (!isAnyFieldExists.isValid || isAnyFieldExists.error) {
                 throw new Error(isAnyFieldExists.error);
             }
+
+            ///TODO: Step 3: Check fields authenticity exists in validate model
             const isAuthenticityFieldsExists = validateFieldsAuthenticity(queryParamsKeys, validateModelName);
             logInfo(`isAuthenticityFieldsExists: ${stringify(isAuthenticityFieldsExists)}`, fileDetails, true);
 
@@ -144,6 +159,7 @@ const LogicCheckUtil = {
         }
         return result;
     },
+    ///TODO: Validate entities params with validate model
     validateEntitiesParams: (entities, validateModelName) => {
         // const fileDetails = `[${filenameWithoutPath}] [validateQueryParams]`;
         let result = {
@@ -163,6 +179,7 @@ const LogicCheckUtil = {
                 throw new Error('Invalid validate model name, please provide validate model name');
             }
 
+            ///TODO: Step 1: Validate each entity params with validate model
             for (const entity of entities) {
                 const isValidateEntityParams = LogicCheckUtil.validateEntityParams(entity, validateModelName);
                 if (!isValidateEntityParams.isValid || isValidateEntityParams.error) {
@@ -176,6 +193,7 @@ const LogicCheckUtil = {
         }
         return result;
     },
+    ///TODO: Convert query params to mongo query
     convertQueryParamsToMongoQuery: async (queryParams) => {
         const fileDetails = `[${filenameWithoutPath}] [convertQueryParamsToMongoQuery]`;
         let result = {
@@ -194,11 +212,13 @@ const LogicCheckUtil = {
                 throw new Error('Invalid query parameters, please provide query parameters');
             }
 
+            ///TODO: Step 1: Check each query params key and value
             for (const [key, value] of queryParamsEntries) {
                 logInfo(`key: ${stringify(key)}`, fileDetails, true);
                 logInfo(`value: ${stringify(value)}`, fileDetails, true);
                 newValue = String(value).split(',');
 
+                ///TODO: Step 1.1: Check each query params key and value, if key is roles, then search roles by name
                 if (key === 'roles') {
                     const searchRolesByNameResult = await LogicCheckUtil.searchRolesByName(newValue);
                     logInfo(`searchRolesByNameResult: ${stringify(searchRolesByNameResult)}`, fileDetails, true);
@@ -206,6 +226,7 @@ const LogicCheckUtil = {
                     newValue = searchRolesIds;
                 }
                 logInfo(`newValue: ${stringify(newValue)}`, fileDetails, true);
+                ///TODO: Step 1.2: Add newValue to query with $in operator
                 result.query[key] = { $in: newValue };
             }
         } catch (err) {
@@ -214,6 +235,7 @@ const LogicCheckUtil = {
         }
         return result;
     },
+    ///TODO: Get filter query
     getFilterQuery: async (queryParams, validateModelName) => {
         const fileDetails = `[${filenameWithoutPath}] [getFilterQuery]`;
         let result = {
@@ -227,6 +249,8 @@ const LogicCheckUtil = {
             if (!validateModelName) {
                 throw new Error('Invalid validate model name, please provide validate model name');
             }
+
+            ///TODO: Step 1: Validate query params, if valid then enter to next step else throw error message
             const validateQueryParamsResult = LogicCheckUtil.validateQueryParams(queryParams, validateModelName);
 
             logInfo(`validateQueryParamsResult: ${stringify(validateQueryParamsResult)}`, fileDetails, true);
@@ -235,7 +259,9 @@ const LogicCheckUtil = {
                 throw new Error(validateQueryParamsResult.error);
             }
 
+            ///TODO: Step 2: Convert query params to mongo query
             result = await LogicCheckUtil.convertQueryParamsToMongoQuery(queryParams);
+
             if (!result.query || Object.keys(result.query).length === 0 || result.query.length === 0 || result.error) {
                 throw new Error(result.error);
             }
@@ -246,24 +272,28 @@ const LogicCheckUtil = {
         }
         return result;
     },
-    ///TODO: Check duplicate existing todo category, return filter query
+    ///TODO: Check duplicate value existing, filter condition with $or operator, return filter query
     checkDuplicateExisting: async (entity, validateModelName) => {
         // const fileDetails = `[${filenameWithoutPath}] [checkDuplicateExisting]`;
         let filterQuery = {};
 
         try {
+            ///TODO: Step 1: Check entity, if not exists then throw error message
             if (!entity || Object.keys(entity).length === 0) {
                 throw new Error('Invalid entity');
             }
 
+            ///TODO: Step 2: Check validate model name, if not exists then throw error message
             if (!validateModelName || !fieldValidation[validateModelName]) {
                 throw new Error('Invalid validate model name');
             }
 
+            ///TODO: Step 3: Set filter query with $or operator
             filterQuery = {
                 $or: [],
             };
 
+            ///TODO: Step 4: Get allowed fields from validate model, if not exists then throw error message
             const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
 
             // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
@@ -272,6 +302,7 @@ const LogicCheckUtil = {
                 throw new Error('Invalid allowed fields');
             }
 
+            ///TODO: Step 5: Check each allowed fields, if exists then add to filter query
             allowedFields.forEach((field) => {
                 // logInfo(`Current check field: ${stringify(field)}`, fileDetails, true);
                 if (entity[field]) {
@@ -290,18 +321,22 @@ const LogicCheckUtil = {
         let filterQuery = {};
 
         try {
+            ///TODO: Step 1: Check entities, if not exists then throw error message
             if (!entities || entities.length === 0 || !Array.isArray(entities)) {
                 throw new Error('Invalid entities');
             }
 
+            ///TODO: Step 2: Check validate model name, if not exists then throw error message
             if (!validateModelName || !fieldValidation[validateModelName]) {
                 throw new Error('Invalid validate model name');
             }
 
+            ///TODO: Step 3: Set filter query with $or operator
             filterQuery = {
                 $or: [],
             };
 
+            ///TODO: Step 4: Get allowed fields from validate model, if not exists then throw error message
             const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
 
             if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
@@ -310,9 +345,11 @@ const LogicCheckUtil = {
 
             // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
 
+            ///TODO: Step 5: Check each allowed fields, if exists then add to filter query
             entities.forEach((entity) => {
                 allowedFields.forEach((field) => {
                     if (entity[field]) {
+                        ///TODO: Step 5.1: Check filter query $or operator, if not exists then add to filter query
                         const filterQueryField = filterQuery.$or.find((filter) => filter[field]);
 
                         if (!filterQueryField) {
@@ -336,6 +373,7 @@ const LogicCheckUtil = {
         const fields = {};
 
         try {
+            ///TODO: Step 1: Check entity, if not exists then throw error message
             if (!entity || Object.keys(entity).length === 0) {
                 throw new Error('Invalid entity');
             }
@@ -344,6 +382,7 @@ const LogicCheckUtil = {
                 throw new Error('Invalid validate model name');
             }
 
+            ///TODO: Step 2: Get allowed fields from validate model, if not exists then throw error message
             const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
 
             if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
@@ -352,6 +391,7 @@ const LogicCheckUtil = {
 
             // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
 
+            ///TODO: Step 3: Check each allowed fields, if exists then add to fields
             ///TODO: Method 1
             Object.keys(entity).forEach((key) => {
                 if (allowedFields.includes(key)) {

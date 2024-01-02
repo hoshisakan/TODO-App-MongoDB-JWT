@@ -38,6 +38,34 @@ class TodoRepository extends Repository {
             throw err;
         }
     };
+
+    addTodoCategoryAndUser = async (entity, userId) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            if (!entity) {
+                throw new Error('Entity Not Found');
+            }
+
+            const Todo = new this.model({
+                title: entity.title,
+                description: entity.description,
+                status: entity.status,
+                priority: entity.priority,
+                isCompleted: entity.isCompleted,
+                type: entity.type,
+                startDate: entity.startDate,
+                dueDate: entity.dueDate,
+                category: entity.todoCategoryId,
+                user: userId,
+            });
+
+            return await Todo.save();
+        } catch (err) {
+            logError(err, fileDetails, true);
+            throw err;
+        }
+    };
 }
 
 module.exports = TodoRepository;

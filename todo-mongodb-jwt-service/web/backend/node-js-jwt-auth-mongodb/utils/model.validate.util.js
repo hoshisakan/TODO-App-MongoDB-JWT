@@ -26,8 +26,10 @@ const ModelValidateUtil = {
                 result.isValid = Role.schema.paths.hasOwnProperty(fieldKey);
             } else if (fieldKey !== '_id' && validateModelName === 'TodoCategory') {
                 result.isValid = TodoCategory.schema.paths.hasOwnProperty(fieldKey);
-            } else if (fieldKey !== '_id' && validateModelName === 'Todo') {
+            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey !== 'category') {
                 result.isValid = Todo.schema.paths.hasOwnProperty(fieldKey);
+            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey === 'category') {
+                result.isValid = true;
             }
             if (!result.isValid) {
                 throw new Error(`Invalid field key: ${fieldKey}, validate model name: ${validateModelName}`);
