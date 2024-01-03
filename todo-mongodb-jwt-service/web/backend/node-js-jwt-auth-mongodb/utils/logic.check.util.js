@@ -1,7 +1,7 @@
 const { logError, logInfo } = require('../utils/log.util.js');
 const { stringify } = require('../utils/json.util');
 const { filenameFilter } = require('../utils/regex.util.js');
-const { validateFieldsAuthenticity } = require('../utils/model.validate.util');
+const { validateFieldsAuthenticity, validateModelFields } = require('../utils/model.validate.util');
 const { fieldValidation } = require('../utils/validate.util.js').crudOperations;
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
@@ -152,6 +152,16 @@ const LogicCheckUtil = {
             if (!isAuthenticityFieldsExists.isValid || isAuthenticityFieldsExists.error) {
                 throw new Error(isAuthenticityFieldsExists.error);
             }
+
+            // const validateModelFieldsResult = validateModelFields(entity, validateModelName);
+
+            // if (!validateModelFieldsResult.isValid || validateModelFieldsResult.error) {
+            //     logInfo(`validateModelFieldsResult: ${stringify(validateModelFieldsResult)}`, fileDetails, true);
+            //     // throw new Error(validateModelFieldsResult.error);
+            //     throw new Error(validateModelFieldsResult.error || 'Invalid entity params');
+            // }
+
+            // logInfo(`validateModelFieldsResult: ${stringify(validateModelFieldsResult)}`, fileDetails, true);
             result.isValid = true;
         } catch (err) {
             result.error = err.message;
@@ -273,36 +283,48 @@ const LogicCheckUtil = {
         return result;
     },
     ///TODO: Check duplicate value existing, filter condition with $or operator, return filter query
-    checkDuplicateExisting: async (entity, validateModelName) => {
+    checkDuplicateExisting: async (entity, validateModelName, validateOperating) => {
         // const fileDetails = `[${filenameWithoutPath}] [checkDuplicateExisting]`;
         let filterQuery = {};
 
         try {
-            ///TODO: Step 1: Check entity, if not exists then throw error message
+            ///TODO: Step 1.1: Check entity, if not exists then throw error message
             if (!entity || Object.keys(entity).length === 0) {
                 throw new Error('Invalid entity');
             }
 
-            ///TODO: Step 2: Check validate model name, if not exists then throw error message
+            ///TODO: Step 1.2: Check validate model name, if not exists then throw error message
             if (!validateModelName || !fieldValidation[validateModelName]) {
                 throw new Error('Invalid validate model name');
             }
 
-            ///TODO: Step 3: Set filter query with $or operator
+            ///TODO: Step 1.3: Check validate operating, if not exists then throw error message
+            if (!validateOperating) {
+                throw new Error('Invalid validate operating');
+            }
+
+            ///TODO: Step 2: Set filter query with $or operator
             filterQuery = {
                 $or: [],
             };
 
-            ///TODO: Step 4: Get allowed fields from validate model, if not exists then throw error message
-            const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
+            ///TODO: Step 3: Get allowed fields from validate model, if not exists then throw error message
+            let allowedFields = [];
 
+            if (validateOperating === 'create') {
+                allowedFields = fieldValidation[validateModelName]['create'];
+            } else if (validateOperating === 'update') {
+                allowedFields = fieldValidation[validateModelName]['update'];
+            } else {
+                throw new Error('Invalid validate operating');
+            }
             // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
 
             if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
                 throw new Error('Invalid allowed fields');
             }
 
-            ///TODO: Step 5: Check each allowed fields, if exists then add to filter query
+            ///TODO: Step 4: Check each allowed fields, if exists then add to filter query
             allowedFields.forEach((field) => {
                 // logInfo(`Current check field: ${stringify(field)}`, fileDetails, true);
                 if (entity[field]) {
@@ -316,36 +338,49 @@ const LogicCheckUtil = {
         }
     },
     ///TODO: Check multiple duplicate existing todo category, return filter query
-    checkMultipleDuplicateExisting: async (entities, validateModelName) => {
+    checkMultipleDuplicateExisting: async (entities, validateModelName, validateOperating) => {
         // const fileDetails = `[${filenameWithoutPath}] [checkMultipleDuplicateExisting]`;
         let filterQuery = {};
 
         try {
-            ///TODO: Step 1: Check entities, if not exists then throw error message
+            ///TODO: Step 1.1: Check entities, if not exists then throw error message
             if (!entities || entities.length === 0 || !Array.isArray(entities)) {
                 throw new Error('Invalid entities');
             }
 
-            ///TODO: Step 2: Check validate model name, if not exists then throw error message
+            ///TODO: Step 1.2: Check validate model name, if not exists then throw error message
             if (!validateModelName || !fieldValidation[validateModelName]) {
                 throw new Error('Invalid validate model name');
             }
 
-            ///TODO: Step 3: Set filter query with $or operator
+            ///TODO: Step 1.3: Check validate operating, if not exists then throw error message
+            if (!validateOperating) {
+                throw new Error('Invalid validate operating');
+            }
+
+            ///TODO: Step 2: Set filter query with $or operator
             filterQuery = {
                 $or: [],
             };
 
-            ///TODO: Step 4: Get allowed fields from validate model, if not exists then throw error message
-            const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
+            ///TODO: Step 3: Get allowed fields from validate model, if not exists then throw error message
+            let allowedFields = [];
 
-            if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
+            if (validateOperating === 'create') {
+                allowedFields = fieldValidation[validateModelName]['create'];
+            } else if (validateOperating === 'update') {
+                allowedFields = fieldValidation[validateModelName]['update'];
+            } else {
+                throw new Error('Invalid validate operating');
+            }
+            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
+            if (!allowedFields || allowedFields.length === 0) {
                 throw new Error('Invalid allowed fields');
             }
 
             // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
 
-            ///TODO: Step 5: Check each allowed fields, if exists then add to filter query
+            ///TODO: Step 4: Check each allowed fields, if exists then add to filter query
             entities.forEach((entity) => {
                 allowedFields.forEach((field) => {
                     if (entity[field]) {
@@ -368,7 +403,7 @@ const LogicCheckUtil = {
         }
     },
     ///TODO: Set one and update fields, return update query
-    setOneAndUpdateFields: (entity, validateModelName) => {
+    setOneAndUpdateFields: (entity, validateModelName, validateOperating) => {
         // const fileDetails = `[${filenameWithoutPath}] [setOneAndUpdateFields]`;
         const fields = {};
 
@@ -383,13 +418,19 @@ const LogicCheckUtil = {
             }
 
             ///TODO: Step 2: Get allowed fields from validate model, if not exists then throw error message
-            const allowedFields = fieldValidation[validateModelName]['createOrUpdate']
+            let allowedFields = [];
 
-            if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
+            if (validateOperating === 'create') {
+                allowedFields = fieldValidation[validateModelName]['create'];
+            } else if (validateOperating === 'update') {
+                allowedFields = fieldValidation[validateModelName]['update'];
+            } else {
+                throw new Error('Invalid validate operating');
+            }
+            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
+            if (!allowedFields || allowedFields.length === 0) {
                 throw new Error('Invalid allowed fields');
             }
-
-            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
 
             ///TODO: Step 3: Check each allowed fields, if exists then add to fields
             ///TODO: Method 1

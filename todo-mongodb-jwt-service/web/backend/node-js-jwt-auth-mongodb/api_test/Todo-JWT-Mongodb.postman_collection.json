@@ -1252,7 +1252,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"6592fb27b0adadf24e0922d1\",\r\n    \"name\": \"TestUpdate\",\r\n    \"value\": \"7\"\r\n}",
+							"raw": "{\r\n    \"_id\": \"6592fb27b0adadf24e0922d1\",\r\n    \"name\": \"Health\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1551,9 +1551,143 @@
 			"name": "todo",
 			"item": [
 				{
+					"name": "Find by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todo/659579a2c910351b80c6c8b1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								"659579a2c910351b80c6c8b1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todo/659501259b9e501f93bf8c32",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								"659501259b9e501f93bf8c32"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Find all",
 					"request": {
 						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todo/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "x-access-token",
@@ -1625,7 +1759,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Test Create Todo List1\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"category\": \"2\"\r\n}",
+							"raw": "{\r\n    \"title\": \"Test Create Todo List16\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"2\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1642,6 +1776,165 @@
 								"v1",
 								"todo",
 								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"_id\": \"659579a2c910351b80c6c8b1\",\r\n    \"title\": \"Test Create Todo List17\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"public\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todo/659579a2c910351b80c6c8b1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								"659579a2c910351b80c6c8b1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Update",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"_id\": \"659579a2c910351b80c6c8b1\",\r\n    \"title\": \"Test Create Todo List17\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todo/659579a2c910351b80c6c8b1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								"659579a2c910351b80c6c8b1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"title\": \"Test Create Todo List13\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"2\"\r\n    },\r\n        {\r\n        \"title\": \"Test Create Todo List12\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"2\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todo/bulkCreate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todo",
+								"bulkCreate"
 							]
 						}
 					},
@@ -1677,7 +1970,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todo/?priority=high,low",
+							"raw": "{{url}}/api/v1/todo/?title=Test Create Todo List16",
 							"host": [
 								"{{url}}"
 							],
@@ -1740,7 +2033,17 @@
 								},
 								{
 									"key": "priority",
-									"value": "high,low"
+									"value": "high,low",
+									"disabled": true
+								},
+								{
+									"key": "title",
+									"value": "Test Create Todo List13,Test Create Todo List12,Test Create Todo List15",
+									"disabled": true
+								},
+								{
+									"key": "title",
+									"value": "Test Create Todo List16"
 								}
 							]
 						}

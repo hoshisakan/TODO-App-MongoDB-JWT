@@ -7,6 +7,7 @@ router.get('/:id', [authJwt.verifyAcccessToken], todoController.findById);
 router.post('/', [authJwt.verifyAcccessToken], todoController.create);
 router.put('/:id', [authJwt.verifyAcccessToken], todoController.updateById);
 router.patch('/:id', [authJwt.verifyAcccessToken], todoController.patchUpdateById);
+router.delete('/', [authJwt.verifyAcccessToken, authJwt.isAdmin], todoController.deleteAll);
 router.delete('/:id', [authJwt.verifyAcccessToken], todoController.deleteById);
 router.post('/bulkCreate', [authJwt.verifyAcccessToken], todoController.bulkCreate);
 // router.put('/bulkUpdate', [authJwt.verifyAcccessToken], todoController.bulkUpdate);

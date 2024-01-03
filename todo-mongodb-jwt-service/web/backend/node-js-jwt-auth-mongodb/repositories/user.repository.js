@@ -21,6 +21,18 @@ class UserRepository extends Repository {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
+    find = async (expression = {}) => {
+        return await this.model.find(expression).populate('roles', 'name level');
+    }
+
+    findOne = async (expression = {}) => {
+        return await this.model.findOne(expression).populate('roles', 'name level');
+    }
+
+    findById = async (id) => {
+        return await this.model.findById(id).populate('roles', 'name level');
+    }
+
     addRoles = async (userId, roleIds) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);

@@ -27,7 +27,7 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoService.bulkCreate(req.body);
+            const result = await this.todoService.bulkCreate(req.body, req.userId);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);
@@ -107,18 +107,18 @@ class TodoController {
         }
     };
 
-    // deleteAll = async (req, res) => {
-    //     const classNameAndFuncName = this.getFunctionCallerName();
-    //     const fileDetails = this.getFileDetails(classNameAndFuncName);
+    deleteAll = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
 
-    //     try {
-    //         const result = await this.todoService.deleleAll()
-    //         return http.successResponse(res, OK, result);
-    //     } catch (error) {
-    //         logError(error, fileDetails, true);
-    //         return http.errorResponse(res, BAD_REQUEST, error.message);
-    //     }
-    // }
+        try {
+            const result = await this.todoService.deleteAll();
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
 
     findAll = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();

@@ -4,10 +4,57 @@ const TodoCategory = require('../models/mongodb/todo.category.model');
 const Todo = require('../models/mongodb/todo.model');
 const { logInfo, logError } = require('./log.util');
 
-// const { filenameFilter } = require('./regex.util');
-// const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+const { filenameFilter } = require('./regex.util');
+const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 
 const ModelValidateUtil = {
+    validateModelFields: async (entity, validateModelName) => {
+        const fileDetails = `[${filenameWithoutPath}] [validateModelFields]`;
+        let result = {
+            isValid: false,
+            error: null,
+        };
+        try {
+            if (!entity) {
+                throw new Error('Invalid entity, please provide entity');
+            }
+
+            if (!validateModelName) {
+                throw new Error('Invalid validate model name, please provide validate model name');
+            }
+
+            const validateFieldsResult = null;
+
+            switch (validateModelName) {
+                case 'User':
+                    validateFieldsResult = await User.validate(entity);
+                    break;
+                case 'Role':
+                    validateFieldsResult = await Role.validate(entity);
+                    break;
+                case 'TodoCategory':
+                    validateFieldsResult = await TodoCategory.validate(entity);
+                    break;
+                case 'Todo':
+                    validateFieldsResult = await Todo.validate(entity);
+                    break;
+                default:
+                    throw new Error(`Invalid validate model name: ${validateModelName}`);
+            }
+
+            logInfo(`[validateFieldsResult]: ${JSON.stringify(validateFieldsResult)}`, fileDetails);
+
+            if (validateFieldsResult && validateFieldsResult.error) {
+                throw new Error(validateFieldsResult.error);
+            }
+            result.isValid = true;
+        } catch (err) {
+            result.isValid = false;
+            result.error = 'Invalid entity, please provide entity';
+            logError(err, fileDetails, true);
+        }
+        return result;
+    },
     validateOneFieldAuthenticity: (fieldKey, validateModelName) => {
         // const fileDetails = `[${filenameWithoutPath}] [validateOneFieldAuthenticity]`;
         let result = {
@@ -26,9 +73,9 @@ const ModelValidateUtil = {
                 result.isValid = Role.schema.paths.hasOwnProperty(fieldKey);
             } else if (fieldKey !== '_id' && validateModelName === 'TodoCategory') {
                 result.isValid = TodoCategory.schema.paths.hasOwnProperty(fieldKey);
-            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey !== 'category') {
+            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey !== 'todoCategoryId') {
                 result.isValid = Todo.schema.paths.hasOwnProperty(fieldKey);
-            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey === 'category') {
+            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey === 'todoCategoryId') {
                 result.isValid = true;
             }
             if (!result.isValid) {

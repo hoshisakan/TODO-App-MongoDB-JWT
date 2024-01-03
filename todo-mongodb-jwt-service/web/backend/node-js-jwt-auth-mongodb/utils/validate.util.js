@@ -30,16 +30,20 @@ module.exports = {
     crudOperations: {
         fieldValidation: {
             User: {
-                createOrUpdate: ['username', 'email', 'password', 'roles'],
+                create: ['username', 'email', 'password', 'roles'],
+                update: ['username', 'email', 'password', 'roles'],
             },
             Role: {
-                createOrUpdate: ['name'],
+                create: ['name'],
+                update: ['name'],
             },
             TodoCategory: {
-                createOrUpdate: ['name', 'value'],
+                create: ['name', 'value'],
+                update: ['name', 'value'],
             },
             Todo: {
-                createOrUpdate: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
+                create: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
+                update: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
             },
         },
     },

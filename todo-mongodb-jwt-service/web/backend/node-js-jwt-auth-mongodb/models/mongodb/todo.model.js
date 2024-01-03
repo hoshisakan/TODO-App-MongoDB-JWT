@@ -1,4 +1,10 @@
 const mongoose = require('mongoose');
+const TodoCategory = require('./todo.category.model');
+const { logInfo, logError } = require('../../utils/log.util');
+const { filenameFilter } = require('../../utils/regex.util');
+
+const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+const fileDetails = `[${filenameWithoutPath}]`;
 
 const Todo = mongoose.model(
     'Todo',
@@ -40,7 +46,7 @@ const Todo = mongoose.model(
         },
         dueDate: {
             type: Date,
-            required: true,
+            // required: true,
         },
         user: {
             type: mongoose.Schema.Types.ObjectId,
@@ -49,6 +55,7 @@ const Todo = mongoose.model(
         category: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'TodoCategory',
+            required: true
         },
         createdAt: {
             type: Date,

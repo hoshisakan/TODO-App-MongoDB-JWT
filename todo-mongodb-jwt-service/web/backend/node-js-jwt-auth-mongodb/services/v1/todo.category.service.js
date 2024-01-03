@@ -50,7 +50,7 @@ class TodoCategoryService extends BaseService {
             }
 
             ///TODO: Step 2: Get duplicate existing query
-            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
+            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'create');
 
             logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
@@ -98,7 +98,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const duplicateExistingQuery = await checkMultipleDuplicateExisting(entities, this.modelName);
+            const duplicateExistingQuery = await checkMultipleDuplicateExisting(entities, this.modelName, 'create');
 
             logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
@@ -186,7 +186,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Todo category not found with the provided id');
             }
 
-            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
+            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
 
             // logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
@@ -198,36 +198,39 @@ class TodoCategoryService extends BaseService {
 
             // logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
 
-            ///TODO: check duplicate items found, cannnot use some or every, because it will return true if the first item is duplicate
-            ///TODO: reminder: some and every will return true if the first item is duplicate
-            ///TODO: reminder: _id is not a string, it is an object, so we need to convert it to string
-            const duplicateItems = duplicateItemsFound.filter(
-                (item) =>
-                    item._id.toString() !== entity._id.toString() &&
-                    (item.name.toString() === entity.name.toString() ||
-                        item.value.toString() === entity.value.toString())
-            );
+            if (duplicateItemsFound && duplicateItemsFound > 0) {
+                ///TODO: check duplicate items found, cannnot use some or every, because it will return true if the first item is duplicate
+                ///TODO: reminder: some and every will return true if the first item is duplicate
+                ///TODO: reminder: _id is not a string, it is an object, so we need to convert it to string
+                const duplicateItems = duplicateItemsFound.filter(
+                    (item) =>
+                        item._id.toString() !== entity._id.toString() &&
+                        (item.name.toString() === entity.name.toString() ||
+                            item.value.toString() === entity.value.toString())
+                );
 
-            // const duplicateItems = duplicateItemsFound.filter((item) => {
-            //     const isSameId = item._id.toString() === entity._id.toString();
-            //     const isSameName = item.name.toString() === entity.name.toString();
-            //     const isSameValue = item.value.toString() === entity.value.toString();
+                // const duplicateItems = duplicateItemsFound.filter((item) => {
+                //     const isSameId = item._id.toString() === entity._id.toString();
+                //     const isSameName = item.name.toString() === entity.name.toString();
+                //     const isSameValue = item.value.toString() === entity.value.toString();
 
-            //     logInfo(
-            //         `Checking item ${item._id}: isSameId=${isSameId}, isSameName=${isSameName}, isSameValue=${isSameValue}`,
-            //         fileDetails
-            //     );
+                //     logInfo(
+                //         `Checking item ${item._id}: isSameId=${isSameId}, isSameName=${isSameName}, isSameValue=${isSameValue}`,
+                //         fileDetails
+                //     );
 
-            //     return !isSameId && (isSameName || isSameValue);
-            // });
+                //     return !isSameId && (isSameName || isSameValue);
+                // });
 
-            // logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
+                // logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
 
-            if (duplicateItems.length > 0) {
-                throw new Error('Todo category already exists, because of duplicate name or value');
+                if (duplicateItems && duplicateItems.length > 0) {
+                    throw new Error('Todo category already exists, because of duplicate name or value');
+                }
+                logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
             }
 
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName);
+            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
 
             if (!updateQuery || Object.keys(updateQuery).length === 0) {
                 throw new Error('Invalid update query');
@@ -279,7 +282,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Todo category not found with the provided id');
             }
 
-            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName);
+            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
 
             // logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
@@ -291,33 +294,39 @@ class TodoCategoryService extends BaseService {
 
             // logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
 
-            ///TODO: check duplicate items found, cannnot use some or every, because it will return true if the first item is duplicate
-            ///TODO: reminder: some and every will return true if the first item is duplicate
-            ///TODO: reminder: _id is not a string, it is an object, so we need to convert it to string
-            const duplicateItems = duplicateItemsFound.filter(
-                (item) =>
-                    item._id.toString() !== entity._id.toString() &&
-                    (item.name.toString() === entity.name.toString() ||
-                        item.value.toString() === entity.value.toString())
-            );
+            if (!duplicateItemsFound || duplicateItemsFound.length === 0) {
+                throw new Error('Todo category not found with the provided query');
+            }
 
-            // const duplicateItems = duplicateItemsFound.filter((item) => {
-            //     const isSameId = item._id.toString() === entity._id.toString();
-            //     const isSameName = item.name.toString() === entity.name.toString();
-            //     const isSameValue = item.value.toString() === entity.value.toString();
+            if (duplicateItemsFound && duplicateItemsFound > 0) {
+                ///TODO: check duplicate items found, cannnot use some or every, because it will return true if the first item is duplicate
+                ///TODO: reminder: some and every will return true if the first item is duplicate
+                ///TODO: reminder: _id is not a string, it is an object, so we need to convert it to string
+                const duplicateItems = duplicateItemsFound.filter(
+                    (item) =>
+                        item._id.toString() !== entity._id.toString() &&
+                        (item.name.toString() === entity.name.toString() ||
+                            item.value.toString() === entity.value.toString())
+                );
 
-            //     logInfo(
-            //         `Checking item ${item._id}: isSameId=${isSameId}, isSameName=${isSameName}, isSameValue=${isSameValue}`,
-            //         fileDetails
-            //     );
+                // const duplicateItems = duplicateItemsFound.filter((item) => {
+                //     const isSameId = item._id.toString() === entity._id.toString();
+                //     const isSameName = item.name.toString() === entity.name.toString();
+                //     const isSameValue = item.value.toString() === entity.value.toString();
 
-            //     return !isSameId && (isSameName || isSameValue);
-            // });
+                //     logInfo(
+                //         `Checking item ${item._id}: isSameId=${isSameId}, isSameName=${isSameName}, isSameValue=${isSameValue}`,
+                //         fileDetails
+                //     );
 
-            // logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
+                //     return !isSameId && (isSameName || isSameValue);
+                // });
 
-            if (duplicateItems.length > 0) {
-                throw new Error('Todo category already exists, because of duplicate name or value');
+                // logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
+
+                if (duplicateItems && duplicateItems.length > 0) {
+                    throw new Error('Todo category already exists, because of duplicate name or value');
+                }
             }
 
             const updateQuery = setOneAndUpdateFields(entity, this.modelName);

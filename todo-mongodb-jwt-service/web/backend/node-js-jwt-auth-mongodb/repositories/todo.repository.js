@@ -21,22 +21,22 @@ class TodoRepository extends Repository {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    addTodoCategory = async (todoId, todoCategoryId) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        try {
-            const todo = await this.model.findById(todoId);
+    find = async (expression = {}) => {
+        return await this.model
+            .find(expression)
+            .populate('user', 'username email -_id')
+            .populate('category', 'name value');
+    };
 
-            if (!todo) {
-                throw new Error('Todo Not Found');
-            }
+    findOne = async (expression = {}) => {
+        return await this.model
+            .find(expression)
+            .populate('user', 'username email -_id')
+            .populate('category', 'name value');
+    };
 
-            todo.todoCategories = [todoCategoryId];
-            return await todo.save();
-        } catch (err) {
-            logError(err, fileDetails, true);
-            throw err;
-        }
+    findById = async (id) => {
+        return await this.model.findById(id).populate('user', 'username email -_id').populate('category', 'name value');
     };
 
     addTodoCategoryAndUser = async (entity, userId) => {
