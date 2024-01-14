@@ -32,18 +32,22 @@ module.exports = {
             User: {
                 create: ['username', 'email', 'password', 'roles'],
                 update: ['username', 'email', 'password', 'roles'],
+                checkDuplicate: ['username', 'email'],
             },
             Role: {
-                create: ['name'],
-                update: ['name'],
+                create: ['name', 'level'],
+                update: ['name', 'level'],
+                checkDuplicate: ['name'],
             },
             TodoCategory: {
                 create: ['name', 'value'],
                 update: ['name', 'value'],
+                checkDuplicate: ['name'],
             },
             Todo: {
                 create: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
                 update: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
+                checkDuplicate: ['title'],
             },
         },
     },

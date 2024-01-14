@@ -54,9 +54,50 @@ class UserService extends BaseService {
             result = (await this.unitOfWork.users.findOne({ email: email })) ? true : false;
         } catch (err) {
             result = false;
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
         }
         return result;
+    };
+
+    deleteById = async (id) => {
+        // const classNameAndFuncName = this.getFunctionCallerName();
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            if (!id) {
+                throw new Error(`Invalid parameters`);
+            }
+
+            const searchResult = await this.unitOfWork.users.findById(id);
+
+            if (!searchResult) {
+                throw new Error(`Role with id ${id} not found`);
+            }
+
+            const deleteResult = await this.unitOfWork.users.deleteOne({ _id: id });
+
+            if (!deleteResult) {
+                throw new Error('Delete role failed');
+            }
+            return deleteResult;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    };
+
+    deleteAll = async () => {
+        // const classNameAndFuncName = this.getFunctionCallerName();
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const deleteResult = await this.unitOfWork.users.deleteMany({});
+            if (!deleteResult) {
+                throw new Error('Delete all users failed');
+            }
+            return deleteResult;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
     };
 
     ///TODO: Find one role by query parameters
@@ -77,13 +118,34 @@ class UserService extends BaseService {
             }
             return searchResult;
         } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    };
+
+    ///TODO: Find role by id
+    findById = async (id) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let searchResult = [];
+        try {
+            if (!id) {
+                throw new Error('Id is required');
+            }
+            searchResult = await this.unitOfWork.users.findById(id);
+
+            if (!searchResult) {
+                throw new Error('User not found');
+            }
+            return searchResult;
+        } catch (error) {
             logError(error, fileDetails, true);
             throw error;
         }
     };
 
-    ///TODO: Find all role by query parameters
-    find = async (queryParams) => {
+    ///TODO: Find all user by query parameters
+    findAll = async (queryParams) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];

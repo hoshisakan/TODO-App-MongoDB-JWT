@@ -17,7 +17,7 @@ const LogicCheckUtil = {
     },
     ///TODO: Search roles by name
     searchRolesByName: async (roles = []) => {
-        const fileDetails = `[${filenameWithoutPath}] [searchRolesByName]`;
+        // const fileDetails = `[${filenameWithoutPath}] [searchRolesByName]`;
         let result = [];
         try {
             result = await unitOfWork.roles.find({ name: { $in: roles } });
@@ -33,7 +33,7 @@ const LogicCheckUtil = {
     },
     ///TODO: Validate values contains filter format, only string or object
     validateValuesContainsFilterFormat: (queryParamsValues = []) => {
-        const fileDetails = `[${filenameWithoutPath}] [validateValuesContainsFilterFormat]`;
+        // const fileDetails = `[${filenameWithoutPath}] [validateValuesContainsFilterFormat]`;
         let result = {
             isValid: false,
             error: null,
@@ -283,6 +283,7 @@ const LogicCheckUtil = {
         return result;
     },
     ///TODO: Check duplicate value existing, filter condition with $or operator, return filter query
+    ///TODO: 修改項目: 1. 增加 $and operator, 2. 增加 $ne operator，但測試未通過，待明日再測試
     checkDuplicateExisting: async (entity, validateModelName, validateOperating) => {
         // const fileDetails = `[${filenameWithoutPath}] [checkDuplicateExisting]`;
         let filterQuery = {};
@@ -305,20 +306,35 @@ const LogicCheckUtil = {
 
             ///TODO: Step 2: Set filter query with $or operator
             filterQuery = {
-                $or: [],
+                $and: [
+                    {
+                        $or: [],
+                    },
+                    {
+                        _id: { $ne: entity._id },
+                    },
+                ],
             };
+
+            // logInfo(`filterQuery: ${stringify(filterQuery.$and[0].$or.push())}`, fileDetails, true);
 
             ///TODO: Step 3: Get allowed fields from validate model, if not exists then throw error message
             let allowedFields = [];
 
-            if (validateOperating === 'create') {
-                allowedFields = fieldValidation[validateModelName]['create'];
-            } else if (validateOperating === 'update') {
-                allowedFields = fieldValidation[validateModelName]['update'];
+            // if (validateOperating === 'create') {
+            //     allowedFields = fieldValidation[validateModelName]['create'];
+            // } else if (validateOperating === 'update') {
+            //     allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
+            // } else {
+            //     throw new Error('Invalid validate operating');
+            // }
+            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
+
+            if (validateOperating === 'create' || validateOperating === 'update') {
+                allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
             } else {
                 throw new Error('Invalid validate operating');
             }
-            // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
 
             if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
                 throw new Error('Invalid allowed fields');
@@ -328,7 +344,7 @@ const LogicCheckUtil = {
             allowedFields.forEach((field) => {
                 // logInfo(`Current check field: ${stringify(field)}`, fileDetails, true);
                 if (entity[field]) {
-                    filterQuery.$or.push({ [field]: entity[field] });
+                    filterQuery.$and[0].$or.push({ [field]: { $in: [entity[field]] } });
                 }
             });
             return filterQuery;
@@ -360,19 +376,33 @@ const LogicCheckUtil = {
 
             ///TODO: Step 2: Set filter query with $or operator
             filterQuery = {
-                $or: [],
+                $and: [
+                    {
+                        $or: [],
+                    },
+                    {
+                        _id: { $ne: entity._id },
+                    },
+                ],
             };
 
             ///TODO: Step 3: Get allowed fields from validate model, if not exists then throw error message
             let allowedFields = [];
 
-            if (validateOperating === 'create') {
-                allowedFields = fieldValidation[validateModelName]['create'];
-            } else if (validateOperating === 'update') {
-                allowedFields = fieldValidation[validateModelName]['update'];
+            // if (validateOperating === 'create') {
+            //     allowedFields = fieldValidation[validateModelName]['create'];
+            // } else if (validateOperating === 'update') {
+            //     allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
+            // } else {
+            //     throw new Error('Invalid validate operating');
+            // }
+
+            if (validateOperating === 'create' || validateOperating === 'update') {
+                allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
             } else {
                 throw new Error('Invalid validate operating');
             }
+
             // logInfo(`allowedFields: ${stringify(allowedFields)}`, fileDetails, true);
             if (!allowedFields || allowedFields.length === 0) {
                 throw new Error('Invalid allowed fields');

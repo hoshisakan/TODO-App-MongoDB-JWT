@@ -124,7 +124,7 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoService.find(req.query);
+            const result = await this.todoService.findAll(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);

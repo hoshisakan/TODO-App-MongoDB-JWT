@@ -78,7 +78,7 @@ class AuthService {
             logInfo(`userOwnHighestPermission: ${stringify(userOwnHighestPermission)}`, fileDetails, true);
             return userOwnHighestPermission;
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             throw err;
         }
     };
@@ -138,7 +138,7 @@ class AuthService {
             }
             return createAccessTokenResult;
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             throw err;
         }
     };
@@ -173,7 +173,7 @@ class AuthService {
             logInfo(`result: ${stringify(result)}`, fileDetails, true);
             return result;
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             throw err;
         }
     };
@@ -187,7 +187,7 @@ class AuthService {
             }
             return await checkTokenExistsFromCache(key, authType);
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             throw err;
         }
     };
@@ -227,7 +227,7 @@ class AuthService {
             }
             return createResult;
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             createResult = {};
         }
         return createResult;
@@ -248,7 +248,7 @@ class AuthService {
             result = verifyToken(token, authType);
             return result;
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             throw err;
         }
     };
@@ -304,6 +304,7 @@ class AuthService {
                 const role = await this.unitOfWork.roles.findOne({ name: 'user' });
                 result = await this.unitOfWork.users.addRole(userCreated._id, role._id);
             }
+            return result;
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
@@ -460,7 +461,7 @@ class AuthService {
             };
             logInfo(`loginSuccessResult: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             result = {};
         }
         return result;
@@ -505,7 +506,7 @@ class AuthService {
             }
             result.message = 'Logout success';
         } catch (err) {
-            logError(err, fileDetails, true);
+            // logError(err, fileDetails, true);
             result.message = err.message;
         }
         return result;

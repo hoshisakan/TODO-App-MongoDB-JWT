@@ -142,11 +142,11 @@ class TodoService extends BaseService {
             }
 
             ///TODO: Step 3: Check duplicate existing by query, if found throw error
-            const todoFound = await this.unitOfWork.todos.findOne(duplicateExistingQuery);
+            const duplicateExistingResult = await this.unitOfWork.todos.findOne(duplicateExistingQuery);
 
-            logInfo(`todoFound: ${stringify(todoFound)}`, fileDetails, true);
+            logInfo(`duplicateExistingResult: ${stringify(duplicateExistingResult)}`, fileDetails, true);
 
-            if (Object.keys(todoFound).length > 0) {
+            if (Object.keys(duplicateExistingResult).length > 0) {
                 throw new Error('Todo already exists');
             }
 
@@ -169,15 +169,15 @@ class TodoService extends BaseService {
             );
 
             ///TODO: Step 5: Create todo for specific user with todo category, if not found throw error
-            // const todoCreated = await this.unitOfWork.todos.addTodoCategoryAndUser(entity, userId);
-            const todoCreated = await this.unitOfWork.todos.create(entity);
+            // const createResult = await this.unitOfWork.todos.addTodoCategoryAndUser(entity, userId);
+            const createResult = await this.unitOfWork.todos.create(entity);
 
-            if (!todoCreated) {
+            if (!createResult) {
                 throw new Error('Todo category creation failed');
             }
-            logInfo(`todoCreated: ${stringify(todoCreated)}`, fileDetails, true);
+            logInfo(`createResult: ${stringify(createResult)}`, fileDetails, true);
 
-            return todoCreated;
+            return createResult;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
@@ -224,11 +224,11 @@ class TodoService extends BaseService {
             }
 
             ///TODO: Step3: Check duplicate existing by query, if found throw error
-            const todoFound = await this.unitOfWork.todos.find(duplicateExistingQuery);
+            const duplicateExistingResult = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
-            logInfo(`todoFound: ${stringify(todoFound)}`, fileDetails, true);
+            logInfo(`duplicateExistingResult: ${stringify(duplicateExistingResult)}`, fileDetails, true);
 
-            if (Object.keys(todoFound).length > 0) {
+            if (Object.keys(duplicateExistingResult).length > 0) {
                 throw new Error('Todo already exists');
             }
 
@@ -257,12 +257,13 @@ class TodoService extends BaseService {
             logInfo(`Entities of todo bulk create: ${stringify(entities)}`, fileDetails, true);
 
             ///TODO: Step6: Bulk create todos for specific user with todo category, if not found throw error
-            const todoCreated = await this.unitOfWork.todos.createMany(entities);
+            const createResult = await this.unitOfWork.todos.createMany(entities);
 
-            if (!todoCreated) {
+            if (!createResult) {
                 throw new Error('Todo category bulk creation failed');
             }
-            logInfo(`todoCreated: ${stringify(todoCreated)}`, fileDetails, true);
+
+            logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
 
             return todoCreated;
         } catch (error) {
@@ -341,12 +342,12 @@ class TodoService extends BaseService {
 
             ///TODO: option add new attribute for return modified document instead of original
             ///TODO: Step4: Update todo by id for one field, if not found throw error
-            const todoUpdated = await this.unitOfWork.todos.findOneAndUpdate(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.todos.findOneAndUpdate(filterCondition, updateQuery);
 
-            if (!todoUpdated) {
+            if (!updateResult) {
                 throw new Error('Todo update failed');
             }
-            return todoUpdated;
+            return updateResult;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
@@ -374,9 +375,9 @@ class TodoService extends BaseService {
             }
 
             ///TODO: Step2: Get update query
-            const todoFound = await this.unitOfWork.todos.findById(id);
+            const searchResult = await this.unitOfWork.todos.findById(id);
 
-            if (!todoFound) {
+            if (!searchResult) {
                 throw new Error('Todo not found with the provided id');
             }
 
@@ -443,12 +444,12 @@ class TodoService extends BaseService {
             const filterCondition = { _id: entity._id };
 
             ///TODO: Step5: Update todo by id for equal or more than one field, if not found throw error
-            const todoUpdated = await this.unitOfWork.todos.updateOne(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.todos.updateOne(filterCondition, updateQuery);
 
-            if (!todoUpdated) {
+            if (!updateResult) {
                 throw new Error('Todo category update failed');
             }
-            return todoUpdated;
+            return updateResult;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
@@ -457,7 +458,7 @@ class TodoService extends BaseService {
 
     ///TODO: Delete todo by id
     deleteById = async (id) => {
-        const classAndFuncName = this.getFunctionCallerName();
+        // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classAndFuncName);
         try {
             if (!id) {
@@ -465,20 +466,19 @@ class TodoService extends BaseService {
             }
 
             ///TODO: Step1: Find todo by id, if not found throw error
-            const todoFound = await this.unitOfWork.todos.findById(id);
+            const searchResult = await this.unitOfWork.todos.findById(id);
 
-            if (!todoFound) {
-                throw new Error('Todo not found with the provided id');
+            if (!searchResult) {
+                throw new Error(`Todo with id ${id} not found`);
             }
 
             ///TODO: Step2: Delete todo by id, if not found throw error
-            const todoDeleted = await this.unitOfWork.todos.deleteOne({ _id: id });
+            const deleteResult = await this.unitOfWork.todos.deleteOne({ _id: id });
 
-            if (!todoDeleted) {
-                throw new Error('Todo deletion failed');
+            if (!deleteResult) {
+                throw new Error('Delete todo failed');
             }
-
-            return todoDeleted;
+            return deleteResult;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
@@ -539,7 +539,7 @@ class TodoService extends BaseService {
             const searchResult = await this.unitOfWork.todos.findById(id);
 
             if (!searchResult) {
-                throw new Error('Todo not found with the provided id');
+                throw new Error(`Todo with id ${id} not found`);
             }
             return searchResult;
         } catch (error) {
@@ -549,7 +549,7 @@ class TodoService extends BaseService {
     };
 
     ///TODO: Find all todo category by query parameters
-    find = async (queryParams) => {
+    findAll = async (queryParams) => {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];

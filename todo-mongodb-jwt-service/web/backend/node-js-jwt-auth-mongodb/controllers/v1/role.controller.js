@@ -17,6 +17,7 @@ class RoleController {
         this.roleService = new RoleService();
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
     }
+
     getFunctionCallerName = () => {
         const err = new Error();
         const stack = err.stack.split('\n');
@@ -29,17 +30,115 @@ class RoleController {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    findAll = async (req, res) => {
+    bulkCreate = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.roleService.find(req.query);
+            const result = await this.roleService.bulkCreate(req.body, req.userId);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
         }
     };
+
+    // bulkUpdate = async (req, res) => {
+    //     const classNameAndFuncName = this.getFunctionCallerName();
+    //     const fileDetails = this.getFileDetails(classNameAndFuncName);
+    //     try {
+    //         const result = await this.roleService.bulkUpdate(req.body);
+    //         return http.successResponse(res, OK, result);
+    //     } catch (error) {
+    //         logError(error, fileDetails, true);
+    //         return http.errorResponse(res, BAD_REQUEST, error.message);
+    //     }
+    // };
+
+    create = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.roleService.create(req.body, req.userId);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    updateById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.roleService.updateById(req.params.id, req.body);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    patchUpdateById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.roleService.patchUpdateById(req.params.id, req.body);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    deleteById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.roleService.deleteById(req.params.id);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    findById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.roleService.findById(req.params.id);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    deleteAll = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+        try {
+            const result = await this.roleService.deleteAll();
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    findAll = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.roleService.findAll(req.query);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
 }
 
 module.exports = RoleController;

@@ -23,11 +23,48 @@ class UserController {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
+    deleteById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.userService.deleteById(req.params.id);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    findById = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.userService.findById(req.params.id);
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
+    deleteAll = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+        try {
+            const result = await this.userService.deleteAll();
+            return http.successResponse(res, OK, result);
+        } catch (error) {
+            logError(error, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, error.message);
+        }
+    };
+
     findAll = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.userService.find(req.query);
+            const result = await this.userService.findAll(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);

@@ -123,7 +123,7 @@ class TodoCategoryController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoCategoryService.find(req.query);
+            const result = await this.todoCategoryService.findAll(req.query);
             return http.successResponse(res, OK, result);
         } catch (error) {
             logError(error, fileDetails, true);
