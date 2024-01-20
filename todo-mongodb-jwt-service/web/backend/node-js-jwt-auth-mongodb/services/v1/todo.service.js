@@ -35,8 +35,8 @@ class TodoService extends BaseService {
     };
 
     getCurrentLoggedInUserId = async (user) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        // const classNameAndFuncName = this.getFunctionCallerName();
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             if (!user) {
                 throw new Error('Invalid user');
@@ -247,7 +247,6 @@ class TodoService extends BaseService {
                     (todoCategoryItem) => todoCategoryItem.value.toString() === entity.todoCategoryId
                 );
                 if (todoCategoryItem) {
-                    logInfo(`match`, fileDetails, true);
                     delete entity.todoCategoryId;
                     entity.category = todoCategoryItem._id;
                     entity.user = userId;
@@ -313,17 +312,8 @@ class TodoService extends BaseService {
             ///TODO: Step2.2: Check duplicate existing by query, if found throw error
             const duplicateItemsFound = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
-            logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
-
             if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                const duplicateItems = duplicateItemsFound.filter(
-                    (item) => item._id.toString() !== id.toString() && item.title.toString() === entity.title.toString()
-                );
-
-                if (duplicateItems && duplicateItems.length > 0) {
-                    throw new Error('Todo already exists, please try with different title');
-                }
-                logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
+                throw new Error('Todo already exists, please try with different title');
             }
 
             ///TODO: Step3: Get update query
@@ -397,24 +387,16 @@ class TodoService extends BaseService {
 
             logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
-            ///TODO: Step3.2: Check duplicate existing by query, if found throw error
-            const duplicateItemsFound = await this.unitOfWork.todos.findOne(duplicateExistingQuery);
+            const duplicateExistingResult = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
-            logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
+            if (duplicateExistingResult && duplicateExistingResult.length > 0) {
+                throw new Error('Todo already exists, please try with different title');
+            }
 
-            ///TODO: Step3.3: Check duplicate existing by query, if found throw error
+            const duplicateItemsFound = await this.unitOfWork.todos.find(duplicateExistingQuery);
+
             if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                ///TODO: Step3.4: Filter duplicate items by id and title, if found different id and same title throw error
-                const duplicateItems = duplicateItemsFound.filter(
-                    (item) =>
-                        item._id.toString() !== todoFound._id.toString() &&
-                        item.title.toString() === entity.title.toString()
-                );
-
-                if (duplicateItems && duplicateItems.length > 0) {
-                    throw new Error('Todo already exists, please try with different title');
-                }
-                logInfo(`duplicateItems: ${stringify(duplicateItems)}`, fileDetails, true);
+                throw new Error('Todo already exists, please try with different title');
             }
 
             ///TODO: Step4: Get update query with updatedAt field

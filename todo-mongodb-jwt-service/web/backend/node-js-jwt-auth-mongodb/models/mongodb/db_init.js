@@ -1,6 +1,7 @@
 const db = require('./index.js');
 const config = require('../../config/db.config.js');
 const Role = db.role;
+const ErrorCategory = db.errorCategory;
 
 const { logError, logInfo } = require('../../utils/log.util.js');
 const { stringify } = require('../../utils/json.util.js');
@@ -31,22 +32,20 @@ const dropDatabase = async () => {
     try {
         const result = await db.mongoose.connection.db.dropDatabase();
         logInfo(`result: ${result}`, fileDetails, true);
-        return;
     } catch (error) {
         logError(error, fileDetails, true);
-        return;
     }
+    return;
 };
 
 const dropCollection = async (collectionName) => {
     try {
         const result = await db.mongoose.connection.db.dropCollection(collectionName);
         logInfo(`Drop collection result: ${stringify(dropCollection)}`, fileDetails, true);
-        return;
     } catch (error) {
         logError(error, fileDetails, true);
-        return;
     }
+    return;
 };
 
 const dropAllCollections = async () => {
@@ -58,22 +57,20 @@ const dropAllCollections = async () => {
                 await dropCollection(collection.name);
             })
         );
-        return;
     } catch (error) {
         logError(error, fileDetails, true);
-        return;
     }
+    return;
 };
 
 const truncateCollection = async (collectionName) => {
     try {
         const result = await db.mongoose.connection.db.collection(collectionName).deleteMany({});
         logInfo(`Truncate collection result: ${result}`, fileDetails, true);
-        return;
     } catch (error) {
         logError(error, fileDetails, true);
-        return;
     }
+    return;
 };
 
 const truncateAllCollections = async () => {
@@ -85,11 +82,10 @@ const truncateAllCollections = async () => {
                 await truncateCollection(collection.name);
             })
         );
-        return;
     } catch (error) {
         logError(error, fileDetails, true);
-        return;
     }
+    return;
 };
 
 const createRoles = async () => {
@@ -99,17 +95,30 @@ const createRoles = async () => {
             new Role({ name: 'moderator', level: 2 }).save(),
             new Role({ name: 'admin', level: 10 }).save(),
         ]);
-        return;
     } catch (error) {
         logError(error, fileDetails, true);
-        return;
     }
+    return;
 };
 
-const initial = async () => {
+const createErrorCategories = async () => {
+    try {
+        await Promise.all([
+            new ErrorCategory({ name: 'system crashed ', description: 'For records system crashed' }).save(),
+            new ErrorCategory({ name: 'cache', description: 'For records cached operator result' }).save(),
+            new ErrorCategory({ name: 'database', description: 'For records database operator result' }).save(),
+            new ErrorCategory({ name: 'process', description: 'For records process operator result' }).save(),
+        ]);
+    } catch (error) {
+        logError(error, fileDetails, true);
+    }
+    return;
+};
+
+const checkRolesExistsAndCreate = async () => {
     try {
         const result = await Role.estimatedDocumentCount();
-        logInfo(`result: ${result}`, fileDetails, true);
+        logInfo(`Roles count: ${result}`, fileDetails, true);
         if (result === 0) {
             await createRoles();
         } else {
@@ -118,11 +127,38 @@ const initial = async () => {
             // await createRoles();
             // logInfo(`Roles recreated.`, fileDetails, true);
         }
-        return;
     } catch (error) {
         logError(error, fileDetails, true);
-        return;
     }
+    return;
+};
+
+const checkErrorCategoriesExistsAndCreate = async () => {
+    try {
+        const result = await ErrorCategory.estimatedDocumentCount();
+        logInfo(`Error categories count: ${result}`, fileDetails, true);
+        if (result === 0) {
+            await createErrorCategories();
+        } else {
+            logInfo(`Error categories already exists.`, fileDetails, true);
+            // await dropAllCollections();
+            // await createErrorCategories();
+            // logInfo(`Error categories recreated.`, fileDetails, true);
+        }
+    } catch (error) {
+        logError(error, fileDetails, true);
+    }
+    return;
+};
+
+const initial = async () => {
+    try {
+        await checkRolesExistsAndCreate();
+        await checkErrorCategoriesExistsAndCreate();
+    } catch (error) {
+        logError(error, fileDetails, true);
+    }
+    return;
 };
 
 createConnection();

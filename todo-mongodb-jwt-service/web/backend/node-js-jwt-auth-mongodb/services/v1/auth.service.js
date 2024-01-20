@@ -237,7 +237,7 @@ class AuthService {
     verifyTokenValidity = async (token, authType) => {
         let result = {};
         const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             if (!token) {
                 throw new Error('Token invalid');
@@ -347,10 +347,12 @@ class AuthService {
                 token: null,
                 expireTime: null,
             };
+
             let createRefreshTokenResult = {
                 token: null,
                 expireTime: null,
             };
+
             const payload = {
                 id: userValidateResult.id,
             };
@@ -403,6 +405,8 @@ class AuthService {
 
             logInfo(`createAccessTokenResult: ${stringify(createAccessTokenResult)}`, fileDetails, true);
 
+            ///TODO: Check refresh token exists in cookie, if exists, then verify refresh token,
+            ///TODO: Otherwise will be as first time login, Check refresh token exists in blacklist (redis cache)
             if (loginDto.cookieRefreshToken) {
                 isTokenExistsInCookie.refreshToken = true;
                 const isVerifyRefreshToken = verifyToken(loginDto.cookieRefreshToken, 'refresh');
@@ -422,6 +426,8 @@ class AuthService {
                 isTokenExistsInCookie.refreshToken = false;
                 const isExistsBlacklistToken = await this.isExistsBlacklistToken(userValidateResult.id, 'refresh');
                 logInfo(`isExistsBlacklistToken: ${stringify(isExistsBlacklistToken)}`, fileDetails, true);
+                ///TODO: Check refresh token exists in blacklist (redis cache)
+                ///TODO: If exists, then generate new refresh token, otherwise return old refresh token from redis cache
                 if (!isExistsBlacklistToken) {
                     logInfo(`isExistsBlacklistToken is false`, fileDetails, true);
                     createRefreshTokenResult = await this.generateTokenAndStorageCache(

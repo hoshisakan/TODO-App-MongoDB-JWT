@@ -14,12 +14,12 @@ const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
 
-class RoleService extends BaseService {
+class ErrorCategoryService extends BaseService {
     constructor() {
-        super(unitOfWork.roles);
+        super(unitOfWork.errorCategories);
         this.unitOfWork = unitOfWork;
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
-        this.modelName = 'Role';
+        this.modelName = 'ErrorCategory';
     }
 
     getFunctionCallerName = () => {
@@ -34,7 +34,7 @@ class RoleService extends BaseService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    ///TODO: Create new role
+    ///TODO: Create new errorCategory
     create = async (entity) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -52,8 +52,7 @@ class RoleService extends BaseService {
 
             ///TODO: Step 2: Get duplicate existing query
             const duplicateCheckEntity = {
-                name: entity.name,
-                level: entity.level,
+                name: entity.name
             };
 
             const duplicateExistingQuery = await checkDuplicateExisting(duplicateCheckEntity, this.modelName, 'create');
@@ -65,19 +64,19 @@ class RoleService extends BaseService {
             }
 
             ///TODO: Step 3: Check duplicate existing by query, if found then create new entity
-            const duplicateExistingResult = await this.unitOfWork.roles.findOne(duplicateExistingQuery);
+            const duplicateExistingResult = await this.unitOfWork.errorCategories.findOne(duplicateExistingQuery);
 
             if (duplicateExistingResult) {
                 throw new Error(
-                    `Role with name ${duplicateCheckEntity.name} already exists`
+                    `Error category with name ${entity.name} already exists`
                 );
             }
 
             ///TODO: Step 4: Create new entity
-            const createResult = await this.unitOfWork.roles.create(entity);
+            const createResult = await this.unitOfWork.errorCategories.create(entity);
 
             if (!createResult) {
-                throw new Error('Create role failed');
+                throw new Error('Create error category failed');
             }
             return createResult;
         } catch (error) {
@@ -86,7 +85,7 @@ class RoleService extends BaseService {
         }
     };
 
-    ///TODO: Create bulk roles
+    ///TODO: Create bulk errorCategories
     bulkCreate = async (entities) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -105,8 +104,7 @@ class RoleService extends BaseService {
             ///TODO: Step 2: Get duplicate existing query
             const duplicateCheckEntities = entities.map((entity) => {
                 return {
-                    name: entity.name,
-                    level: entity.level,
+                    name: entity.name
                 };
             });
 
@@ -123,19 +121,19 @@ class RoleService extends BaseService {
             }
 
             ///TODO: Step 3: Check duplicate existing by query, if found then create new entity
-            const duplicateExistingResult = await this.unitOfWork.roles.find(duplicateExistingQuery);
+            const duplicateExistingResult = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
 
             logInfo(`Duplicate existing result: ${stringify(duplicateExistingResult)}`, fileDetails);
 
             if (Object.keys(duplicateExistingResult).length > 0) {
-                throw new Error(`Role with name or level already exists`);
+                throw new Error(`Error category with name already exists`);
             }
 
             ///TODO: Step 4: Create new entity
-            const createResult = await this.unitOfWork.roles.createMany(entities);
+            const createResult = await this.unitOfWork.errorCategories.createMany(entities);
 
             if (!createResult) {
-                throw new Error('Create bulk roles failed');
+                throw new Error('Create bulk errorCategories failed');
             }
 
             logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
@@ -166,10 +164,10 @@ class RoleService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const searchResult = await this.unitOfWork.roles.findById(id);
+            const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {
-                throw new Error(`Role with id ${id} not found`);
+                throw new Error(`Error category with id ${id} not found`);
             }
 
             const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
@@ -180,13 +178,12 @@ class RoleService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            const duplicateItemsFound = await this.unitOfWork.roles.find(duplicateExistingQuery);
+            const duplicateItemsFound = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
 
             if (duplicateItemsFound && duplicateItemsFound.length > 0) {
                 logInfo(`Duplicate items found: ${stringify(duplicateItemsFound)}`, fileDetails);
                 throw new Error(
-                    // `Role with name ${entity.name} or level ${entity.level} already exists`
-                    `Role with name ${entity.name} or level ${entity.level} already exists`
+                    `Error category with name ${entity.name} already exists`
                 );
             }
 
@@ -202,7 +199,7 @@ class RoleService extends BaseService {
                 _id: id,
             };
 
-            const updateResult = await this.unitOfWork.roles.findOneAndUpdate(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.errorCategories.findOneAndUpdate(filterCondition, updateQuery);
 
             if (!updateResult) {
                 throw new Error('Update role failed');
@@ -233,10 +230,10 @@ class RoleService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const searchResult = await this.unitOfWork.roles.findById(id);
+            const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {
-                throw new Error(`Role with id ${id} not found`);
+                throw new Error(`Error category with id ${id} not found`);
             }
 
             const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
@@ -247,13 +244,12 @@ class RoleService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            const duplicateItemsFound = await this.unitOfWork.roles.find(duplicateExistingQuery);
+            const duplicateItemsFound = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
 
             if (duplicateItemsFound && duplicateItemsFound.length > 0) {
                 logInfo(`Duplicate items found: ${stringify(duplicateItemsFound)}`, fileDetails);
                 throw new Error(
-                    // `Role with name ${entity.name} or level ${entity.level} already exists`
-                    `Role with name ${entity.name} or level ${entity.level} already exists`
+                    `Error category with name ${entity.name} already exists`
                 );
             }
 
@@ -269,7 +265,7 @@ class RoleService extends BaseService {
                 _id: id,
             };
 
-            const updateResult = await this.unitOfWork.roles.updateOne(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.errorCategories.updateOne(filterCondition, updateQuery);
 
             if (!updateResult) {
                 throw new Error('Update role failed');
@@ -289,16 +285,16 @@ class RoleService extends BaseService {
                 throw new Error(`Invalid parameters`);
             }
 
-            const searchResult = await this.unitOfWork.roles.findById(id);
+            const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {
-                throw new Error(`Role with id ${id} not found`);
+                throw new Error(`Error category with id ${id} not found`);
             }
 
-            const deleteResult = await this.unitOfWork.roles.deleteOne({ _id: id });
+            const deleteResult = await this.unitOfWork.errorCategories.deleteOne({ _id: id });
 
             if (!deleteResult) {
-                throw new Error('Delete role failed');
+                throw new Error('Delete error category failed');
             }
             return deleteResult;
         } catch (error) {
@@ -311,9 +307,9 @@ class RoleService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const deleteResult = await this.unitOfWork.roles.deleteMany({});
+            const deleteResult = await this.unitOfWork.errorCategories.deleteMany({});
             if (!deleteResult) {
-                throw new Error('Delete all roles failed');
+                throw new Error('Delete all error category failed');
             }
             return deleteResult;
         } catch (error) {
@@ -324,19 +320,19 @@ class RoleService extends BaseService {
 
     ///TODO: Find one role by query parameters
     findOne = async (queryParams) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        // const classNameAndFuncName = this.getFunctionCallerName();
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.roles.findOne({});
+                searchResult = await this.unitOfWork.errorCategories.findOne({});
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.roles.findOne(filterQueryResult.query);
+                searchResult = await this.unitOfWork.errorCategories.findOne(filterQueryResult.query);
             }
             return searchResult;
         } catch (error) {
@@ -346,13 +342,13 @@ class RoleService extends BaseService {
     };
 
     findById = async (id) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        // const classNameAndFuncName = this.getFunctionCallerName();
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const searchResult = await this.unitOfWork.roles.findById(id);
+            const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {
-                throw new Error(`Role with id ${id} not found`);
+                throw new Error(`Error category with id ${id} not found`);
             }
             return searchResult;
         } catch (error) {
@@ -363,19 +359,19 @@ class RoleService extends BaseService {
 
     ///TODO: Find all role by query parameters
     findAll = async (queryParams) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        // const classNameAndFuncName = this.getFunctionCallerName();
+        // const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.roles.find({});
+                searchResult = await this.unitOfWork.errorCategories.find({});
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.roles.find(filterQueryResult.query);
+                searchResult = await this.unitOfWork.errorCategories.find(filterQueryResult.query);
             }
             return searchResult;
         } catch (error) {
@@ -385,4 +381,4 @@ class RoleService extends BaseService {
     };
 }
 
-module.exports = RoleService;
+module.exports = ErrorCategoryService;

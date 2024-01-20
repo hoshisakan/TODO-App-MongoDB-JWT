@@ -16,7 +16,7 @@ const unitOfWork = new UnitOfWork();
 
 class TodoCategoryService extends BaseService {
     constructor() {
-        super(unitOfWork.todoCategories);
+        super(unitOfWork.errorCategories);
         this.unitOfWork = unitOfWork;
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
         this.modelName = 'TodoCategory';
@@ -59,7 +59,7 @@ class TodoCategoryService extends BaseService {
             }
 
             ///TODO: Step 3: Check duplicate existing by query, if found, throw error
-            const duplicateExistingResult = await this.unitOfWork.todoCategories.findOne(duplicateExistingQuery);
+            const duplicateExistingResult = await this.unitOfWork.errorCategories.findOne(duplicateExistingQuery);
 
             if (duplicateExistingResult) {
                 throw new Error('Todo category already exists');
@@ -68,7 +68,7 @@ class TodoCategoryService extends BaseService {
             logInfo(`duplicateExistingResult: ${stringify(duplicateExistingResult)}`, fileDetails, true);
 
             ///TODO: Step 4: Create todo category
-            const createResult = await this.unitOfWork.todoCategories.create(entity);
+            const createResult = await this.unitOfWork.errorCategories.create(entity);
 
             if (!createResult) {
                 throw new Error('Todo category creation failed');
@@ -106,7 +106,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            const todoCategoryFound = await this.unitOfWork.todoCategories.find(duplicateExistingQuery);
+            const todoCategoryFound = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
 
             if (todoCategoryFound && todoCategoryFound.length > 0) {
                 throw new Error('Todo category already exists');
@@ -114,7 +114,7 @@ class TodoCategoryService extends BaseService {
 
             logInfo(`todoCategoryFound: ${stringify(todoCategoryFound)}`, fileDetails, true);
 
-            const todoCategoryCreated = await this.unitOfWork.todoCategories.createMany(entities);
+            const todoCategoryCreated = await this.unitOfWork.errorCategories.createMany(entities);
 
             if (!todoCategoryCreated) {
                 throw new Error('Todo category creation failed');
@@ -147,7 +147,7 @@ class TodoCategoryService extends BaseService {
 
     //         // logInfo(`todoCategoryFound: ${stringify(todoCategoryFound)}`, fileDetails, true);
 
-    //         // const todoCategoryUpdated = await this.unitOfWork.todoCategories.updateMany(entities);
+    //         // const todoCategoryUpdated = await this.unitOfWork.errorCategories.updateMany(entities);
 
     //         // if (!todoCategoryUpdated) {
     //         //     throw new Error('Todo category update failed');
@@ -180,7 +180,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const searchResult = await this.unitOfWork.todoCategories.findById(id);
+            const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {
                 throw new Error('Todo category not found with the provided id');
@@ -194,7 +194,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            const duplicateItemsFound = await this.unitOfWork.todoCategories.find(duplicateExistingQuery);
+            const duplicateItemsFound = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
 
             // logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
 
@@ -228,7 +228,7 @@ class TodoCategoryService extends BaseService {
             const filterCondition = { _id: id };
 
             ///TODO: option add new attribute for return modified document instead of original
-            const updateResult = await this.unitOfWork.todoCategories.findOneAndUpdate(
+            const updateResult = await this.unitOfWork.errorCategories.findOneAndUpdate(
                 filterCondition,
                 updateQuery
             );
@@ -261,7 +261,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error(validateResult.error);
             }
 
-            const todoCategoryFound = await this.unitOfWork.todoCategories.findById(id);
+            const todoCategoryFound = await this.unitOfWork.errorCategories.findById(id);
 
             if (!todoCategoryFound) {
                 throw new Error('Todo category not found with the provided id');
@@ -275,7 +275,7 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            const duplicateItemsFound = await this.unitOfWork.todoCategories.find(duplicateExistingQuery);
+            const duplicateItemsFound = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
 
             // logInfo(`duplicateItemsFound: ${stringify(duplicateItemsFound)}`, fileDetails, true);
 
@@ -326,7 +326,7 @@ class TodoCategoryService extends BaseService {
 
             const filterCondition = { _id: entity._id };
 
-            const updateResult = await this.unitOfWork.todoCategories.updateOne(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.errorCategories.updateOne(filterCondition, updateQuery);
 
             if (!updateResult) {
                 throw new Error('Todo category update failed');
@@ -346,13 +346,13 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid id');
             }
 
-            const todoCategoryFound = await this.unitOfWork.todoCategories.findById(id);
+            const todoCategoryFound = await this.unitOfWork.errorCategories.findById(id);
 
             if (!todoCategoryFound) {
                 throw new Error('Todo category not found with the provided id');
             }
 
-            const todoCategoryDeleted = await this.unitOfWork.todoCategories.deleteOne({ _id: id });
+            const todoCategoryDeleted = await this.unitOfWork.errorCategories.deleteOne({ _id: id });
 
             if (!todoCategoryDeleted) {
                 throw new Error('Todo category deletion failed');
@@ -368,7 +368,7 @@ class TodoCategoryService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const deleteResult = await this.unitOfWork.todoCategories.deleteMany({});
+            const deleteResult = await this.unitOfWork.errorCategories.deleteMany({});
             if (!deleteResult) {
                 throw new Error('Todo category deletion failed');
             }
@@ -386,14 +386,14 @@ class TodoCategoryService extends BaseService {
         let searchResult = [];
         try {
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.todoCategories.findOne({});
+                searchResult = await this.unitOfWork.errorCategories.findOne({});
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.todoCategories.findOne(filterQueryResult.query);
+                searchResult = await this.unitOfWork.errorCategories.findOne(filterQueryResult.query);
             }
             return searchResult;
         } catch (error) {
@@ -409,7 +409,7 @@ class TodoCategoryService extends BaseService {
             if (!id) {
                 throw new Error('Invalid id');
             }
-            const searchResult = await this.unitOfWork.todoCategories.findById(id);
+            const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {
                 throw new Error(`Todo category with id ${id} not found`);
@@ -428,14 +428,14 @@ class TodoCategoryService extends BaseService {
         let searchResult = [];
         try {
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.todoCategories.find({});
+                searchResult = await this.unitOfWork.errorCategories.find({});
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.todoCategories.find(filterQueryResult.query);
+                searchResult = await this.unitOfWork.errorCategories.find(filterQueryResult.query);
             }
             return searchResult;
         } catch (error) {

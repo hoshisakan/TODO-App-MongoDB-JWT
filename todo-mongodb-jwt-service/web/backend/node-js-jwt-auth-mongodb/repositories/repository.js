@@ -24,8 +24,12 @@ class Repository {
     }
 
     ///TODO: option add new attribute for return modified document instead of original
-    async update(id, entity) {
+    async findByIdAndUpdate(id, entity) {
         return await this.model.findByIdAndUpdate(id, entity, { new: true });
+    }
+
+    async findOneAndReplace(expression, entity) {
+        return await this.model.findOneAndReplace(expression, entity, { new: true });
     }
 
     ///TODO: option add new attribute for return modified document instead of original

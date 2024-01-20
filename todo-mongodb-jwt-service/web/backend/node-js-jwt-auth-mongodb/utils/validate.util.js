@@ -49,6 +49,19 @@ module.exports = {
                 update: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
                 checkDuplicate: ['title'],
             },
+            ErrorCategory: {
+                create: ['name', 'description'],
+                update: ['name', 'description'],
+                checkDuplicate: ['name'],
+            },
+            TraceError: {
+                create: ['message', 'stack', 'description', 'line', 'errorCategoryName'],
+                update: ['message', 'stack', 'description', 'line', 'errorCategoryName'],
+                checkDuplicate: ['message'],
+            },
         },
+    },
+    fieldAuthenticityCheck: {
+        passFieldKeys: ['_id', 'user', 'todoCategoryId', 'errorCategoryName'],
     },
 };

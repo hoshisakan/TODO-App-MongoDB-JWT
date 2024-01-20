@@ -6,5 +6,7 @@ router.use('/user', require('./api/user.route'));
 router.use('/role', require('./api/role.route'));
 router.use('/todo', require('./api/todo.route'));
 router.use('/todoCategory', require('./api/todo.category.route'));
+router.use('/errorCategory', require('./api/error.category.route'));
+router.use('/traceError', require('./api/trace.error.route'));
 
 module.exports = router;

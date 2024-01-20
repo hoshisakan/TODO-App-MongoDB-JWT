@@ -2,7 +2,10 @@ const User = require('../models/mongodb/user.model');
 const Role = require('../models/mongodb/role.model');
 const TodoCategory = require('../models/mongodb/todo.category.model');
 const Todo = require('../models/mongodb/todo.model');
+const TraceError = require('../models/mongodb/trace.error.model');
+const ErrorCategory = require('../models/mongodb/error.category.model');
 const { logInfo, logError } = require('./log.util');
+const { passFieldKeys } = require('../utils/validate.util').fieldAuthenticityCheck;
 
 const { filenameFilter } = require('./regex.util');
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
@@ -38,6 +41,12 @@ const ModelValidateUtil = {
                 case 'Todo':
                     validateFieldsResult = await Todo.validate(entity);
                     break;
+                case 'TraceError':
+                    validateFieldsResult = await TraceError.validate(entity);
+                    break;
+                case 'ErrorCategory':
+                    validateFieldsResult = await ErrorCategory.validate(entity);
+                    break;
                 default:
                     throw new Error(`Invalid validate model name: ${validateModelName}`);
             }
@@ -56,7 +65,7 @@ const ModelValidateUtil = {
         return result;
     },
     validateOneFieldAuthenticity: (fieldKey, validateModelName) => {
-        // const fileDetails = `[${filenameWithoutPath}] [validateOneFieldAuthenticity]`;
+        const fileDetails = `[${filenameWithoutPath}] [validateOneFieldAuthenticity]`;
         let result = {
             isValid: false,
             error: null,
@@ -65,19 +74,25 @@ const ModelValidateUtil = {
             if (!fieldKey || !validateModelName || fieldKey.length === 0 || validateModelName.length === 0) {
                 throw new Error('Invalid Parameters');
             }
-            if (fieldKey === '_id') {
+
+            if (passFieldKeys.includes(fieldKey)) {
                 result.isValid = true;
-            } else if (fieldKey !== '_id' && validateModelName === 'User') {
+            } else if (validateModelName === 'User') {
                 result.isValid = User.schema.paths.hasOwnProperty(fieldKey);
-            } else if (fieldKey !== '_id' && validateModelName === 'Role') {
+            } else if (validateModelName === 'Role') {
                 result.isValid = Role.schema.paths.hasOwnProperty(fieldKey);
-            } else if (fieldKey !== '_id' && validateModelName === 'TodoCategory') {
-                result.isValid = TodoCategory.schema.paths.hasOwnProperty(fieldKey);
-            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey !== 'todoCategoryId') {
+            } else if (validateModelName === 'Todo') {
                 result.isValid = Todo.schema.paths.hasOwnProperty(fieldKey);
-            } else if (fieldKey !== '_id' && validateModelName === 'Todo' && fieldKey === 'todoCategoryId') {
-                result.isValid = true;
+            } else if (validateModelName === 'TodoCategory') {
+                result.isValid = TodoCategory.schema.paths.hasOwnProperty(fieldKey);
+            } else if (validateModelName === 'TraceError') {
+                result.isValid = TraceError.schema.paths.hasOwnProperty(fieldKey);
+            } else if (validateModelName === 'ErrorCategory') {
+                result.isValid = ErrorCategory.schema.paths.hasOwnProperty(fieldKey);
             }
+
+            logInfo(`[result]: ${JSON.stringify(result)}`, fileDetails);
+
             if (!result.isValid) {
                 throw new Error(`Invalid field key: ${fieldKey}, validate model name: ${validateModelName}`);
             }
