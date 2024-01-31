@@ -20,7 +20,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera300004\",\r\n    \"email\": \"mod@bezkoder300004.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\"]\r\n}",
+									"raw": "{\r\n    \"username\": \"modera100004\",\r\n    \"email\": \"mod@bezkoder100004.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\"]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -49,7 +49,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera300003\",\r\n    \"email\": \"mod@bezkoder300003.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"moderator\"]\r\n}",
+									"raw": "{\r\n    \"username\": \"modera100003\",\r\n    \"email\": \"mod@bezkoder100003.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"moderator\"]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -78,7 +78,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera300001\",\r\n    \"email\": \"mod@bezkoder300001.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"admin\"]\r\n}",
+									"raw": "{\r\n    \"username\": \"modera100001\",\r\n    \"email\": \"mod@bezkoder100001.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"admin\"]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -107,7 +107,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera300000\",\r\n    \"email\": \"mod@bezkoder300000.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"]\r\n}",
+									"raw": "{\r\n    \"username\": \"modera100000\",\r\n    \"email\": \"mod@bezkoder100000.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -523,7 +523,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100004\",\r\n    \"email\": \"mod@bezkoder100004.com\"\r\n}",
+									"raw": "{\r\n    \"username\": \"modera100001\",\r\n    \"email\": \"mod@bezkoder100001.com\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -531,12 +531,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{url}}/api/auth/signout",
+									"raw": "{{url}}/api/v1/auth/signout",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"api",
+										"v1",
 										"auth",
 										"signout"
 									]
@@ -788,6 +789,177 @@
 					"response": []
 				},
 				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTg5NDA1OWIxM2I1ZjhhYzE5YTNiY2QiLCJpYXQiOjE3MDM1ODU5MjksImV4cCI6MTcwMzU4NjIyOX0.3_2pqXjrPb_BR6unt5Fpi5J2OpLwSn6v7KTnAinPPn0",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/user/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTg5NDA1OWIxM2I1ZjhhYzE5YTNiY2QiLCJpYXQiOjE3MDM1ODU5MjksImV4cCI6MTcwMzU4NjIyOX0.3_2pqXjrPb_BR6unt5Fpi5J2OpLwSn6v7KTnAinPPn0",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/user/65894059b13b5f8ac19a3bcd",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"65894059b13b5f8ac19a3bcd"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTg5NDA1OWIxM2I1ZjhhYzE5YTNiY2QiLCJpYXQiOjE3MDM1ODU5MjksImV4cCI6MTcwMzU4NjIyOX0.3_2pqXjrPb_BR6unt5Fpi5J2OpLwSn6v7KTnAinPPn0",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/user/65a40632f607fa77acec2e51",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"65a40632f607fa77acec2e51"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Find all with condition",
 					"request": {
 						"method": "GET",
@@ -939,6 +1111,350 @@
 					"response": []
 				},
 				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"guest\",\r\n    \"level\": \"7\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/role/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"role",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"name\": \"testadd3\",\r\n        \"level\": \"4\"\r\n    },\r\n    {\r\n        \"name\": \"testadd2\",\r\n        \"level\": \"3\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/role/bulkCreate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"role",
+								"bulkCreate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Update",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    //\"_id\": \"65b67e89e842d997d3093aeb\",\r\n    \"name\": \"test\",\r\n    \"level\": \"32\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/role/65b67e89e842d997d3093aeb",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"role",
+								"65b67e89e842d997d3093aeb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"_id\": \"65b67e89e842d997d3093aeb\",\r\n    \"name\": \"ghost1\",\r\n    \"level\": \"65\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/role/65b67e89e842d997d3093aeb",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"role",
+								"65b67e89e842d997d3093aeb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/role/65b67e89e842d997d3093aeb",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"role",
+								"65b67e89e842d997d3093aeb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/role/65b8c48741fe44c1db5ddfb1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"role",
+								"65b8c48741fe44c1db5ddfb1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/role/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"role",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Find all with condition",
 					"request": {
 						"method": "GET",
@@ -968,7 +1484,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/role/?level=10",
+							"raw": "{{url}}/api/v1/role/?name=guest",
 							"host": [
 								"{{url}}"
 							],
@@ -991,7 +1507,7 @@
 								},
 								{
 									"key": "name",
-									"value": "moderator,admin",
+									"value": "test",
 									"disabled": true
 								},
 								{
@@ -1001,12 +1517,12 @@
 								},
 								{
 									"key": "level",
-									"value": "10"
+									"value": "5",
+									"disabled": true
 								},
 								{
-									"key": "test",
-									"value": null,
-									"disabled": true
+									"key": "name",
+									"value": "guest"
 								}
 							]
 						}
@@ -1048,15 +1564,14 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/",
+							"raw": "{{url}}/api/v1/todoCategory",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
 								"v1",
-								"todoCategory",
-								""
+								"todoCategory"
 							]
 						}
 					},
@@ -1093,7 +1608,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Test47\",\r\n    \"value\": \"47\"\r\n}",
+							"raw": "{\r\n    \"name\": \"Test50\",\r\n    \"value\": \"49\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1146,7 +1661,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\r\n    {\r\n        \"name\": \"Test1\",\r\n        \"value\": \"1\"\r\n    },\r\n    {\r\n        \"name\": \"Test2\",\r\n        \"value\": \"2\"\r\n    }\r\n]",
+							"raw": "[\r\n    {\r\n        \"name\": \"Test33\",\r\n        \"value\": \"33\"\r\n    },\r\n    {\r\n        \"name\": \"Test34\",\r\n        \"value\": \"4\"\r\n    }\r\n]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1222,7 +1737,7 @@
 					"response": []
 				},
 				{
-					"name": "Patch Update",
+					"name": "Patch",
 					"request": {
 						"method": "PATCH",
 						"header": [
@@ -1252,7 +1767,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"6592fb27b0adadf24e0922d1\",\r\n    \"name\": \"Health\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"name\": \"Health555\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1260,7 +1775,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d1",
+							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d2",
 							"host": [
 								"{{url}}"
 							],
@@ -1268,7 +1783,7 @@
 								"api",
 								"v1",
 								"todoCategory",
-								"6592fb27b0adadf24e0922d1"
+								"6592fb27b0adadf24e0922d2"
 							]
 						}
 					},
@@ -1305,7 +1820,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"6592fb27b0adadf24e0922d1\",\r\n    \"name\": \"Health\",\r\n    \"value\": \"3\"\r\n}",
+							"raw": "{\r\n   // \"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"value\": \"55\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1313,7 +1828,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d1",
+							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d2",
 							"host": [
 								"{{url}}"
 							],
@@ -1321,7 +1836,7 @@
 								"api",
 								"v1",
 								"todoCategory",
-								"6592fb27b0adadf24e0922d1"
+								"6592fb27b0adadf24e0922d2"
 							]
 						}
 					},
@@ -1358,7 +1873,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d1",
+							"raw": "{{url}}/api/v1/todoCategory/6592fb27b0adadf24e0922d2",
 							"host": [
 								"{{url}}"
 							],
@@ -1366,7 +1881,7 @@
 								"api",
 								"v1",
 								"todoCategory",
-								"6592fb27b0adadf24e0922d1"
+								"6592fb27b0adadf24e0922d2"
 							]
 						}
 					},
@@ -1490,7 +2005,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/?name=Gift5",
+							"raw": "{{url}}/api/v1/todoCategory/?value=8,2,3",
 							"host": [
 								"{{url}}"
 							],
@@ -1533,7 +2048,1070 @@
 								},
 								{
 									"key": "name",
-									"value": "Gift5"
+									"value": "Gift5",
+									"disabled": true
+								},
+								{
+									"key": "value",
+									"value": "8,2,3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "error.category",
+			"item": [
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Test491\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"name\": \"Test32\"\r\n    },\r\n    {\r\n        \"name\": \"Test42\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/bulkCreate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								"bulkCreate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Update (Not Implement)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e58909059\",\r\n        \"name\": \"Test3\",\r\n        \"value\": \"49\"\r\n    },\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e5890905a\",\r\n        \"name\": \"Test2\",\r\n        \"value\": \"50\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/bulkUpdate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								"bulkUpdate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    //\"_id\": \"65ac9b80b0c0885db5eebff3\",\r\n    \"name\": \"system crashed5991\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/65b9cb2cfcafcafd330f32f7",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								"65b9cb2cfcafcafd330f32f7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    //\"_id\": \"65a67539a3adf4b8fb37e53b\",\r\n    \"name\": \"test update name\",\r\n    \"description\": \"test update description\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/65b9cb2cfcafcafd330f32f7",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								"65b9cb2cfcafcafd330f32f7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/65b8c87a60c76d08b4c6d121",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								"65b8c87a60c76d08b4c6d121"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/65a69a902b999c2266b565ac",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								"65a69a902b999c2266b565ac"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all with condition",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/errorCategory/?name=system crashed,system crashed599",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"errorCategory",
+								""
+							],
+							"query": [
+								{
+									"key": "_id",
+									"value": "65a627ae538259f3d72ff34b",
+									"disabled": true
+								},
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b843,658930c85ca48f75f1e3b842",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Gift",
+									"disabled": true
+								},
+								{
+									"key": "name[]",
+									"value": "Vacation,Health",
+									"disabled": true
+								},
+								{
+									"key": "value",
+									"value": "658",
+									"disabled": true
+								},
+								{
+									"key": "test",
+									"value": "5555",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "system crashed,system crashed599"
+								},
+								{
+									"key": "value",
+									"value": "8",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "trace.error",
+			"item": [
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": \"Test add error message3\",\r\n    \"stack\": \"\",\r\n    \"description\": \"\",\r\n    \"line\": \"\",\r\n    \"errorCategoryName\": \"system crashed\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/traceError",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"message\": \"Test add error message system crashed\",\r\n        \"stack\": \"\",\r\n        \"description\": \"\",\r\n        \"line\": \"\",\r\n        \"errorCategoryName\": \"system crashed\"\r\n    },\r\n    {\r\n        \"message\": \"Test add error message for cache\",\r\n        \"stack\": \"\",\r\n        \"description\": \"\",\r\n        \"line\": \"\",\r\n        \"errorCategoryName\": \"cache\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/bulkCreate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								"bulkCreate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Update (Not Implement)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e58909059\",\r\n        \"name\": \"Test3\",\r\n        \"value\": \"49\"\r\n    },\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e5890905a\",\r\n        \"name\": \"Test2\",\r\n        \"value\": \"50\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/bulkUpdate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								"bulkUpdate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    //\"_id\": \"65b5db9615e7a55c0b148eb4\",\r\n    //\"message\": \"Test update error message525652\"\r\n    //\"stack\": \"65\"\r\n    //\"description\": \"Test update error description\",\r\n    //\"line\": \"\",\r\n    \"errorCategoryName\": \"system crashed\"\r\n    //\"errorCategoryName\": \"database\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/65b5db9615e7a55c0b148eb4",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								"65b5db9615e7a55c0b148eb4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    //\"_id\": \"65b5dc4272dadeb0b5f8b324\",\r\n    \"message\": \"Test update error message55\",\r\n    \"stack\": \"55\",\r\n    \"description\": \"Test update error description5555\",\r\n    \"line\": \"25\",\r\n    //errorCategoryName\": \"system crashed\"\r\n     \"errorCategoryName\": \"database\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/65b5db9615e7a55c0b148eb4",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								"65b5db9615e7a55c0b148eb4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/65b5db9615e7a55c0b148eb4",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								"65b5db9615e7a55c0b148eb4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/65a8dd26d9224c58b27d3c57",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								"65a8dd26d9224c58b27d3c57"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all with condition",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/traceError/?_id=65a7c01b0e5bfb2e70d08189",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"traceError",
+								""
+							],
+							"query": [
+								{
+									"key": "_id",
+									"value": "65a7c01b0e5bfb2e70d08189"
+								},
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b843,658930c85ca48f75f1e3b842",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Gift",
+									"disabled": true
+								},
+								{
+									"key": "name[]",
+									"value": "Vacation,Health",
+									"disabled": true
+								},
+								{
+									"key": "value",
+									"value": "658",
+									"disabled": true
+								},
+								{
+									"key": "test",
+									"value": "5555",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Gift5",
+									"disabled": true
 								},
 								{
 									"key": "value",
@@ -1581,7 +3159,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todo/659579a2c910351b80c6c8b1",
+							"raw": "{{url}}/api/v1/todo/65b22540c1242bba5661fe73",
 							"host": [
 								"{{url}}"
 							],
@@ -1589,7 +3167,7 @@
 								"api",
 								"v1",
 								"todo",
-								"659579a2c910351b80c6c8b1"
+								"65b22540c1242bba5661fe73"
 							]
 						}
 					},
@@ -1759,7 +3337,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Test Create Todo List16\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"2\"\r\n}",
+							"raw": "{\r\n    \"title\": \"Test Create Todo List143353\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"3\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1812,7 +3390,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"659579a2c910351b80c6c8b1\",\r\n    \"title\": \"Test Create Todo List17\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"public\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"2\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65b22540c1242bba5661fe73\",\r\n    \"title\": \"Test Create Todo List1733\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"high\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"49\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1820,7 +3398,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todo/659579a2c910351b80c6c8b1",
+							"raw": "{{url}}/api/v1/todo/65b22540c1242bba5661fe73",
 							"host": [
 								"{{url}}"
 							],
@@ -1828,14 +3406,14 @@
 								"api",
 								"v1",
 								"todo",
-								"659579a2c910351b80c6c8b1"
+								"65b22540c1242bba5661fe73"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Patch Update",
+					"name": "Patch",
 					"request": {
 						"method": "PATCH",
 						"header": [
@@ -1865,7 +3443,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"659579a2c910351b80c6c8b1\",\r\n    \"title\": \"Test Create Todo List17\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65b22540c1242bba5661fe73\",\r\n    //\"title\": \"Test Create Todo List153232\"\r\n    \"description\": \"yrdy\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1873,7 +3451,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todo/659579a2c910351b80c6c8b1",
+							"raw": "{{url}}/api/v1/todo/65b22540c1242bba5661fe73",
 							"host": [
 								"{{url}}"
 							],
@@ -1881,7 +3459,7 @@
 								"api",
 								"v1",
 								"todo",
-								"659579a2c910351b80c6c8b1"
+								"65b22540c1242bba5661fe73"
 							]
 						}
 					},
@@ -1918,7 +3496,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\r\n    {\r\n        \"title\": \"Test Create Todo List13\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"2\"\r\n    },\r\n        {\r\n        \"title\": \"Test Create Todo List12\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"2\"\r\n    }\r\n]",
+							"raw": "[\r\n    {\r\n        \"title\": \"Test Create Todo List2509551\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"3\"\r\n    },\r\n    {\r\n        \"title\": \"Test Create Todo List305552\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"3\"\r\n    },\r\n    {\r\n        \"title\": \"Test Create Todo Lis45055553\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"1\"\r\n    }\r\n]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1970,7 +3548,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todo/?title=Test Create Todo List16",
+							"raw": "{{url}}/api/v1/todo/",
 							"host": [
 								"{{url}}"
 							],
@@ -2043,7 +3621,18 @@
 								},
 								{
 									"key": "title",
-									"value": "Test Create Todo List16"
+									"value": "Test Create Todo List125",
+									"disabled": true
+								},
+								{
+									"key": "_id",
+									"value": "65ac994c6bc71df99e4ee375",
+									"disabled": true
+								},
+								{
+									"key": "value",
+									"value": "8",
+									"disabled": true
 								}
 							]
 						}
