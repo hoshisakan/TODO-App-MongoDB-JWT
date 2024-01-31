@@ -6,6 +6,7 @@ const ErrorCategory = mongoose.model(
         name: {
             type: String,
             required: true,
+            unique: true,
             min: 6,
             max: 50,
         },
@@ -18,6 +19,9 @@ const ErrorCategory = mongoose.model(
         createdAt: {
             type: Date,
             default: Date.now,
+        },
+        updatedAt: {
+            type: Date,
         },
     })
 );

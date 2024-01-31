@@ -12,6 +12,7 @@ const Todo = mongoose.model(
         title: {
             type: String,
             required: true,
+            unique: true,
             min: 3,
             max: 50,
         },
@@ -51,11 +52,12 @@ const Todo = mongoose.model(
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
+            required: true,
         },
         category: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'TodoCategory',
-            required: true
+            required: true,
         },
         createdAt: {
             type: Date,

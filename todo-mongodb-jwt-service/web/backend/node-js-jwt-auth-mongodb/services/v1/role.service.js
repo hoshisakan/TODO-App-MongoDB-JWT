@@ -43,36 +43,6 @@ class RoleService extends BaseService {
                 throw new Error(`Entity is empty`);
             }
 
-            ///TODO: Step 1: Validate entity params
-            const validateResult = validateEntityParams(entity, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
-            }
-
-            ///TODO: Step 2: Get duplicate existing query
-            const duplicateCheckEntity = {
-                name: entity.name,
-                level: entity.level,
-            };
-
-            const duplicateExistingQuery = await checkDuplicateExisting(duplicateCheckEntity, this.modelName, 'create');
-
-            logInfo(`Duplicate existing query: ${stringify(duplicateExistingQuery)}`, fileDetails);
-
-            if (!duplicateExistingQuery || duplicateExistingQuery.error) {
-                throw new Error(duplicateExistingQuery.error);
-            }
-
-            ///TODO: Step 3: Check duplicate existing by query, if found then create new entity
-            const duplicateExistingResult = await this.unitOfWork.roles.findOne(duplicateExistingQuery);
-
-            if (duplicateExistingResult) {
-                throw new Error(
-                    `Role with name ${duplicateCheckEntity.name} already exists`
-                );
-            }
-
             ///TODO: Step 4: Create new entity
             const createResult = await this.unitOfWork.roles.create(entity);
 
@@ -93,13 +63,6 @@ class RoleService extends BaseService {
         try {
             if (!entities || entities.length === 0) {
                 throw new Error(`Entities is empty`);
-            }
-
-            ///TODO: Step 1: Validate entities params
-            const validateResult = validateEntitiesParams(entities, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
             }
 
             ///TODO: Step 2: Get duplicate existing query
@@ -132,7 +95,7 @@ class RoleService extends BaseService {
             }
 
             ///TODO: Step 4: Create new entity
-            const createResult = await this.unitOfWork.roles.createMany(entities);
+            const createResult = await this.unitOfWork.roles.insertMany(entities);
 
             if (!createResult) {
                 throw new Error('Create bulk roles failed');
@@ -153,17 +116,7 @@ class RoleService extends BaseService {
 
         try {
             if (!id || !entity) {
-                throw new Error(`Invalid parameters`);
-            }
-
-            if (entity._id !== id) {
-                throw new Error(`Invalid parameters, id ${id} not match with entity id ${entity._id}`);
-            }
-
-            const validateResult = validateEntityParams(entity, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
+                throw new Error('Invalid parameters');
             }
 
             const searchResult = await this.unitOfWork.roles.findById(id);
@@ -172,37 +125,15 @@ class RoleService extends BaseService {
                 throw new Error(`Role with id ${id} not found`);
             }
 
-            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
-
-            logInfo(`Duplicate existing query: ${stringify(duplicateExistingQuery)}`, fileDetails);
-
-            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
-                throw new Error('Invalid duplicate existing query');
-            }
-
-            const duplicateItemsFound = await this.unitOfWork.roles.find(duplicateExistingQuery);
-
-            if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                logInfo(`Duplicate items found: ${stringify(duplicateItemsFound)}`, fileDetails);
-                throw new Error(
-                    // `Role with name ${entity.name} or level ${entity.level} already exists`
-                    `Role with name ${entity.name} or level ${entity.level} already exists`
-                );
-            }
-
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            logInfo(`Update query: ${stringify(updateQuery)}`, fileDetails);
-
-            if (!updateQuery || Object.keys(updateQuery).length === 0) {
-                throw new Error('Invalid update query');
-            }
-
             const filterCondition = {
                 _id: id,
             };
 
-            const updateResult = await this.unitOfWork.roles.findOneAndUpdate(filterCondition, updateQuery);
+            entity.updatedAt = new Date();
+
+            // logInfo(`entity: ${stringify(entity)}`, fileDetails, true);
+
+            const updateResult = await this.unitOfWork.roles.findOneAndUpdate(filterCondition, entity);
 
             if (!updateResult) {
                 throw new Error('Update role failed');
@@ -220,17 +151,7 @@ class RoleService extends BaseService {
 
         try {
             if (!id || !entity) {
-                throw new Error(`Invalid parameters`);
-            }
-
-            if (entity._id !== id) {
-                throw new Error(`Invalid parameters, id ${id} not match with entity id ${entity._id}`);
-            }
-
-            const validateResult = validateEntityParams(entity, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
+                throw new Error('Invalid parameters');
             }
 
             const searchResult = await this.unitOfWork.roles.findById(id);
@@ -239,37 +160,9 @@ class RoleService extends BaseService {
                 throw new Error(`Role with id ${id} not found`);
             }
 
-            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
+            entity.updatedAt = new Date();
 
-            logInfo(`Duplicate existing query: ${stringify(duplicateExistingQuery)}`, fileDetails);
-
-            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
-                throw new Error('Invalid duplicate existing query');
-            }
-
-            const duplicateItemsFound = await this.unitOfWork.roles.find(duplicateExistingQuery);
-
-            if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                logInfo(`Duplicate items found: ${stringify(duplicateItemsFound)}`, fileDetails);
-                throw new Error(
-                    // `Role with name ${entity.name} or level ${entity.level} already exists`
-                    `Role with name ${entity.name} or level ${entity.level} already exists`
-                );
-            }
-
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            logInfo(`Update query: ${stringify(updateQuery)}`, fileDetails);
-
-            if (!updateQuery || Object.keys(updateQuery).length === 0) {
-                throw new Error('Invalid update query');
-            }
-
-            const filterCondition = {
-                _id: id,
-            };
-
-            const updateResult = await this.unitOfWork.roles.updateOne(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.roles.findByIdAndUpdate(id, entity);
 
             if (!updateResult) {
                 throw new Error('Update role failed');

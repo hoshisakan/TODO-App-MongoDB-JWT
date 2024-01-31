@@ -314,13 +314,21 @@ const LogicCheckUtil = {
             ///TODO: Step 2.2: Check allowed fields, if not exists then throw error message
             if (validateOperating === 'create') {
                 filterQuery = {
-                    $and: [
-                        {
-                            $or: [],
-                        },
-                    ],
+                    $or: [],
                 };
                 allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
+                if (!allowedFields || allowedFields.length === 0) {
+                    throw new Error('Invalid validate model name');
+                }
+                ///TODO: Step 3: Check each allowed fields, if exists then add to filter query
+                allowedFields.forEach((field) => {
+                    // logInfo(`Current check field: ${stringify(field)}`, fileDetails, true);
+                    if (entity[field]) {
+                        filterQuery.$or.push({
+                            [field]: entity[field],
+                        });
+                    }
+                });
             } else if (validateOperating === 'update') {
                 filterQuery = {
                     $and: [
@@ -333,22 +341,19 @@ const LogicCheckUtil = {
                     ],
                 };
                 allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
+                if (!allowedFields || allowedFields.length === 0) {
+                    throw new Error('Invalid validate model name');
+                }
+                ///TODO: Step 3: Check each allowed fields, if exists then add to filter query
+                allowedFields.forEach((field) => {
+                    // logInfo(`Current check field: ${stringify(field)}`, fileDetails, true);
+                    if (entity[field]) {
+                        filterQuery.$and[0].$or.push({ [field]: { $in: [entity[field]] } });
+                    }
+                });
             } else {
                 throw new Error('Invalid validate operating');
             }
-
-            if (!allowedFields || allowedFields.length === 0 || !Array.isArray(allowedFields)) {
-                throw new Error('Invalid allowed fields');
-            }
-
-            ///TODO: Step 3: Check each allowed fields, if exists then add to filter query
-            allowedFields.forEach((field) => {
-                // logInfo(`Current check field: ${stringify(field)}`, fileDetails, true);
-                if (entity[field]) {
-                    filterQuery.$and[0].$or.push({ [field]: { $in: [entity[field]] } });
-                }
-            });
-
             return filterQuery;
         } catch (error) {
             // logError(error, fileDetails, true);
@@ -385,13 +390,27 @@ const LogicCheckUtil = {
 
             if (validateOperating === 'create') {
                 filterQuery = {
-                    $and: [
-                        {
-                            $or: [],
-                        },
-                    ],
+                    $or: [],
                 };
                 allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
+                if (!allowedFields || allowedFields.length === 0) {
+                    throw new Error('Invalid entity id');
+                }
+                ///TODO: Step 3: Check each allowed fields, if exists then add to filter query
+                entities.forEach((entity) => {
+                    allowedFields.forEach((field) => {
+                        if (entity[field]) {
+                            ///TODO: Step 3.1: Check filter query $and[0].$or, if not exists then add to filter query
+                            const filterQueryField = filterQuery.$or.find((filter) => filter[field]);
+
+                            if (!filterQueryField) {
+                                filterQuery.$or.push({ [field]: { $in: [entity[field]] } });
+                            } else {
+                                filterQueryField[field].$in = [...filterQueryField[field].$in, entity[field]];
+                            }
+                        }
+                    });
+                });
             } else if (validateOperating === 'update') {
                 filterQuery = {
                     $and: [
@@ -404,31 +423,27 @@ const LogicCheckUtil = {
                     ],
                 };
                 allowedFields = fieldValidation[validateModelName]['checkDuplicate'];
+                if (!allowedFields || allowedFields.length === 0) {
+                    throw new Error('Invalid entity id');
+                }
+                ///TODO: Step 3: Check each allowed fields, if exists then add to filter query
+                entities.forEach((entity) => {
+                    allowedFields.forEach((field) => {
+                        if (entity[field]) {
+                            ///TODO: Step 3.1: Check filter query $and[0].$or, if not exists then add to filter query
+                            const filterQueryField = filterQuery.$and[0].$or.find((filter) => filter[field]);
+
+                            if (!filterQueryField) {
+                                filterQuery.$and[0].$or.push({ [field]: { $in: [entity[field]] } });
+                            } else {
+                                filterQueryField[field].$in = [...filterQueryField[field].$in, entity[field]];
+                            }
+                        }
+                    });
+                });
             } else {
                 throw new Error('Invalid validate operating');
             }
-
-            logInfo(`filterQuery: ${stringify(filterQuery)}`, fileDetails, true);
-
-            if (!allowedFields || allowedFields.length === 0) {
-                throw new Error('Invalid allowed fields');
-            }
-
-            ///TODO: Step 3: Check each allowed fields, if exists then add to filter query
-            entities.forEach((entity) => {
-                allowedFields.forEach((field) => {
-                    if (entity[field]) {
-                        ///TODO: Step 3.1: Check filter query $and[0].$or, if not exists then add to filter query
-                        const filterQueryField = filterQuery.$and[0].$or.find((filter) => filter[field]);
-
-                        if (!filterQueryField) {
-                            filterQuery.$and[0].$or.push({ [field]: { $in: [entity[field]] } });
-                        } else {
-                            filterQueryField[field].$in = [...filterQueryField[field].$in, entity[field]];
-                        }
-                    }
-                });
-            });
             return filterQuery;
         } catch (error) {
             // logError(error, fileDetails, true);

@@ -43,35 +43,6 @@ class ErrorCategoryService extends BaseService {
                 throw new Error(`Entity is empty`);
             }
 
-            ///TODO: Step 1: Validate entity params
-            const validateResult = validateEntityParams(entity, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
-            }
-
-            ///TODO: Step 2: Get duplicate existing query
-            const duplicateCheckEntity = {
-                name: entity.name
-            };
-
-            const duplicateExistingQuery = await checkDuplicateExisting(duplicateCheckEntity, this.modelName, 'create');
-
-            logInfo(`Duplicate existing query: ${stringify(duplicateExistingQuery)}`, fileDetails);
-
-            if (!duplicateExistingQuery || duplicateExistingQuery.error) {
-                throw new Error(duplicateExistingQuery.error);
-            }
-
-            ///TODO: Step 3: Check duplicate existing by query, if found then create new entity
-            const duplicateExistingResult = await this.unitOfWork.errorCategories.findOne(duplicateExistingQuery);
-
-            if (duplicateExistingResult) {
-                throw new Error(
-                    `Error category with name ${entity.name} already exists`
-                );
-            }
-
             ///TODO: Step 4: Create new entity
             const createResult = await this.unitOfWork.errorCategories.create(entity);
 
@@ -94,17 +65,10 @@ class ErrorCategoryService extends BaseService {
                 throw new Error(`Entities is empty`);
             }
 
-            ///TODO: Step 1: Validate entities params
-            const validateResult = validateEntitiesParams(entities, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
-            }
-
             ///TODO: Step 2: Get duplicate existing query
             const duplicateCheckEntities = entities.map((entity) => {
                 return {
-                    name: entity.name
+                    name: entity.name,
                 };
             });
 
@@ -130,7 +94,7 @@ class ErrorCategoryService extends BaseService {
             }
 
             ///TODO: Step 4: Create new entity
-            const createResult = await this.unitOfWork.errorCategories.createMany(entities);
+            const createResult = await this.unitOfWork.errorCategories.insertMany(entities);
 
             if (!createResult) {
                 throw new Error('Create bulk errorCategories failed');
@@ -154,52 +118,19 @@ class ErrorCategoryService extends BaseService {
                 throw new Error(`Invalid parameters`);
             }
 
-            if (entity._id !== id) {
-                throw new Error(`Invalid parameters, id ${id} not match with entity id ${entity._id}`);
-            }
-
-            const validateResult = validateEntityParams(entity, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
-            }
-
             const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {
                 throw new Error(`Error category with id ${id} not found`);
             }
 
-            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
-
-            logInfo(`Duplicate existing query: ${stringify(duplicateExistingQuery)}`, fileDetails);
-
-            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
-                throw new Error('Invalid duplicate existing query');
-            }
-
-            const duplicateItemsFound = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
-
-            if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                logInfo(`Duplicate items found: ${stringify(duplicateItemsFound)}`, fileDetails);
-                throw new Error(
-                    `Error category with name ${entity.name} already exists`
-                );
-            }
-
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            logInfo(`Update query: ${stringify(updateQuery)}`, fileDetails);
-
-            if (!updateQuery || Object.keys(updateQuery).length === 0) {
-                throw new Error('Invalid update query');
-            }
-
             const filterCondition = {
                 _id: id,
             };
 
-            const updateResult = await this.unitOfWork.errorCategories.findOneAndUpdate(filterCondition, updateQuery);
+            entity.updatedAt = new Date();
+
+            const updateResult = await this.unitOfWork.errorCategories.findOneAndUpdate(filterCondition, entity);
 
             if (!updateResult) {
                 throw new Error('Update role failed');
@@ -220,55 +151,12 @@ class ErrorCategoryService extends BaseService {
                 throw new Error(`Invalid parameters`);
             }
 
-            if (entity._id !== id) {
-                throw new Error(`Invalid parameters, id ${id} not match with entity id ${entity._id}`);
-            }
+            entity.updatedAt = new Date();
 
-            const validateResult = validateEntityParams(entity, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
-            }
-
-            const searchResult = await this.unitOfWork.errorCategories.findById(id);
-
-            if (!searchResult) {
-                throw new Error(`Error category with id ${id} not found`);
-            }
-
-            const duplicateExistingQuery = await checkDuplicateExisting(entity, this.modelName, 'update');
-
-            logInfo(`Duplicate existing query: ${stringify(duplicateExistingQuery)}`, fileDetails);
-
-            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
-                throw new Error('Invalid duplicate existing query');
-            }
-
-            const duplicateItemsFound = await this.unitOfWork.errorCategories.find(duplicateExistingQuery);
-
-            if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                logInfo(`Duplicate items found: ${stringify(duplicateItemsFound)}`, fileDetails);
-                throw new Error(
-                    `Error category with name ${entity.name} already exists`
-                );
-            }
-
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            logInfo(`Update query: ${stringify(updateQuery)}`, fileDetails);
-
-            if (!updateQuery || Object.keys(updateQuery).length === 0) {
-                throw new Error('Invalid update query');
-            }
-
-            const filterCondition = {
-                _id: id,
-            };
-
-            const updateResult = await this.unitOfWork.errorCategories.updateOne(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.errorCategories.findByIdAndUpdate(id, entity);
 
             if (!updateResult) {
-                throw new Error('Update role failed');
+                throw new Error('Update error category failed');
             }
             return updateResult;
         } catch (error) {

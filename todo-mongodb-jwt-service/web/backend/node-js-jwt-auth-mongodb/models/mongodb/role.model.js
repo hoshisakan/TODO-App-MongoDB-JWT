@@ -5,9 +5,9 @@ const Role = mongoose.model(
     new mongoose.Schema({
         name: {
             type: String,
-            enum: ['user', 'admin', 'moderator', 'guest', 'superadmin', 'tester'],
+            enum: ['user', 'admin', 'moderator', 'guest', 'superadmin', 'tester', 'testadd3', 'testadd2'],
             required: true,
-            uqiue: true,
+            unique: true,
             dropDups: true,
         },
         level: {
@@ -16,7 +16,7 @@ const Role = mongoose.model(
             max: 10,
             enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             default: 1,
-            uqiue: true,
+            unique: true,
             dropDups: true,
         },
         createdAt: {

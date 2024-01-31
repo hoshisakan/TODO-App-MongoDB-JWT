@@ -3,8 +3,8 @@ class Repository {
         this.model = model;
     }
 
-    async find(expression = {}) {
-        return await this.model.find(expression);
+    async find(expression = {}, fields = {}) {
+        return await this.model.find(expression).select(fields);
     }
 
     async findOne(expression = {}) {
@@ -19,7 +19,7 @@ class Repository {
         return await this.model.create(entity);
     }
 
-    async createMany(entities) {
+    async insertMany(entities) {
         return await this.model.insertMany(entities);
     }
 
@@ -33,8 +33,8 @@ class Repository {
     }
 
     ///TODO: option add new attribute for return modified document instead of original
-    async findOneAndUpdate(expression, update) {
-        return await this.model.findOneAndUpdate(expression, update, { new: true });
+    async findOneAndUpdate(expression, entity) {
+        return await this.model.findOneAndUpdate(expression, { $set: entity }, { new: true });
     }
 
     async updateOne(expression, entity) {

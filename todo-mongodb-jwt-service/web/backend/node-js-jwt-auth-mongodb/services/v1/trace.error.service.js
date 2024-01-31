@@ -17,7 +17,7 @@ const unitOfWork = new UnitOfWork();
 
 class TraceErrorService extends BaseService {
     constructor() {
-        super(unitOfWork.errorCategories);
+        super(unitOfWork.traceErrors);
         this.unitOfWork = unitOfWork;
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
         this.modelName = 'TraceError';
@@ -35,27 +35,96 @@ class TraceErrorService extends BaseService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    getCategoriyErrorIds = async (categoryNames) => {
-        // const classNameAndFuncName = this.getFunctionCallerName();
-        // const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let searchResult = null;
+    getArrayUniqueItem = async (valueArr) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {
+            isDuplicate: false,
+            arrayUniqueValues: [],
+        };
+
         try {
-            if (!categoryNames) {
-                throw new Error(`Category name is empty`);
+            if (!Array.isArray(valueArr) || valueArr.length === 0) {
+                throw new Error('Invalid value');
             }
 
-            if (!Array.isArray(categoryNames)) {
-                searchResult = (await this.unitOfWork.errorCategories.findOne({ name: categoryNames })) || null;
+            const isDupicateResult = valueArr.some((currVal, index) => valueArr.indexOf(currVal) !== index);
+
+            if (isDupicateResult) {
+                result.isDuplicate = true;
+                result.arrayUniqueValues = [...new Set(valueArr)];
             } else {
-                searchResult = (await this.unitOfWork.errorCategories.find({ name: { $in: categoryNames } })) || null;
+                result.isDuplicate = false;
+                result.arrayUniqueValues = valueArr;
             }
         } catch (error) {
-            // logError(error, fileDetails, true);
+            logError(error, fileDetails, true);
+            result = {
+                isDuplicate: false,
+                arrayUniqueValues: [],
+            };
         }
-        return searchResult;
+        return result;
     };
 
-    ///TODO: Create new errorCategory
+    ///TODO: Get todo category ids by values array
+    getIdsByValue = async (errorCategoryValues) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let ids = [];
+        try {
+            if (!errorCategoryValues) {
+                throw new Error('Invalid todo category value');
+            }
+
+            logInfo(`errorCategoryValues: ${errorCategoryValues}`, fileDetails, true);
+
+            if (!Array.isArray(errorCategoryValues) || errorCategoryValues.length === 0) {
+                const filterResult = await this.unitOfWork.errorCategories.findOne({ name: errorCategoryValues });
+                ids = filterResult._id;
+            } else {
+                const getArrayUniqueItemResult = await this.getArrayUniqueItem(errorCategoryValues);
+                logInfo(`getArrayUniqueItemResult: ${stringify(getArrayUniqueItemResult)}`, fileDetails, true);
+
+                if (
+                    !getArrayUniqueItemResult &&
+                    (!getArrayUniqueItemResult.arrayUniqueValues ||
+                        getArrayUniqueItemResult.arrayUniqueValues.length === 0)
+                ) {
+                    throw new Error('Invalid error category value');
+                }
+
+                if (!getArrayUniqueItemResult.isDuplicate && getArrayUniqueItemResult.arrayUniqueValues.length > 0) {
+                    const errorCategoriesItems = await this.unitOfWork.errorCategories.find({
+                        name: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                    });
+                    ids = errorCategoriesItems.map((errorCategoryItem) => errorCategoryItem._id);
+                } else if (
+                    getArrayUniqueItemResult.isDuplicate &&
+                    getArrayUniqueItemResult.arrayUniqueValues.length > 0
+                ) {
+                    const errorCategoriesItems = await this.unitOfWork.errorCategories.find(
+                        {
+                            name: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                        },
+                        { name: 1 }
+                    );
+                    errorCategoryValues.forEach((value) => {
+                        errorCategoriesItems.filter((items) => {
+                            if (items.name.toString() === value.toString()) {
+                                ids.push(items._id);
+                            }
+                        });
+                    });
+                }
+            }
+        } catch (error) {
+            logError(error, fileDetails, true);
+        }
+        return ids;
+    };
+
+    ///TODO: Create traceError
     create = async (entity) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -64,31 +133,17 @@ class TraceErrorService extends BaseService {
                 throw new Error(`Entity is empty`);
             }
 
-            ///TODO: Step 1: Validate entity params
-            const validateResult = validateEntityParams(entity, this.modelName);
+            ///TODO: Step 1: Get error category id
+            const searchIdResult = await this.getIdsByValue(entity.errorCategoryName);
 
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
+            if (!searchIdResult || searchIdResult.length === 0) {
+                throw new Error('Invalid trace category id');
             }
 
-            ///TODO: Step 2: Get error category id
-            const searchErrorCategoryIdResult = await this.getCategoriyErrorIds(entity.errorCategoryName);
-
-            logInfo(`searchErrorCategoryIdResult: ${stringify(searchErrorCategoryIdResult)}`, fileDetails, true);
-
-            const errorCategoryId = searchErrorCategoryIdResult && searchErrorCategoryIdResult._id;
-
-            if (!errorCategoryId) {
-                throw new Error(`Error category with name ${entity.errorCategoryName} not found`);
-            }
-
-            ///TODO: Step 3: Set error category id, delete error category name
-            entity.errorCategory = errorCategoryId;
+            ///TODO: Step 2: Set error category id, delete error category name
+            entity.errorCategory = searchIdResult;
             delete entity.errorCategoryName;
 
-            logInfo(`Entity: ${stringify(entity)}`, fileDetails);
-
-            ///TODO: Step 3: Create new entity
             const createResult = await this.unitOfWork.traceErrors.create(entity);
 
             if (!createResult) {
@@ -101,7 +156,7 @@ class TraceErrorService extends BaseService {
         }
     };
 
-    ///TODO: Create bulk errorCategories
+    ///TODO: Create bulk traceErrors
     bulkCreate = async (entities) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -110,37 +165,31 @@ class TraceErrorService extends BaseService {
                 throw new Error(`Entities is empty`);
             }
 
-            ///TODO: Step 1: Validate entities params
-            const validateResult = validateEntitiesParams(entities, this.modelName);
-
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
-            }
-
-            ///TODO: Step 2: Map error category names
             const errorCategoryNames = entities.map((entity) => entity.errorCategoryName);
 
-            ///TODO: Step 3: Get error category ids
-            const errorCategoryIds = await this.getCategoriyErrorIds(errorCategoryNames);
+            const errorCategoryIds = await this.getIdsByValue(errorCategoryNames);
 
             if (!errorCategoryIds || errorCategoryIds.length === 0) {
                 throw new Error(`Error categories with names ${errorCategoryNames} not found`);
             }
 
-            ///TODO: Step 4: Set error category ids, delete error category names
+            if (errorCategoryNames.length != errorCategoryIds.length) {
+                throw new Error(`Two items does not match.`);
+            }
+
+            ///TODO: Step 3: Set error category ids, delete error category names
             entities.forEach((entity, index) => {
                 entity.errorCategory = errorCategoryIds[index];
                 delete entity.errorCategoryName;
             });
 
-            ///TODO: Step 5: Create new entities
-            const createResult = await this.unitOfWork.traceErrors.createMany(entities);
+            ///TODO: Step 4: Create new entities
+            const createResult = await this.unitOfWork.traceErrors.insertMany(entities);
 
             if (!createResult) {
                 throw new Error('Create bulk trace errors failed');
             }
-            logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
-
+            // logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
             return createResult;
         } catch (error) {
             // logError(error, fileDetails, true);
@@ -156,46 +205,35 @@ class TraceErrorService extends BaseService {
                 throw new Error(`Invalid parameters`);
             }
 
-            if (entity._id !== id) {
-                throw new Error(`Invalid parameters, id ${id} not match with entity id ${entity._id}`);
+            const searchResult = await this.unitOfWork.traceErrors.findById(id);
+
+            if (!searchResult) {
+                throw new Error('Trace error not found with the provided id');
             }
 
-            ///TODO: Update query
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            logInfo(`Update query: ${stringify(updateQuery)}`, fileDetails);
-
-            if (!updateQuery) {
-                throw new Error(`Update query is empty`);
-            }
-
-            ///TODO: Check the error category name is existed or not in database, if existed, get the id and set to update query
-            if (updateQuery.errorCategoryName) {
-                const errorCategoryFoundResult = await this.getCategoriyErrorIds(entity.errorCategoryName);
+            if (entity.errorCategoryName) {
+                const errorCategoryFoundResult = await this.getIdsByValue(entity.errorCategoryName);
 
                 if (errorCategoryFoundResult) {
-                    updateQuery.errorCategory = errorCategoryFoundResult._id;
-                    delete updateQuery.errorCategoryName;
-                }
-                else {
+                    entity.errorCategory = errorCategoryFoundResult._id;
+                    delete entity.errorCategoryName;
+                } else {
                     throw new Error(`Error category with name ${entity.errorCategoryName} not found`);
                 }
             }
-            updateQuery.updatedAt = new Date();
+            entity.updatedAt = new Date();
 
             const filterCondition = {
-                _id: entity._id,
+                _id: id,
             };
 
-            ///TODO: Update entity
-            const updateResult = await this.unitOfWork.traceErrors.findOneAndUpdate(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.traceErrors.findOneAndUpdate(filterCondition, entity);
 
             if (!updateResult) {
                 throw new Error('Update trace error failed');
             }
             return updateResult;
-        }
-        catch (error) {
+        } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
         }
@@ -209,8 +247,10 @@ class TraceErrorService extends BaseService {
                 throw new Error(`Invalid parameters`);
             }
 
-            if (entity._id !== id) {
-                throw new Error(`Invalid parameters, id ${id} not match with entity id ${entity._id}`);
+            const isExists = await this.unitOfWork.traceErrors.findById(id);
+
+            if (!isExists) {
+                throw new Error(`Not found the id ${id}`);
             }
 
             ///TODO: Update query
@@ -224,31 +264,24 @@ class TraceErrorService extends BaseService {
 
             ///TODO: Check the error category name is existed or not in database, if existed, get the id and set to update query
             if (updateQuery.errorCategoryName) {
-                const errorCategoryFoundResult = await this.getCategoriyErrorIds(entity.errorCategoryName);
+                const errorCategoryFoundResult = await this.getIdsByValue(entity.errorCategoryName);
 
                 if (errorCategoryFoundResult) {
                     updateQuery.errorCategory = errorCategoryFoundResult._id;
                     delete updateQuery.errorCategoryName;
-                }
-                else {
+                } else {
                     throw new Error(`Error category with name ${entity.errorCategoryName} not found`);
                 }
             }
             updateQuery.updatedAt = new Date();
 
-            const filterCondition = {
-                _id: entity._id,
-            };
-
-            ///TODO: Update entity
-            const updateResult = await this.unitOfWork.traceErrors.findOneAndReplace(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.traceErrors.findByIdAndUpdate(id, updateQuery);
 
             if (!updateResult) {
                 throw new Error('Update trace error failed');
             }
             return updateResult;
-        }
-        catch (error) {
+        } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
         }

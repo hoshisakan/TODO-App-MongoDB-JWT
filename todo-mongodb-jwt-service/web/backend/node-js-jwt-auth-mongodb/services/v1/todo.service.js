@@ -34,84 +34,98 @@ class TodoService extends BaseService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    getCurrentLoggedInUserId = async (user) => {
-        // const classNameAndFuncName = this.getFunctionCallerName();
-        // const fileDetails = this.getFileDetails(classNameAndFuncName);
-        try {
-            if (!user) {
-                throw new Error('Invalid user');
-            }
-
-            if (!user.username || !user.email) {
-                throw new Error('Invalid user details');
-            }
-
-            const userFound = await this.unitOfWork.users.findOne({ username: user.username, email: user.email });
-
-            if (!userFound) {
-                throw new Error('User not found');
-            }
-            return userFound._id;
-        } catch (error) {
-            // logError(error, fileDetails, true);
-            throw error;
-        }
-    };
-
-    getTodoCategoryIdByValue = async (todoCategoryValues) => {
+    getArrayUniqueItem = async (valueArr) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let todoCategoryIds = [];
+        let result = {
+            isDuplicate: false,
+            arrayUniqueValues: [],
+        };
+
         try {
-            if (!todoCategoryValues) {
-                throw new Error('Invalid todo category value');
+            if (!Array.isArray(valueArr) || valueArr.length === 0) {
+                throw new Error('Invalid value');
             }
 
-            let todoCategoryFound = null;
+            const isDupicateResult = valueArr.some((currVal, index) => valueArr.indexOf(currVal) !== index);
 
-            if (!Array.isArray(todoCategoryValues) || todoCategoryValues.length === 0) {
-                todoCategoryFound = (await this.unitOfWork.todoCategories.findOne({ value: todoCategoryValues })) || {};
-                todoCategoryIds.push(todoCategoryFound._id);
+            if (isDupicateResult) {
+                result.isDuplicate = true;
+                result.arrayUniqueValues = [...new Set(valueArr)];
             } else {
-                todoCategoryFound =
-                    (await this.unitOfWork.todoCategories.find({ value: { $in: todoCategoryValues } })) || {};
-                todoCategoryIds = todoCategoryFound.map((todoCategory) => todoCategory._id);
+                result.isDuplicate = false;
+                result.arrayUniqueValues = valueArr;
             }
-            // logInfo(`getTodoCategoryIdByValue: ${stringify(todoCategoryFound)}`, fileDetails, true);
         } catch (error) {
             logError(error, fileDetails, true);
-            // throw error;
+            result = {
+                isDuplicate: false,
+                arrayUniqueValues: [],
+            };
         }
-        return todoCategoryIds;
+        return result;
     };
 
-    getTodoCategoryItemsByValue = async (todoCategoryValues) => {
+    ///TODO: Get todo category ids by values array
+    getIdsByValue = async (todoCategoryValues) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let todoCategoryItems = null;
+        let ids = [];
         try {
             if (!todoCategoryValues) {
                 throw new Error('Invalid todo category value');
             }
 
             if (!Array.isArray(todoCategoryValues) || todoCategoryValues.length === 0) {
-                todoCategoryItems = (await this.unitOfWork.todoCategories.findOne({ value: todoCategoryValues })) || {};
+                ids = (await this.unitOfWork.todoCategories.findOne({ value: todoCategoryValues }))._id;
             } else {
-                todoCategoryItems =
-                    (await this.unitOfWork.todoCategories.find({ value: { $in: todoCategoryValues } })) || {};
+                const getArrayUniqueItemResult = await this.getArrayUniqueItem(todoCategoryValues);
+                logInfo(`getArrayUniqueItemResult: ${stringify(getArrayUniqueItemResult)}`, fileDetails, true);
+
+                if (
+                    !getArrayUniqueItemResult &&
+                    (!getArrayUniqueItemResult.arrayUniqueValues ||
+                        getArrayUniqueItemResult.arrayUniqueValues.length === 0)
+                ) {
+                    throw new Error('Invalid todo category value');
+                }
+
+                if (!getArrayUniqueItemResult.isDuplicate && getArrayUniqueItemResult.arrayUniqueValues.length > 0) {
+                    const todoCategoryItems = await this.unitOfWork.todoCategories.find({
+                        value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                    });
+                    ids = todoCategoryItems.map((todoCategoryItem) => todoCategoryItem._id);
+                } else if (
+                    getArrayUniqueItemResult.isDuplicate &&
+                    getArrayUniqueItemResult.arrayUniqueValues.length > 0
+                ) {
+                    const todoCategoryItems = await this.unitOfWork.todoCategories.find(
+                        {
+                            value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                        },
+                        { value: 1 }
+                    );
+
+                    todoCategoryValues.forEach((value) => {
+                        todoCategoryItems.filter((items) => {
+                            if (items.value.toString() === value.toString()) {
+                                ids.push(items._id);
+                            }
+                        });
+                    });
+                }
             }
-            // logInfo(`getTodoCategoryIdByValue: ${stringify(todoCategoryItems)}`, fileDetails, true);
         } catch (error) {
             logError(error, fileDetails, true);
-            // throw error;
         }
-        return todoCategoryItems;
+        return ids;
     };
 
     ///TODO: Create todo for specific user
     create = async (entity, userId) => {
         const classAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classAndFuncName);
+
         try {
             if (!entity) {
                 throw new Error('Invalid entity');
@@ -121,61 +135,26 @@ class TodoService extends BaseService {
                 throw new Error('Invalid user id, please login again');
             }
 
-            ///TODO: Step 1: Validate entity params
-            const validateResult = validateEntityParams(entity, this.modelName);
+            const searchIdResult = await this.getIdsByValue(entity.todoCategoryId);
 
-            if (!validateResult.isValid || validateResult.error) {
-                throw new Error(validateResult.error);
+            if (!searchIdResult || searchIdResult.length == 0) {
+                throw new Error(`Invalid todoCategoryId: ${entity.todoCategoryId}`);
             }
 
-            const duplicateCheckEntity = { title: entity.title };
+            logInfo(`searchIdResult: ${searchIdResult}`, fileDetails, true);
 
-            logInfo(`duplicateCheckEntity: ${stringify(duplicateCheckEntity)}`, fileDetails, true);
-
-            ///TODO: Step 2: Get duplicate existing query
-            const duplicateExistingQuery = await checkDuplicateExisting(duplicateCheckEntity, this.modelName, 'create');
-
-            logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
-
-            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
-                throw new Error('Invalid duplicate existing query');
-            }
-
-            ///TODO: Step 3: Check duplicate existing by query, if found throw error
-            const duplicateExistingResult = await this.unitOfWork.todos.findOne(duplicateExistingQuery);
-
-            logInfo(`duplicateExistingResult: ${stringify(duplicateExistingResult)}`, fileDetails, true);
-
-            if (Object.keys(duplicateExistingResult).length > 0) {
-                throw new Error('Todo already exists');
-            }
-
-            ///TODO: Step 4: Create todo category for specific user, if not found throw error
-            const todoCategoryId = await this.getTodoCategoryIdByValue(entity.todoCategoryId);
-
-            if (!todoCategoryId || todoCategoryId.length === 0) {
-                throw new Error('Invalid todo category value');
-            }
-
-            ///TODO: Step 4.1: Add todo category id to entity and remove todo category value
-            delete entity.category;
-            entity.category = todoCategoryId[0];
+            entity.category = searchIdResult;
             entity.user = userId;
+            delete entity.todoCategoryId;
 
-            logInfo(
-                `Entity of todo create: ${stringify(entity)}\nuserId: ${userId}: ${todoCategoryId}`,
-                fileDetails,
-                true
-            );
+            logInfo(`Entity of todo create: ${stringify(entity)}`, fileDetails);
 
-            ///TODO: Step 5: Create todo for specific user with todo category, if not found throw error
-            // const createResult = await this.unitOfWork.todos.addTodoCategoryAndUser(entity, userId);
             const createResult = await this.unitOfWork.todos.create(entity);
 
             if (!createResult) {
                 throw new Error('Todo category creation failed');
             }
-            logInfo(`createResult: ${stringify(createResult)}`, fileDetails, true);
+            logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
 
             return createResult;
         } catch (error) {
@@ -197,22 +176,23 @@ class TodoService extends BaseService {
                 throw new Error('Invalid user id, please login again');
             }
 
-            ///TODO: Step1: Validate entity params
-            const validateResult = validateEntitiesParams(entities, this.modelName);
+            const checkBodyDuplicateItems = entities.map((entity) => entity.title);
 
-            if (!validateResult.isValid) {
-                throw new Error(validateResult.error);
+            const checkDuplicateItemExistsResult = await this.getArrayUniqueItem(checkBodyDuplicateItems);
+
+            if (checkDuplicateItemExistsResult.isDuplicate) {
+                throw new Error('Is duplicate exists in items');
             }
 
-            ///TODO: Step2: Get duplicate existing query
-            const duplicateCheckEntities = entities.map((entity) => {
-                return { title: entity.title };
+            const checkDatabaseDuplicateItems = entities.map((entity) => {
+                return {
+                    title: entity.title,
+                };
             });
 
-            logInfo(`duplicateCheckEntities: ${stringify(duplicateCheckEntities)}`, fileDetails, true);
-
+            // TODO: Step 2: Get duplicate existing query, if not found throw error
             const duplicateExistingQuery = await checkMultipleDuplicateExisting(
-                duplicateCheckEntities,
+                checkDatabaseDuplicateItems,
                 this.modelName,
                 'create'
             );
@@ -223,40 +203,36 @@ class TodoService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            ///TODO: Step3: Check duplicate existing by query, if found throw error
+            ///TODO: Step 3: Check duplicate existing by query, if found, throw error
             const duplicateExistingResult = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
-            logInfo(`duplicateExistingResult: ${stringify(duplicateExistingResult)}`, fileDetails, true);
-
-            if (Object.keys(duplicateExistingResult).length > 0) {
+            if (duplicateExistingResult && duplicateExistingResult.length > 0) {
                 throw new Error('Todo already exists');
             }
+            logInfo(`duplicateExistingResult: ${stringify(duplicateExistingResult)}`, fileDetails, true);
 
-            ///TODO: Step4: Get todo category ids by value
-            const todoCategoryItems = await this.getTodoCategoryItemsByValue(
-                entities.map((entity) => entity.todoCategoryId)
-            );
+            //TODO: Step 3: Get todo category name from todo category id
+            const todoCategoryNames = await entities.map((entity) => entity.todoCategoryId);
 
-            if (!todoCategoryItems || todoCategoryItems.length === 0) {
-                throw new Error('Invalid todo category value');
+            const searchIdResult = await this.getIdsByValue(todoCategoryNames);
+
+            if (!searchIdResult || searchIdResult.length === 0) {
+                throw new Error('Invalid todo value');
             }
 
-            ///TODO: Step5: Add todo category ids to entities
-            entities.map((entity) => {
-                const todoCategoryItem = todoCategoryItems.find(
-                    (todoCategoryItem) => todoCategoryItem.value.toString() === entity.todoCategoryId
-                );
-                if (todoCategoryItem) {
-                    delete entity.todoCategoryId;
-                    entity.category = todoCategoryItem._id;
-                    entity.user = userId;
-                }
+            if (searchIdResult.length !== todoCategoryNames.length) {
+                throw new Error(`Two items do not match.`);
+            }
+
+            logInfo(`searchIdResult: ${stringify(searchIdResult)}`, fileDetails, true);
+
+            entities.forEach((entity, index) => {
+                entity.category = searchIdResult[index];
+                entity.user = userId;
+                delete entity.todoCategoryId;
             });
 
-            logInfo(`Entities of todo bulk create: ${stringify(entities)}`, fileDetails, true);
-
-            ///TODO: Step6: Bulk create todos for specific user with todo category, if not found throw error
-            const createResult = await this.unitOfWork.todos.createMany(entities);
+            const createResult = await this.unitOfWork.todos.insertMany(entities);
 
             if (!createResult) {
                 throw new Error('Todo category bulk creation failed');
@@ -264,7 +240,7 @@ class TodoService extends BaseService {
 
             logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
 
-            return todoCreated;
+            return createResult;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
@@ -280,62 +256,64 @@ class TodoService extends BaseService {
                 throw new Error('Invalid parameters');
             }
 
-            if (entity._id !== id) {
-                throw new Error('Invalid parameters, id not match');
+            const searchResult = await this.unitOfWork.todos.findById(id);
+
+            if (!searchResult) {
+                throw new Error('Todo not found with the provided id');
             }
 
-            ///TODO: Step1: Validate entity params
-            const validateResult = validateEntityParams(entity, this.modelName);
+            if (entity.title) {
+                const duplicateCheckEntity = {
+                    _id: id,
+                    title: entity.title,
+                };
 
-            if (!validateResult.isValid) {
-                throw new Error(validateResult.error);
+                logInfo(`duplicateCheckEntity: ${stringify(duplicateCheckEntity)}`, fileDetails, true);
+
+                ///TODO: Step4.2: Get duplicate existing query
+                const duplicateExistingQuery = await checkDuplicateExisting(
+                    duplicateCheckEntity,
+                    this.modelName,
+                    'update'
+                );
+
+                logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
+
+                if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
+                    throw new Error('Invalid duplicate existing query');
+                }
+
+                logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
+
+                const duplicateExistingResult = await this.unitOfWork.todos.find(duplicateExistingQuery);
+
+                if (duplicateExistingResult && duplicateExistingResult.length > 0) {
+                    throw new Error('Todo already exists, please try with different title');
+                }
+
+                const duplicateItemsFound = await this.unitOfWork.todos.find(duplicateExistingQuery);
+
+                if (duplicateItemsFound && duplicateItemsFound.length > 0) {
+                    throw new Error('Todo already exists, please try with different title');
+                }
             }
 
-            ///TODO: Step2: Check duplicate existing by query, if found throw error
-            const duplicateCheckEntity = { title: entity.title };
-
-            logInfo(`duplicateCheckEntity: ${stringify(duplicateCheckEntity)}`, fileDetails, true);
-
-            if (!duplicateCheckEntity || Object.keys(duplicateCheckEntity).length === 0) {
-                throw new Error('Invalid duplicate check entity');
+            if (entity.todoCategoryId) {
+                const todoCategoryId = await this.getIdsByValue(entity.todoCategoryId);
+                delete entity.todoCategoryId;
+                entity.category = todoCategoryId;
             }
 
-            ///TODO: Step2.1: Get duplicate existing query
-            const duplicateExistingQuery = await checkDuplicateExisting(duplicateCheckEntity, this.modelName, 'update');
+            const filterCondition = {
+                _id: id,
+            };
 
-            logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
+            entity.updatedAt = new Date();
 
-            if (!duplicateExistingQuery || Object.keys(duplicateExistingQuery).length === 0) {
-                throw new Error('Invalid duplicate existing query');
-            }
-
-            ///TODO: Step2.2: Check duplicate existing by query, if found throw error
-            const duplicateItemsFound = await this.unitOfWork.todos.find(duplicateExistingQuery);
-
-            if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                throw new Error('Todo already exists, please try with different title');
-            }
-
-            ///TODO: Step3: Get update query
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            if (!updateQuery || Object.keys(updateQuery).length === 0) {
-                throw new Error('Invalid update query');
-            }
-
-            logInfo(`updateQuery: ${stringify(updateQuery)}`, fileDetails, true);
-
-            ///TODO: Step2.1: Add updatedAt field to update query for record updated time
-            updateQuery.updatedAt = Date.now();
-
-            const filterCondition = { _id: id };
-
-            ///TODO: option add new attribute for return modified document instead of original
-            ///TODO: Step4: Update todo by id for one field, if not found throw error
-            const updateResult = await this.unitOfWork.todos.findOneAndUpdate(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.todos.findOneAndUpdate(filterCondition, entity);
 
             if (!updateResult) {
-                throw new Error('Todo update failed');
+                throw new Error('Update todo item failed');
             }
             return updateResult;
         } catch (error) {
@@ -353,18 +331,6 @@ class TodoService extends BaseService {
                 throw new Error('Invalid parameters');
             }
 
-            if (entity._id !== id) {
-                throw new Error('Invalid parameters, id not match');
-            }
-
-            ///TODO: Step1: Validate entity params
-            const validateResult = validateEntityParams(entity, this.modelName);
-
-            if (!validateResult.isValid) {
-                throw new Error(validateResult.error);
-            }
-
-            ///TODO: Step2: Get update query
             const searchResult = await this.unitOfWork.todos.findById(id);
 
             if (!searchResult) {
@@ -372,7 +338,10 @@ class TodoService extends BaseService {
             }
 
             ///TODO: Step3: Check duplicate existing by query, if found throw error
-            const duplicateCheckEntity = { title: entity.title };
+            const duplicateCheckEntity = {
+                _id: id,
+                title: entity.title,
+            };
 
             logInfo(`duplicateCheckEntity: ${stringify(duplicateCheckEntity)}`, fileDetails, true);
 
@@ -390,46 +359,35 @@ class TodoService extends BaseService {
             const duplicateExistingResult = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
             if (duplicateExistingResult && duplicateExistingResult.length > 0) {
-                throw new Error('Todo already exists, please try with different title');
+                throw new Error('Todo has been exists, please try with different title');
             }
 
             const duplicateItemsFound = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
             if (duplicateItemsFound && duplicateItemsFound.length > 0) {
-                throw new Error('Todo already exists, please try with different title');
+                throw new Error('Todo has been exists, please try with different title');
             }
 
-            ///TODO: Step4: Get update query with updatedAt field
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            if (!updateQuery || Object.keys(updateQuery).length === 0) {
-                throw new Error('Invalid update query');
-            }
-
-            ///TODO: Step4.1: If todo category value exist, get todo category id by value
-            if (updateQuery.category) {
-                ///TODO: Step4.1.1: Get todo category id by value
-                const todoCategoryId = await this.getTodoCategoryIdByValue(entity.category);
+            if (entity.todoCategoryId) {
+                const todoCategoryId = await this.getIdsByValue(entity.todoCategoryId);
 
                 if (!todoCategoryId || todoCategoryId.length === 0) {
                     throw new Error('Invalid todo category value');
                 }
-                ///TODO: Step4.1.2: Add todo category id to entity and remove todo category value
-                delete updateQuery.category;
-                updateQuery.category = todoCategoryId[0];
+                delete entity.todoCategoryId;
+                entity.category = todoCategoryId;
             }
-            updateQuery.updatedAt = Date.now();
 
-            logInfo(`updateQuery: ${stringify(updateQuery)}`, fileDetails, true);
+            entity.updatedAt = Date.now();
 
             ///TODO: Step4.2: Add todo id as update query condition
-            const filterCondition = { _id: entity._id };
+            const filterCondition = { _id: id };
 
             ///TODO: Step5: Update todo by id for equal or more than one field, if not found throw error
-            const updateResult = await this.unitOfWork.todos.updateOne(filterCondition, updateQuery);
+            const updateResult = await this.unitOfWork.todos.findOneAndReplace(filterCondition, entity);
 
             if (!updateResult) {
-                throw new Error('Todo category update failed');
+                throw new Error('Update todo item failed');
             }
             return updateResult;
         } catch (error) {

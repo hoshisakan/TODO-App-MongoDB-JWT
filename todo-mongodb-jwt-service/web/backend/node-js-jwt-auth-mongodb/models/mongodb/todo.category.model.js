@@ -8,7 +8,7 @@ const TodoCategory = mongoose.model(
             required: true,
             min: 3,
             max: 50,
-            uqiue: true,
+            unique: true,
             dropDups: true,
         },
         value: {
@@ -16,7 +16,7 @@ const TodoCategory = mongoose.model(
             required: true,
             min: 1,
             max: 50,
-            uqiue: true,
+            unique: true,
             dropDups: true,
         },
         createdAt: {

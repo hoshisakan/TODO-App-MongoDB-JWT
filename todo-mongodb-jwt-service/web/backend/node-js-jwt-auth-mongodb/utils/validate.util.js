@@ -46,7 +46,7 @@ module.exports = {
             },
             Todo: {
                 create: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
-                update: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate'],
+                update: ['title', 'description', 'status', 'priority', 'isCompleted', 'type', 'startDate', 'dueDate', 'todoCategoryId'],
                 checkDuplicate: ['title'],
             },
             ErrorCategory: {
