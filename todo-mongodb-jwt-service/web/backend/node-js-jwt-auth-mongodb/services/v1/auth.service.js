@@ -13,6 +13,7 @@ const {
 } = require('../../utils/jwt.util');
 const UnitOfWork = require('../../repositories/unitwork');
 const User = require('../../models/mongodb/user.model');
+const { user } = require('../../models/mongodb');
 const unitOfWork = new UnitOfWork();
 
 class AuthService {
@@ -88,6 +89,7 @@ class AuthService {
         const fileDetails = getFileDetails(classNameAndFuncName);
         let createAccessTokenResult = {
             token: null,
+            expireSecondTime: null,
             expireTime: null,
         };
         try {
@@ -114,9 +116,12 @@ class AuthService {
                     true
                 );
 
-                if (cacheAccessTokenItems) {
+                const accessTokenValidateResult = verifyToken(cacheAccessTokenItems.token, 'access');
+
+                if (cacheAccessTokenItems && accessTokenValidateResult) {
                     createAccessTokenResult.token = cacheAccessTokenItems.token;
-                    createAccessTokenResult.expireTime = cacheAccessTokenItems.expireTime;
+                    createAccessTokenResult.expireSecondTime = cacheAccessTokenItems.expireTime;
+                    createAccessTokenResult.expireTime = accessTokenValidateResult.exp;
                     return createAccessTokenResult;
                 }
             }
@@ -328,7 +333,14 @@ class AuthService {
             logInfo(`loginDto: ${stringify(loginDto)}`, fileDetails, true);
 
             const userFilterExpression = {
-                username: loginDto.username,
+                $or: [
+                    {
+                        username: loginDto.username,
+                    },
+                    {
+                        email: loginDto.username,
+                    },
+                ],
             };
 
             const userValidateResult = await this.validateUserIdentity(userFilterExpression);
@@ -467,7 +479,7 @@ class AuthService {
             };
             logInfo(`loginSuccessResult: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
-            // logError(err, fileDetails, true);
+            logError(err, fileDetails, true);
             result = {};
         }
         return result;
@@ -507,12 +519,52 @@ class AuthService {
             logInfo(`isDeletedRefreshToken: ${stringify(isDeletedRefreshToken)}`, fileDetails, true);
 
             if (!isDeletedAccessToken || !isDeletedRefreshToken) {
-                logError(`Delete token from cache failed`, fileDetails, true);
+                logInfo(`Delete token from cache failed`, fileDetails, true);
                 ///TODO: 未來必須要將錯誤寫入資料庫
             }
             result.message = 'Logout success';
         } catch (err) {
-            // logError(err, fileDetails, true);
+            logError(err, fileDetails, true);
+            result.message = err.message;
+        }
+        return result;
+    };
+
+    ///TODO: Get current user info
+    getCurrentUser = async (cookieAccessToken) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {};
+
+        try {
+            if (!cookieAccessToken) {
+                throw new Error('Access token does not empty.');
+            }
+
+            logInfo(`token: ${cookieAccessToken}`, fileDetails, true);
+
+            const accessTokenValidateResult = verifyToken(cookieAccessToken, 'access');
+
+            logInfo(stringify(accessTokenValidateResult), fileDetails, true);
+
+            if (!accessTokenValidateResult) {
+                throw new Error('Access token validate failed.');
+            }
+
+            const userId = accessTokenValidateResult.id;
+
+            if (!userId) {
+                throw new Error('User id does not empty, access token analysis failed.');
+            }
+
+            const userDetails = await this.findUserById(accessTokenValidateResult.id);
+            result.id = userDetails._id;
+            result.username = userDetails.username;
+            result.email = userDetails.email;
+            result.roles = userDetails.roles;
+            result.expireTime = accessTokenValidateResult.exp;
+        } catch (err) {
+            logError(err, fileDetails, true);
             result.message = err.message;
         }
         return result;

@@ -1,112 +1,77 @@
-// import './TodoItemStyle.css';
-import { ListTodoItemModel } from '../../app/models/ListTodoItem';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import { useState } from 'react';
-import { DropContextWrapper, StyledDashboardDiv } from './styles/StyledComponents';
+import { DropContextWrapper, StyledDashboardWrapper } from './styles/StyledComponents';
 import DroppableSectionWrapper from './DroppableSectionWrapper';
+import { observer } from 'mobx-react-lite';
+import { useEffect, useCallback } from 'react';
+import { useStore } from '../../app/stores/store';
 
 
 
-const TodoDashboard = () => {
-    const rawData: ListTodoItemModel[] = [
-        {
-            _id: '65cc550178b0f7e2914e9d65',
-            title: 'Test Create Todo List2509551555555555555555555555555555555555555',
-            status: 'pending',
-            priority: 'low',
-            isCompleted: false,
-            type: 'private',
-            startDate: '2024-01-03T00:47:00Z',
-            dueDate: '2024-01-08T00:47:00Z',
-            category: 'Test50',
-        },
-        {
-            _id: '65cc550178b0f7e2914e9d66',
-            title: 'Test Create Todo List305552',
-            status: 'pending',
-            priority: 'low',
-            isCompleted: false,
-            type: 'private',
-            startDate: '2024-01-03T00:47:00Z',
-            dueDate: '2024-01-08T00:47:00Z',
-            category: 'Test50',
-        },
-        {
-            _id: '65cc550178b0f7e2914e9d67',
-            title: 'Test Create Todo Lis45055553',
-            status: 'pending',
-            priority: 'low',
-            isCompleted: false,
-            type: 'private',
-            startDate: '2024-01-03T00:47:00Z',
-            dueDate: '2024-01-08T00:47:00Z',
-            category: 'Test50',
-        },
-    ];
-    const tempData: ListTodoItemModel[] = [];
-    const tempDataSec: ListTodoItemModel[] = [];
-
-    const [itemObj, setItemObj] = useState({
-        pending: {
-            items: rawData,
-        },
-        doing: {
-            items: tempData,
-        },
-        completed: {
-            items: tempDataSec,
-        },
-    });
+const TodoDashboard = observer(() => {
+    const { todoStore } = useStore();
+    const { userTodoList } = todoStore;
 
     const onDragEnd = (result: DropResult) => {
         const { source, destination } = result;
-
         if (!destination) {
             return;
         }
-
-        let newItemObj = { ...itemObj };
-
+        let newItemObj = { ...userTodoList };
         ///TODO: Force convert droppableId of source to newItemObj object that key type
         const sourceDroppableId = source.droppableId as keyof typeof newItemObj;
         // console.log(`sourceDroppableId: ${sourceDroppableId}`);
-
         ///TODO: Remove drapped object from newItemObj array
-        const [remove] = newItemObj[sourceDroppableId].items.splice(source.index, 1);
+        const [remove] = newItemObj[sourceDroppableId].splice(source.index, 1);
         // console.log(`remove: ${JSON.stringify(remove)}`);
-
         ///TODO: Force convert droppableId of destination to newItemObj object that key type
         const destinationDroppableId = destination.droppableId as keyof typeof newItemObj;
         // console.log(`destinationDroppableId: ${destinationDroppableId}`);
-        newItemObj[destinationDroppableId].items.splice(destination.index, 0, remove);
-
-        ///TODO: Update changed item to object array
-        setItemObj(newItemObj);
+        newItemObj[destinationDroppableId].splice(destination.index, 0, remove);
+        // console.log(`userTodoList: ${JSON.stringify(userTodoList)}`);
     };
 
+    /*
+        加入 useCallback 後，只有當依賴列表中的 todoStore 狀態被變更時，才會指向 loadTodos 新的記憶體位址；
+        否則，將會指向同一個 loadTodos 方法 (即是同一個記憶體位址)
+    */
+    const loadTodosCallback = useCallback(() => {
+        todoStore.loadTodos();
+        // todoStore.loadUserItemObj();
+    }, [todoStore]); // 依賴列表
+
+    const capitalizeFirstLetter = (word: string) => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+
+    /*
+        避免重複渲染 loadTodos 方法，故使用 useCallback 僅在todoStore 狀態被變更時，才會調用其方法；
+        否則，會造成 loadTodos 方法重複被持續調用，形成一個無限迴圈，
+        原因是每次都會產生一個新的 loadTodos 方法，個別指向不同的記憶體位址
+    */
+    useEffect(() => {
+        loadTodosCallback();
+    }, [loadTodosCallback]);
+
+    // useEffect(() => {
+    //     loadTodos();
+    // }, [loadTodos, todoStore]);
+
     return (
-        <StyledDashboardDiv>
+        <StyledDashboardWrapper>
             <DragDropContext onDragEnd={onDragEnd}>
                 <DropContextWrapper>
-                    <DroppableSectionWrapper
-                        droppableObjName={'Pending'}
-                        droppableId={'pending'}
-                        items={itemObj.pending.items}
-                    />
-                    <DroppableSectionWrapper
-                        droppableObjName={'Doing'}
-                        droppableId={'doing'}
-                        items={itemObj.doing.items}
-                    />
-                    <DroppableSectionWrapper
-                        droppableObjName={'Completed'}
-                        droppableId={'completed'}
-                        items={itemObj.completed.items}
-                    />
+                    {Object.keys(userTodoList).map((status, index) => (
+                        <DroppableSectionWrapper
+                            droppableObjName={capitalizeFirstLetter(status)}
+                            droppableId={status}
+                            items={userTodoList[status]}
+                            key={`droppable_${status}`}
+                        />
+                    ))}
                 </DropContextWrapper>
             </DragDropContext>
-        </StyledDashboardDiv>
+        </StyledDashboardWrapper>
     );
-};
+});
 
 export default TodoDashboard;

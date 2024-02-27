@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Card, Container } from 'react-bootstrap';
 import { Draggable, DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
-import { ListTodoItemModel } from '../../app/models/ListTodoItem';
+import { ListTodoItem } from '../../app/models/ListTodoItem';
 import './TestLayoutStyle.css';
 
 const items = [

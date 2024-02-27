@@ -1,11 +1,15 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useStore } from '../stores/store';
 
 export default function RequireAuth() {
-    const isLoggedIn = false;
+    const {
+        userStore: { isLoggedIn },
+    } = useStore();
     const location = useLocation();
 
-    if (isLoggedIn) {
+    if (!isLoggedIn) {
         return <Navigate to="/" state={{ from: location }} />;
+    } else {
+        return <Outlet />;
     }
-    return <Outlet />;
 }

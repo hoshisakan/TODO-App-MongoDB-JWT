@@ -10,12 +10,27 @@ import {
     StyledIcon,
     StyledNavDropdownItem,
 } from './styles/StyledComponents';
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../stores/store';
+import { UserLogout } from '../models/User';
 
 interface Props {
     navbarName: string;
 }
 
-const HeaderNavbar = ({ navbarName }: Props) => {
+const HeaderNavbar = observer(({ navbarName }: Props) => {
+    const {
+        userStore: { user, logout },
+    } = useStore();
+
+    const handleLoginout = () => {
+        const userLogout: UserLogout = {
+            username: user?.username || '',
+            email: user?.email || '',
+        };
+        logout(userLogout);
+    };
+
     return (
         <StyledNavbar expand="md" fixed="top">
             <Container fluid>
@@ -25,7 +40,6 @@ const HeaderNavbar = ({ navbarName }: Props) => {
                     id="offcanvasNavbar-expand-navbar"
                     aria-labelledby={`offcanvasNavbarLabel-expand-navbar`}
                     className="offcanvas offcanvas-top w-100 h-50"
-                    // style={{ backgroundColor: '#3399ff', fontWeight: 'bold', color: 'white' }}
                     placement="end"
                 >
                     <Offcanvas.Header closeButton>
@@ -44,7 +58,8 @@ const HeaderNavbar = ({ navbarName }: Props) => {
                                 align="end"
                             >
                                 <StyledNavDropdownItem href="/profile">Profile</StyledNavDropdownItem>
-                                <StyledNavDropdownItem href="/logout">Logout</StyledNavDropdownItem>
+                                {/* <StyledNavDropdownItem href="/logout">Logout</StyledNavDropdownItem> */}
+                                <StyledNavDropdownItem onClick={handleLoginout}>Logout</StyledNavDropdownItem>
                             </StyledNavDropdown>
                         </Nav>
                     </Offcanvas.Body>
@@ -52,6 +67,6 @@ const HeaderNavbar = ({ navbarName }: Props) => {
             </Container>
         </StyledNavbar>
     );
-};
+});
 
 export default HeaderNavbar;

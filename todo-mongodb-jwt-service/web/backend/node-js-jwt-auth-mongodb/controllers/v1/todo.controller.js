@@ -28,7 +28,7 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.bulkCreate(req.body, req.userId);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -40,7 +40,7 @@ class TodoController {
     //     const fileDetails = this.getFileDetails(classNameAndFuncName);
     //     try {
     //         const result = await this.todoService.bulkUpdate(req.body);
-    //         return http.successResponse(res, OK, result);
+    //         return http.successResponse(res, OK, '', result);
     //     } catch (error) {
     //         logError(error, fileDetails, true);
     //         return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -52,7 +52,7 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.create(req.body, req.userId);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -64,7 +64,7 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.updateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -76,7 +76,7 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.patchUpdateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -88,7 +88,7 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.deleteById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -100,7 +100,7 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.findById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -113,7 +113,7 @@ class TodoController {
 
         try {
             const result = await this.todoService.deleteAll();
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -125,7 +125,7 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.findAll(req.query);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);

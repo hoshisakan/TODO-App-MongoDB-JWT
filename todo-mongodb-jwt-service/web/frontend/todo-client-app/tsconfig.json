@@ -18,10 +18,11 @@
         "resolveJsonModule": true,
         "isolatedModules": false,
         "noEmit": true,
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "maxNodeModuleJsDepth": 2
     },
     "include": [
         "src",
         "backup"
-    ]
+, "src/features/home/.tsx"    ]
 }

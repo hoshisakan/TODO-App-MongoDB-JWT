@@ -1,9 +1,9 @@
 import { Draggable } from 'react-beautiful-dnd';
-import { ListTodoItemModel } from '../../app/models/ListTodoItem';
+import { ListTodoItem } from '../../app/models/ListTodoItem';
 import { DragItem, DragItemContent } from './styles/StyledComponents';
 
 interface Props {
-    item: ListTodoItemModel;
+    item: ListTodoItem;
     index: number;
 }
 
@@ -15,8 +15,8 @@ const DrapCard = ({ item, index }: Props) => {
                     <DragItem
                         ref={provided.innerRef}
                         // snapshot={snapshot}
-                        isDragging={snapshot.isDragging}
-                        draggableStyle={provided.draggableProps.style}
+                        // isDragging={snapshot.isDragging}
+                        // draggableStyle={provided.draggableProps.style}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                     >

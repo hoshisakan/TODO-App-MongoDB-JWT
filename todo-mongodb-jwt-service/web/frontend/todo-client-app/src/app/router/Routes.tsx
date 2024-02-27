@@ -5,6 +5,8 @@ import TestLayoutLoading from '../../features/test/TestLayoutLoading';
 import RequireAuth from './RequireAuth';
 import TestLayoutLoadingSec from '../../features/test/TestLayoutLoadingSec';
 import TodoDashboard from '../../features/todos/TodoDashboard';
+import RegisterForm from '../../features/home/RegisterForm';
+import RegisterSuccessNavigatePage from '../../features/home/RegisterSuccessNavigatePage';
 
 export const routes: RouteObject[] = [
     {
@@ -18,19 +20,28 @@ export const routes: RouteObject[] = [
                         path: 'testLayoutLoading',
                         element: <TestLayoutLoading />,
                     },
-                    {
-                        path: 'not-found',
-                        element: <NotFound />,
-                    },
+
                     {
                         path: 'testLayoutLoadingSec',
                         element: <TestLayoutLoadingSec />,
                     },
                     {
                         path: 'todo',
-                        element: <TodoDashboard />
-                    }
+                        element: <TodoDashboard />,
+                    },
                 ],
+            },
+            // {
+            //     path: 'not-found',
+            //     element: <NotFound />,
+            // },
+            {
+                path: 'sign-up',
+                element: <RegisterForm />,
+            },
+            {
+                path: 'sign-up-success',
+                element: <RegisterSuccessNavigatePage />,
             },
         ],
     },

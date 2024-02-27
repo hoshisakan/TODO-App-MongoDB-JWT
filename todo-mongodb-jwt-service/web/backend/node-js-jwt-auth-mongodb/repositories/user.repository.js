@@ -1,3 +1,4 @@
+const { stringify } = require('../utils/json.util');
 const { logInfo, logError } = require('../utils/log.util');
 const { filenameFilter } = require('../utils/regex.util');
 
@@ -23,21 +24,23 @@ class UserRepository extends Repository {
 
     find = async (expression = {}) => {
         return await this.model.find(expression).populate('roles', 'name level');
-    }
+    };
 
     findOne = async (expression = {}) => {
         return await this.model.findOne(expression).populate('roles', 'name level');
-    }
+    };
 
-    findById = async (id) => {
-        return await this.model.findById(id).populate('roles', 'name level');
-    }
+    findById = async (id, fields = {}) => {
+        return await this.model.findById(id).populate('roles', 'name level').select(fields);
+    };
 
     addRoles = async (userId, roleIds) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const user = await this.model.findById(userId);
+            const fields = { _id: 1, username: 1, email: 1, roles: 1 };
+            const user = await this.model.findById(userId).select(fields);
+            // logInfo(`addRoles: ${stringify(user)}`, fileDetails, true);
 
             if (!user) {
                 throw new Error('User Not Found');
@@ -52,7 +55,8 @@ class UserRepository extends Repository {
     };
 
     addRole = async (userId, roleId) => {
-        const user = await this.model.findById(userId);
+        const fields = { _id: 1, username: 1, email: 1, roles: 1 };
+        const user = await this.model.findById(userId).select(fields);
 
         if (!user) {
             throw new Error('User Not Found');

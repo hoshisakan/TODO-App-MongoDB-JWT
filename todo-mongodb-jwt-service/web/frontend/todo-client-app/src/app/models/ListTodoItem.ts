@@ -1,4 +1,4 @@
-export interface ListTodoItemModel {
+export interface ListTodoItem {
     _id: string;
     title: string;
     // description: string | null;

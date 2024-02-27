@@ -104,7 +104,7 @@ class UserService extends BaseService {
     findOne = async (queryParams) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let searchResult = [];
+        let searchResult = {};
         try {
             if (!queryParams || Object.keys(queryParams).length === 0) {
                 searchResult = await this.unitOfWork.users.findOne({});
@@ -127,12 +127,12 @@ class UserService extends BaseService {
     findById = async (id) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let searchResult = [];
+        let searchResult = {};
         try {
             if (!id) {
                 throw new Error('Id is required');
             }
-            searchResult = await this.unitOfWork.users.findById(id);
+            searchResult = await this.unitOfWork.users.findById(id, { '_id': 1, 'username': 1, 'email': 1, 'roles': 1 });
 
             if (!searchResult) {
                 throw new Error('User not found');

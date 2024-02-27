@@ -11,6 +11,7 @@ router.post('/signin', authController.signin);
 router.post('/signout', authController.signout);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/verify-token', authController.verifyToken);
+router.get('/account-info', authController.getCurrentUser);
 // router.post('/verify-account', authController.verifyAccount);
 // router.post('/verify-email', authController.verifyEmail);
 // router.post('/forgot-password', authController.forgotPassword);

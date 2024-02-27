@@ -28,7 +28,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.errorCategoryService.bulkCreate(req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -52,7 +52,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.errorCategoryService.create(req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -64,7 +64,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.errorCategoryService.updateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -76,7 +76,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.errorCategoryService.patchUpdateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -88,7 +88,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.errorCategoryService.deleteById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -100,7 +100,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.errorCategoryService.findById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -112,7 +112,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.errorCategoryService.deleteAll();
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);

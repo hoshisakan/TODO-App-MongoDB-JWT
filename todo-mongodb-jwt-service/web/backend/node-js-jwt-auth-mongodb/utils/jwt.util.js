@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { logError, logInfo } = require('../utils/log.util.js');
 const { filenameFilter } = require('../utils/regex.util.js');
 const { set, setex, del, exists, get, mget } = require('../utils/cache.redis.util.js');
+const { stringify } = require('./json.util');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 let fileDetails = `[${filenameWithoutPath}]`;
@@ -256,6 +257,17 @@ const JWTUtil = {
             logError(err, fileDetails, true);
             throw err;
         }
+    },
+    decodeToken: (token) => {
+        fileDetails = `[${filenameWithoutPath}] [decodeToken]`;
+        let result = null;
+        try {
+            result = jwt.decode(token);
+            // logInfo(stringify(result), fileDetails, true);
+        } catch (err) {
+            logError(err, fileDetails, true);
+        }
+        return result;
     },
 };
 

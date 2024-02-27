@@ -28,7 +28,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.bulkCreate(req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -40,7 +40,7 @@ class ErrorCategoryController {
     //     const fileDetails = this.getFileDetails(classNameAndFuncName);
     //     try {
     //         const result = await this.traceErrorService.bulkUpdate(req.body);
-    //         return http.successResponse(res, OK, result);
+    //         return http.successResponse(res, OK, '', result);
     //     } catch (error) {
     //         logError(error, fileDetails, true);
     //         return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -52,7 +52,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.create(req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -64,7 +64,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.updateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -76,7 +76,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.patchUpdateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -88,7 +88,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.deleteById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -100,7 +100,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.findById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -112,7 +112,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.deleteAll();
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -124,7 +124,7 @@ class ErrorCategoryController {
     //     const fileDetails = this.getFileDetails(classNameAndFuncName);
     //     try {
     //         const result = await this.traceErrorService.findOne(req.query);
-    //         return http.successResponse(res, OK, result);
+    //         return http.successResponse(res, OK, '', result);
     //     } catch (error) {
     //         logError(error, fileDetails, true);
     //         return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -136,7 +136,7 @@ class ErrorCategoryController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.traceErrorService.findAll(req.query);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);

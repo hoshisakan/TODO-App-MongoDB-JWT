@@ -11,8 +11,8 @@ class Repository {
         return this.model.findOne(expression);
     }
 
-    async findById(id) {
-        return await this.model.findById(id);
+    async findById(id, fields = {}) {
+        return await this.model.findById(id).select(fields);
     }
 
     async create(entity) {

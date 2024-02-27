@@ -35,7 +35,7 @@ class RoleController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.roleService.bulkCreate(req.body, req.userId);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -47,7 +47,7 @@ class RoleController {
     //     const fileDetails = this.getFileDetails(classNameAndFuncName);
     //     try {
     //         const result = await this.roleService.bulkUpdate(req.body);
-    //         return http.successResponse(res, OK, result);
+    //         return http.successResponse(res, OK, '', result);
     //     } catch (error) {
     //         logError(error, fileDetails, true);
     //         return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -59,7 +59,7 @@ class RoleController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.roleService.create(req.body, req.userId);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -71,7 +71,7 @@ class RoleController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.roleService.updateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -83,7 +83,7 @@ class RoleController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.roleService.patchUpdateById(req.params.id, req.body);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -95,7 +95,7 @@ class RoleController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.roleService.deleteById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -107,7 +107,7 @@ class RoleController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.roleService.findById(req.params.id);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -120,7 +120,7 @@ class RoleController {
 
         try {
             const result = await this.roleService.deleteAll();
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
@@ -132,7 +132,7 @@ class RoleController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.roleService.findAll(req.query);
-            return http.successResponse(res, OK, result);
+            return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, error.message);
