@@ -131,6 +131,34 @@ isAdmin = async (req, res, next) => {
     }
 };
 
+isDevelopment = async (req, res, next) => {
+    const classNameAndFuncName = getFunctionCallerName();
+    const fileDetails = getFileDetails(classNameAndFuncName);
+    try {
+        const userId = req.userId || null;
+
+        if (!userId) {
+            throw new Error('Unauthorized!');
+        }
+        logInfo(`userId: ${userId}`, fileDetails, true);
+
+        const userOwnRoleList = await authService.findUserRolesById(userId);
+        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
+
+        const isDevelopment = isMatchRole(userOwnRoleList, 'development');
+        logInfo(`isDevelopment: ${isDevelopment}`, fileDetails, true);
+
+        if (!isDevelopment) {
+            logInfo(`Development role not found.`, fileDetails, true);
+            throw new Error('Unauthorized!');
+        }
+        return next();
+    } catch (err) {
+        logError(err, fileDetails, true);
+        return http.errorResponse(res, BAD_REQUEST, err.message);
+    }
+};
+
 isModerator = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = getFileDetails(classNameAndFuncName);
@@ -162,6 +190,7 @@ isModerator = async (req, res, next) => {
 const authJwt = {
     verifyAcccessToken,
     isAdmin,
+    isDevelopment,
     isModerator,
 };
 module.exports = authJwt;

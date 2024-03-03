@@ -2,6 +2,8 @@ var bcrypt = require('bcryptjs');
 const { logInfo, logError } = require('../../utils/log.util');
 const { stringify, parse } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
+const { sendMail } = require('../../utils/email.util');
+const JWTUtil = require('../../utils/jwt.util.js');
 
 const {
     generateToken,
@@ -258,36 +260,122 @@ class AuthService {
         }
     };
 
-    ///TODO: Register user, success response items, otherwise throw error
-    signup = async (user) => {
-        let userCreated = null;
-        let result = null;
+    reSendConfirmEmail = async (reSendConfirmEmailDto) => {
+        let result = {
+            isReSendConfirmEmail: false,
+            message: '',
+        };
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
 
         try {
-            if (!user) {
+            if (!reSendConfirmEmailDto || !reSendConfirmEmailDto.email) {
+                throw new Error('Invalid email.');
+            }
+
+            const senderMailDto = {
+                verifyType: 'email-confirm',
+                email: reSendConfirmEmailDto.email,
+                subject: 'Confirm your email address',
+                text: `Click on this link to verify your email: http://localhost:49146/api/v1/auth/verify-email?token=replacedToken`,
+            };
+
+            const sendResult = await this.sendVerifyEmail(senderMailDto);
+
+            if (!sendResult.isSendSuccess) {
+                throw new Error(sendResult.message);
+            }
+            result.isReSendConfirmEmail = true;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            result.message = err.message;
+        }
+        return result;
+    };
+
+    sendVerifyEmail = async (senderMailDto) => {
+        let result = {
+            isSendSuccess: false,
+            message: '',
+        };
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+        try {
+            if (!senderMailDto) {
+                throw new Error('Invalid verify token type.');
+            }
+
+            const tokenGenerateResult = JWTUtil.generateToken(
+                {
+                    email: senderMailDto.email,
+                },
+                senderMailDto.verifyType,
+                'user'
+            );
+
+            logInfo(`tokenGenerateResult: ${stringify(tokenGenerateResult)}`, fileDetails, true);
+
+            if (!tokenGenerateResult || !tokenGenerateResult.token) {
+                throw new Error('Token generate failed.');
+            }
+
+            const mailOptions = {
+                from: process.env.EMAIL_SENDER,
+                to: senderMailDto.email,
+                subject: senderMailDto.subject,
+                text: senderMailDto.text.replace('replacedToken', tokenGenerateResult.token),
+            };
+
+            await sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    throw new Error('Error sending verification email.');
+                }
+            });
+
+            result.isSendSuccess = true;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            result.message = err.message;
+        }
+        return result;
+    };
+
+    ///TODO: Register user, success response items, otherwise throw error
+    signup = async (registerDto) => {
+        let userCreated = null;
+        let registerResult = null;
+        let result = {
+            message: '',
+            isRegisterSuccess: false,
+            isSendConfirmEmailSuccess: false,
+        };
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+
+        try {
+            if (!registerDto) {
                 throw new Error('User cannot be empty');
             }
 
-            logInfo(`user: ${stringify(user)}`, fileDetails, true);
+            logInfo(`registerDto: ${stringify(registerDto)}`, fileDetails, true);
 
-            const roles = await this.unitOfWork.roles.find({ name: { $in: user.roles } });
+            const roles = await this.unitOfWork.roles.find({ name: { $in: registerDto.roles } });
 
             if (!roles) {
                 throw new Error('Roles cannot be found');
             }
 
-            if (roles.length !== user.roles.length) {
+            if (roles.length !== registerDto.roles.length) {
                 throw new Error('Roles one or more cannot be found');
             }
 
             logInfo(`roles: ${stringify(roles)}`, fileDetails, true);
 
             const registerUser = new User({
-                username: user.username,
-                email: user.email,
-                password: bcrypt.hashSync(user.password, 8),
+                username: registerDto.username,
+                email: registerDto.email,
+                password: bcrypt.hashSync(registerDto.password, 8),
             });
 
             userCreated = await this.unitOfWork.users.create(registerUser);
@@ -297,23 +385,45 @@ class AuthService {
             }
 
             if (user.roles && user.roles.length > 0) {
-                result = await this.unitOfWork.users.addRoles(
+                registerResult = await this.unitOfWork.users.addRoles(
                     userCreated._id,
                     roles.map((role) => role._id)
                 );
-                if (!result) {
+                if (!registerResult) {
                     throw new Error('Roles cannot be added');
                 }
-                logInfo(`result: ${stringify(result)}`, fileDetails, true);
+                logInfo(`registerResult: ${stringify(registerResult)}`, fileDetails, true);
             } else {
                 const role = await this.unitOfWork.roles.findOne({ name: 'user' });
-                result = await this.unitOfWork.users.addRole(userCreated._id, role._id);
+                registerResult = await this.unitOfWork.users.addRole(userCreated._id, role._id);
             }
+
+            if (!registerResult) {
+                throw new Error('Register failed, please try again.');
+            }
+
+            result.isRegisterSuccess = true;
+
+            const senderMailDto = {
+                verifyType: 'email-confirm',
+                email: registerResult.email,
+                subject: 'Confirm your email address',
+                text: `Click on this link to verify your email: http://localhost:49146/api/v1/auth/verify-email?token=replacedToken`,
+            };
+
+            const sendResult = await this.sendVerifyEmail(senderMailDto);
+
+            if (!sendResult.isSendSuccess) {
+                throw new Error('Send register confirm email failed.');
+            }
+            result.isSendConfirmEmailSuccess = true;
+
             return result;
         } catch (err) {
             logError(err, fileDetails, true);
-            throw err;
+            result.message = err.message;
         }
+        return result;
     };
 
     ///TODO: Signin user, generate access token, store in redis cache, return items in success response, otherwise throw error
@@ -485,15 +595,6 @@ class AuthService {
         return result;
     };
 
-    traceErrorAndWriteDB = async (err) => {
-        logError(err, true);
-        await this.unitOfWork.errors.create({
-            message: err.message,
-            stack: err.stack,
-            createdAt: new Date(),
-        });
-    };
-
     ///TODO: Signout user, remove access token and refresh token from redis cache, return items in success response, otherwise throw error
     signout = async (logoutDto) => {
         const classNameAndFuncName = this.getFunctionCallerName();
@@ -523,6 +624,38 @@ class AuthService {
                 ///TODO: 未來必須要將錯誤寫入資料庫
             }
             result.message = 'Logout success';
+        } catch (err) {
+            logError(err, fileDetails, true);
+            result.message = err.message;
+        }
+        return result;
+    };
+
+    verifyEmail = async (verifyEmailDto) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {
+            isVerifyed: true,
+            message: null,
+        };
+
+        try {
+            if (!verifyEmailDto || !verifyEmailDto.token) {
+                throw new Error('Invalid verify token.');
+            }
+
+            const decodedToken = JWTUtil.verifyToken(verifyEmailDto.token, 'email-confirm');
+            const verifyedEmail = decodedToken['email'];
+            const validateResult = await this.unitOfWork.users.findOne({
+                email: verifyedEmail,
+            });
+
+            if (!validateResult) {
+                throw new Error(`Verifyed failed, not found any ${verifyedEmail} record in database.`);
+            }
+            // logInfo(`validateResult: ${validateResult}`, fileDetails, true);
+            result.isVerifyed = true;
+            // logInfo(`result: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
             logError(err, fileDetails, true);
             result.message = err.message;

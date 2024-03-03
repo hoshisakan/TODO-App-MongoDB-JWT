@@ -7,7 +7,7 @@ const { stringify } = require('./json.util');
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 let fileDetails = `[${filenameWithoutPath}]`;
 
-const authTypeList = ['access', 'refresh'];
+const authTypeList = ['access', 'refresh', 'email-confirm', 'forget-password'];
 
 const JWTUtil = {
     getCacheTokenKey: (key, authType) => {
@@ -26,14 +26,23 @@ const JWTUtil = {
     getPrivateKey: (authType) => {
         fileDetails = `[${filenameWithoutPath}] [getPrivateKey]`;
         try {
-            switch (authType) {
-                case 'access':
-                    return process.env.JWT_ACCESS_TOKEN_SECRET;
-                case 'refresh':
-                    return process.env.JWT_REFRESH_TOKEN_SECRET;
-                default:
-                    throw new Error(`Invalid auth type: ${authType}`);
+            if (authType === 'access') {
+                return process.env.JWT_ACCESS_TOKEN_SECRET;
+            } else if (authType === 'refresh') {
+                return process.env.JWT_REFRESH_TOKEN_SECRET;
+            } else if (authType === 'email-confirm') {
+                return process.env.JWT_CONFIRM_AND_RESET_TOKEN_SECRET;
+            } else {
+                throw new Error(`Invalid auth type: ${authType}`);
             }
+            // switch (authType) {
+            //     case 'access':
+            //         return process.env.JWT_ACCESS_TOKEN_SECRET;
+            //     case 'refresh':
+            //         return process.env.JWT_REFRESH_TOKEN_SECRET;
+            //     default:
+            //         throw new Error(`Invalid auth type: ${authType}`);
+            // }
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
@@ -45,6 +54,8 @@ const JWTUtil = {
             switch (roleHighestPermission) {
                 case 'admin':
                     return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_ADMIN;
+                case 'development':
+                    return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_DEV;
                 case 'moderator':
                     return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_USER;
                 case 'user':
@@ -65,6 +76,10 @@ const JWTUtil = {
                     return JWTUtil.getAccessTokenExpireTime(roleHighestPermission);
                 case 'refresh':
                     return process.env.JWT_REFRESH_TOKEN_EXPIRE_TIME;
+                case 'email-confirm':
+                    return process.env.JWT_EMAIL_CONFIRM_TOKEN_EXPIRE_TIME;
+                case 'forget-password':
+                    return process.env.JWT_FORGET_PASSWORD_TOKEN_EXPIRE_TIME;
                 default:
                     throw new Error(`Invalid auth type: ${authType}`);
             }
@@ -116,13 +131,13 @@ const JWTUtil = {
             }
             const privateKey = JWTUtil.getPrivateKey(authType);
             if (!privateKey) {
-                throw new Error('Private token obtained failed');
+                throw new Error('Private token get failed');
             }
             const params = {
                 token: token,
                 privateKey: privateKey,
             };
-            logInfo(`verifyToken params: ${JSON.stringify(params)}`, fileDetails, true);
+            // logInfo(`verifyToken params: ${JSON.stringify(params)}`, fileDetails, true);
             result = jwt.verify(token, privateKey);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -151,7 +166,7 @@ const JWTUtil = {
             if (!authTypeList.includes(authType)) {
                 result = {
                     isValid: false,
-                    message: 'Invalid auth type',
+                    message: `Invaild auth type: ${authType}`,
                 };
             }
         } catch (err) {
@@ -183,7 +198,7 @@ const JWTUtil = {
             logInfo(`privateKey: ${privateKey}`, fileDetails, true);
 
             if (!privateKey) {
-                throw new Error('Private key obtained failed');
+                throw new Error('Private key get failed');
             }
 
             const expireTime = parseInt(JWTUtil.getTokenExpireTime(authType, roleHighestPermission));
@@ -219,7 +234,6 @@ const JWTUtil = {
         fileDetails = `[${filenameWithoutPath}] [checkTokenExistsFromCache]`;
         try {
             const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
-
             const isExists = await exists(cacheTokenKey);
             return isExists;
         } catch (err) {

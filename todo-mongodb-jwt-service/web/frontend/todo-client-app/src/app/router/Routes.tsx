@@ -1,4 +1,4 @@
-import { RouteObject, createBrowserRouter } from 'react-router-dom';
+import { Navigate, RouteObject, createBrowserRouter } from 'react-router-dom';
 import App from '../layout/App';
 import NotFound from '../../features/errors/NotFounds';
 import TestLayoutLoading from '../../features/test/TestLayoutLoading';
@@ -7,6 +7,7 @@ import TestLayoutLoadingSec from '../../features/test/TestLayoutLoadingSec';
 import TodoDashboard from '../../features/todos/TodoDashboard';
 import RegisterForm from '../../features/home/RegisterForm';
 import RegisterSuccessNavigatePage from '../../features/home/RegisterSuccessNavigatePage';
+import LoginForm from '../../features/home/LoginForm';
 
 export const routes: RouteObject[] = [
     {
@@ -31,10 +32,14 @@ export const routes: RouteObject[] = [
                     },
                 ],
             },
-            // {
-            //     path: 'not-found',
-            //     element: <NotFound />,
-            // },
+            {
+                path: 'not-found',
+                element: <NotFound />,
+            },
+            {
+                path: 'sign-in',
+                element: <LoginForm />,
+            },
             {
                 path: 'sign-up',
                 element: <RegisterForm />,
@@ -43,6 +48,10 @@ export const routes: RouteObject[] = [
                 path: 'sign-up-success',
                 element: <RegisterSuccessNavigatePage />,
             },
+            {
+                path: '*',
+                element: <Navigate replace to="/not-found" />,
+            }
         ],
     },
 ];

@@ -33,8 +33,10 @@ export default class UserStore {
         try {
             await agent.Auth.signin(requestValues).then((response) => {
                 runInAction(() => {
+                    // alert(`analysis result: ${JSON.stringify(response)}`);
                     this.user = response.data;
                     console.log(`UserDetails: ${JSON.stringify(this.user)}`);
+                    // alert(`UserDetails: ${JSON.stringify(this.user)}`);
                 });
             });
             router.navigate('/todo');

@@ -4,7 +4,8 @@ const { authController } = require('./base.route');
 
 router.post(
     '/signup',
-    [verifySignUp.checkDuplicateUsernameOrEmail, verifySignUp.checkRolesExisted],
+    // [verifySignUp.checkDuplicateUsernameOrEmail, verifySignUp.checkRolesExisted],
+    [verifySignUp.checkDuplicateUsernameOrEmail],
     authController.signup
 );
 router.post('/signin', authController.signin);
@@ -13,7 +14,8 @@ router.post('/refresh-token', authController.refreshToken);
 router.post('/verify-token', authController.verifyToken);
 router.get('/account-info', authController.getCurrentUser);
 // router.post('/verify-account', authController.verifyAccount);
-// router.post('/verify-email', authController.verifyEmail);
+router.get('/verify-email', authController.verifyEmail);
+router.post('/re-send-confirm-email', authController.reSendConfirmEmail);
 // router.post('/forgot-password', authController.forgotPassword);
 // router.post('/reset-password', authController.resetPassword);
 

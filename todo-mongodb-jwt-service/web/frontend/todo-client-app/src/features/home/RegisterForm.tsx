@@ -30,7 +30,7 @@ export default function RegisterForm() {
         };
 
         userStore.register(requestValues).catch((err) => {
-            console.log(err.response.data.message);
+            // console.log(err.response.data.message);
         });
     };
 

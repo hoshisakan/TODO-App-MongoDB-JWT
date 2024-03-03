@@ -1,11 +1,20 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 // import { RequestParameters, RequestOptions } from '../models/AxiosRequest';
-import { UserDetails, UserFormValuesLogin, UserFormValuesRegister, UserLogout, UserLogoutSuccess, VerifyTokenResult } from '../models/User';
+import {
+    UserDetails,
+    UserFormValuesLogin,
+    UserFormValuesRegister,
+    UserLogout,
+    UserLogoutSuccess,
+    VerifyTokenResult,
+} from '../models/User';
 import { ResponseResult } from '../models/AxiosResponse';
 import { toast } from 'react-toastify';
+import url from 'url';
 
-// axios.defaults.baseURL = process.env.REACT_APP_API_URL;
-axios.defaults.baseURL = 'http://localhost:49146/api/v1';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
+// axios.defaults.baseURL = 'http://localhost:49146/api/v1';
+// axios.defaults.baseURL = 'http//192.168.1.103:49146/api/v1';
 ///TODO: When cross domain request send cookie
 axios.defaults.withCredentials = true;
 
@@ -79,8 +88,15 @@ axios.interceptors.response.use(
     },
     (error: AxiosError) => {
         const { data, status, config, headers } = error.response as AxiosResponse;
-        if (data) {
-            toast.error(data.message);
+        // console.log(`error.response: ${error.response}`);
+        if (config.url) {
+            const requestAPIURL = url.parse(config.url).pathname;
+            console.log(`requestAPIURL: ${requestAPIURL}`);
+            if (requestAPIURL === '/auth/verify-token' && data.data.code === -1) {
+                toast.error(data.message);
+            } else {
+                toast.error(data.message);
+            }
         }
         return Promise.reject(error);
     }

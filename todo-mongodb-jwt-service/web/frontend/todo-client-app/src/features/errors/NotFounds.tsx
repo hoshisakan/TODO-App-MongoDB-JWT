@@ -2,15 +2,28 @@ import { Button, Card } from 'react-bootstrap';
 
 export default function NotFound() {
     return (
-        <Card style={{ width: '18rem' }}>
-            <Card.Img variant="top" src="holder.js/100px180" />
-            <Card.Body>
-                <Card.Title>Card Title</Card.Title>
-                <Card.Text>
-                    Some quick example text to build on the card title and make up the bulk of the card's content.
-                </Card.Text>
-                <Button variant="primary">Go somewhere</Button>
-            </Card.Body>
-        </Card>
+        <div className="card w-75 vh-50 mx-auto">
+            <div className="card-body">
+                <h5 className="card-title">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="165"
+                        height="35"
+                        fill="currentColor"
+                        className="bi bi-search"
+                        viewBox="0 0 16 16"
+                    >
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                    </svg>
+                </h5>
+                <p className="card-text">
+                    {' '}
+                    Oops - we've looked everywhere but could not find what you are looking for!
+                </p>
+                <a href="/" className="btn btn-primary">
+                    Return to todo list page
+                </a>
+            </div>
+        </div>
     );
 }

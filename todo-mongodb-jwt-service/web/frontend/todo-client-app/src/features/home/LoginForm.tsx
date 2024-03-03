@@ -27,7 +27,8 @@ export default function LoginForm() {
         };
 
         userStore.login(requestValues).catch((err) => {
-            console.log(err.response.data.message);
+            // alert(err);
+            // alert('login failed')
         });
     };
 

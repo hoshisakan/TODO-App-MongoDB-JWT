@@ -2,6 +2,9 @@ import styled from 'styled-components';
 import { Nav, NavDropdown, Navbar, Offcanvas } from 'react-bootstrap';
 
 
+
+
+
 export const StyledNavbar = styled(Navbar)`
     background-color: #3399ff;
     width: 100%;

@@ -35,16 +35,54 @@ class AuthController {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
+    verifyEmail = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const token = req.query.token;
+
+            if (!token) {
+                throw new Error('Invalid token.');
+            }
+            const emailDto = {
+                token: token,
+            };
+            const result = await this.authService.verifyEmail(emailDto);
+
+            if (result.message) {
+                throw new Error(result.message);
+            }
+            logInfo(`verifyEmail result: ${stringify(result)}`, fileDetails, true);
+            return http.successResponse(res, OK, '', result);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, err.message);
+        }
+    };
+
+    reSendConfirmEmail = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            logInfo(`req.body: ${stringify(req.body)}`, fileDetails, true);
+            const result = await this.authService.reSendConfirmEmail(req.body);
+
+            if (!result.isReSendConfirmEmail) {
+                throw new Error(result.message);
+            }
+            return http.successResponse(res, CREATED, 'Re-send confirm email successfully!', result);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, err.message);
+        }
+    };
+
     signup = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             logInfo(`req.body: ${stringify(req.body)}`, fileDetails, true);
             const result = await this.authService.signup(req.body);
-
-            if (!result) {
-                throw new Error('User was not registered successfully!');
-            }
             return http.successResponse(res, CREATED, 'User was registered successfully!', result);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -67,6 +105,7 @@ class AuthController {
         return result;
     };
 
+    ///TODO: Set specific name of cookie
     setItemToCookie = (res, key, value, expireTime) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -76,26 +115,40 @@ class AuthController {
             }
             res.cookie(key, value, {
                 httpOnly: true,
-                secure: true,
-                maxAge: expireTime * 1000, //TODO: convert to milliseconds
+                secure: false,
+                // sameSite: 'none',
+                sameSite: 'strict',
+                maxAge: expireTime * 1000,
             });
         } catch (err) {
             logError(err, fileDetails, true);
         }
     };
 
+    ///TODO: Clear specific name of cookie
     clearCookie = (res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             this.cookieNameList.forEach((cookieName) => {
-                res.clearCookie(cookieName);
+                logInfo(`clear cookie name: ${cookieName}`, fileDetails, true);
+                // res.clearCookie(cookieName);
+                res.cookie(cookieName, '', {
+                    // expires: new Date(0), // 設置為過去的日期
+                    maxAge: new Date(0), // 設置為過去的日期
+                    // secure: true, // 只在 HTTPS 中傳送
+                    secure: false,
+                    httpOnly: true, // 防止 JavaScript 讀取
+                    // sameSite: 'none' // 允許跨站點請求
+                    sameSite: 'strict', // 允許跨站點請求
+                });
             });
         } catch (err) {
             logError(err, fileDetails, true);
         }
     };
 
+    ///TODO: Handle client login request
     signin = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -133,15 +186,15 @@ class AuthController {
                     clientCookie.refreshTokenExpireTime
                 );
             }
-            const decodedResult = JWTUtil.decodeToken(clientCookie.accessToken);
+            logInfo(`clientResponse: ${stringify(clientResponse)}`, fileDetails, true);
+
+            // const decodedResult = JWTUtil.decodeToken(clientCookie.accessToken);
+            const decodedResult = JWTUtil.verifyToken(clientCookie.accessToken, 'access');
 
             if (!decodedResult) {
                 throw new Error('Decode access token failed, cannot be analysis token expire time.');
             }
-
             clientResponse.accessTokenExpireTime = decodedResult.exp;
-            logInfo(`clientResponse: ${stringify(clientResponse)}`, fileDetails, true);
-
             return http.successResponse(res, OK, 'Login Successfully!', clientResponse);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -205,7 +258,14 @@ class AuthController {
                 logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
 
                 if (!cookieAccessToken && !cookieRefreshToken) {
-                    return http.successResponse(res, BAD_REQUEST, 'Please try login again', '');
+                    return http.successResponse(
+                        res,
+                        BAD_REQUEST,
+                        'Not register account or account already logged out',
+                        {
+                            code: -2,
+                        }
+                    );
                 }
 
                 if (!cookieAccessToken && cookieRefreshToken) {
@@ -213,7 +273,9 @@ class AuthController {
                     const refreshTokenResult = await this.authService.refreshToken(cookieRefreshToken);
                     logInfo(`Refresh token result: ${stringify(refreshTokenResult)}`);
                     if (!refreshTokenResult.token) {
-                        return http.successResponse(res, BAD_REQUEST, 'Please try login again', '');
+                        return http.successResponse(res, BAD_REQUEST, 'Please try login again', '', {
+                            code: -1,
+                        });
                     }
                     this.setItemToCookie(
                         res,
@@ -225,10 +287,12 @@ class AuthController {
                 validateTokenResult = await this.authService.verifyTokenValidity(cookieAccessToken, 'access');
             }
             // logInfo(`validateTokenResult: ${stringify(validateTokenResult)}`, fileDetails, true);
-            return http.successResponse(res, OK, '', validateTokenResult);
+            return http.successResponse(res, OK, 'Verify successfully', validateTokenResult);
         } catch (err) {
             logError(err, fileDetails, true);
-            return http.errorResponse(res, UNAUTHORIZED, err.message);
+            return http.errorResponse(res, UNAUTHORIZED, err.message, {
+                code: -1,
+            });
         }
     };
 

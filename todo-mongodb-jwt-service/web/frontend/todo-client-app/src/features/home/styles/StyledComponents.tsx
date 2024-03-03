@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const StyledLoginPageOutsideDiv = styled.div`
+export const StyledHomePageOutsideDiv = styled.div`
     // width: 100vw;
     height: 100vh;
     display: flex;

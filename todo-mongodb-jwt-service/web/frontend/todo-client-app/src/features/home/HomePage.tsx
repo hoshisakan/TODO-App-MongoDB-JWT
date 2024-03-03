@@ -1,32 +1,36 @@
 import LoginForm from './LoginForm';
-import { StyledLoginPageOutsideDiv } from './styles/StyledComponents';
+import { StyledHomePageOutsideDiv } from './styles/StyledComponents';
 // import './styles/style.css';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../app/stores/store';
-import { useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import RegisterForm from './RegisterForm';
 import RegisterSuccessNavigatePage from './RegisterSuccessNavigatePage';
+import NotFound from '../errors/NotFounds';
+
 
 export default observer(function HomePage() {
     const {
         userStore: { isLoggedIn, user },
     } = useStore();
+    // const navigate = useNavigate();
+    // const location = useLocation();
 
-    const location = useLocation();
-
-    const NotLoggedNavigationRoutes = () => {
-        switch (location.pathname) {
-            case '/sign-up':
-                return <RegisterForm />;
-            case '/sign-up-success':
-                return <RegisterSuccessNavigatePage />;
-            default:
-                return <LoginForm />;
-        }
-    };
+    // const NotLoggedNavigationRoutes = () => {
+    //     switch (location.pathname) {
+    //         case '/sign-up':
+    //             return <RegisterForm />;
+    //         case '/sign-up-success':
+    //             return <RegisterSuccessNavigatePage />;
+    //         case '/':
+    //             return <LoginForm />;
+    //         default:
+    //             return <NotFound />
+    //     }
+    // };
 
     return (
-        <StyledLoginPageOutsideDiv>
+        <StyledHomePageOutsideDiv>
             {isLoggedIn ? (
                 <>
                     <h1 style={{ color: 'white' }}>Welcome {user?.username} !&nbsp;</h1>
@@ -35,8 +39,8 @@ export default observer(function HomePage() {
                     </a>
                 </>
             ) : (
-                <NotLoggedNavigationRoutes />
+                <LoginForm />
             )}
-        </StyledLoginPageOutsideDiv>
+        </StyledHomePageOutsideDiv>
     );
 });

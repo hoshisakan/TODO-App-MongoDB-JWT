@@ -4,6 +4,8 @@ const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 // const expressSession = require('express-session');
 const path = require('path');
+// const https = require('https');
+// const fs = require('fs');
 
 const env = process.env.NODE_ENV || 'development';
 const envPath = path.join(__dirname, `.env.${env.trim()}`);
@@ -58,8 +60,20 @@ app.get('/', (req, res) => {
     res.json({ message: 'Welcome to bezkoder application.' });
 });
 
+// const sslServer = https.createServer(
+//     {
+//         key: fs.readFileSync(path.join(__dirname, '../..', 'certs', 'private.pem')),
+//         cert: fs.readFileSync(path.join(__dirname, '../..', 'certs', 'certificate.pem')),
+//     },
+//     app
+// );
+
 ///TODO: set port, listen for requests
 const PORT = process.env.SERVER_PORT || 8080;
 app.listen(PORT, () => {
     logInfo(`Server is running on port ${PORT}.`, fileDetails, true);
 });
+
+// sslServer.listen(PORT, () => {
+//     logInfo(`Server is running on port ${PORT}.`, fileDetails, true);
+// });
