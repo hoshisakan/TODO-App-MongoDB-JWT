@@ -4,6 +4,10 @@ const { stringify, parse } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
 const { sendMail } = require('../../utils/email.util');
 const JWTUtil = require('../../utils/jwt.util.js');
+const { ACCESS, REFRESH, EMAILCONFIRM,
+    RESETPASSWORD, CONFIRMEMAILVERIFYACTION,
+    RESETPASSWORDVERIFYACTION
+} = require('../../config/auth.type.config.js');
 
 const {
     generateToken,
@@ -15,8 +19,8 @@ const {
 } = require('../../utils/jwt.util');
 const UnitOfWork = require('../../repositories/unitwork');
 const User = require('../../models/mongodb/user.model');
-const { user } = require('../../models/mongodb');
 const unitOfWork = new UnitOfWork();
+
 
 class AuthService {
     constructor() {
@@ -86,6 +90,7 @@ class AuthService {
         }
     };
 
+    ///TODO: Refresh access token through refresh token
     refreshToken = async (token) => {
         const classNameAndFuncName = getFunctionCallerName();
         const fileDetails = getFileDetails(classNameAndFuncName);
@@ -99,26 +104,26 @@ class AuthService {
                 throw new Error('Refresh token cannot be empty');
             }
 
-            const refreshTokenValidateResult = verifyToken(token, 'refresh');
+            const refreshTokenValidateResult = verifyToken(token, REFRESH);
             logInfo(`refreshTokenValidateResult: ${stringify(refreshTokenValidateResult)}`, fileDetails, true);
 
             if (!refreshTokenValidateResult) {
                 throw new Error('Token was not verified successfully!');
             }
 
-            const isAccessTokenExistsInCache = await checkTokenExistsFromCache(refreshTokenValidateResult.id, 'access');
+            const isAccessTokenExistsInCache = await checkTokenExistsFromCache(refreshTokenValidateResult.id, ACCESS);
 
             logInfo(`isAccessTokenExistsInCache: ${stringify(isAccessTokenExistsInCache)}`, fileDetails, true);
 
             if (isAccessTokenExistsInCache) {
-                const cacheAccessTokenItems = parse(await getTokenFromCache(refreshTokenValidateResult.id, 'access'));
+                const cacheAccessTokenItems = parse(await getTokenFromCache(refreshTokenValidateResult.id, ACCESS));
                 logInfo(
                     `Get old access token from redis cache: ${stringify(cacheAccessTokenItems)}`,
                     fileDetails,
                     true
                 );
 
-                const accessTokenValidateResult = verifyToken(cacheAccessTokenItems.token, 'access');
+                const accessTokenValidateResult = verifyToken(cacheAccessTokenItems.token, ACCESS);
 
                 if (cacheAccessTokenItems && accessTokenValidateResult) {
                     createAccessTokenResult.token = cacheAccessTokenItems.token;
@@ -130,15 +135,15 @@ class AuthService {
 
             const userValidateResult = await this.validateUserIdentity({ _id: refreshTokenValidateResult.id });
 
-            if (!userValidateResult) {
-                throw new Error('User not found');
+            if (userValidateResult.message) {
+                throw new Error(userValidateResult.message);
             }
 
             const payload = {
-                id: userValidateResult.id,
+                id: userValidateResult.user.id,
             };
 
-            createAccessTokenResult = await this.generateTokenAndStorageCache(payload, 'access', userValidateResult);
+            createAccessTokenResult = await this.generateTokenAndStorageCache(payload, ACCESS, userValidateResult);
 
             if (!createAccessTokenResult) {
                 throw new Error('Access token create failed');
@@ -152,7 +157,10 @@ class AuthService {
 
     ///TODO: Validate user identity, generate token payload and sign success response items
     validateUserIdentity = async (userFilterExpression) => {
-        let result = null;
+        let result = {
+            user: {},
+            message: '',
+        };
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
@@ -169,20 +177,22 @@ class AuthService {
             const userRolesName = userRoles.map((role) => role.name);
             logInfo(`userRolesName: ${stringify(userRolesName)}`, fileDetails, true);
 
-            result = {
+            result.user = {
                 id: userValidateResult._id,
                 username: userValidateResult.username,
                 password: userValidateResult.password,
                 email: userValidateResult.email,
                 roles: userRolesName,
                 highestRolePermission: userRolesName[0],
+                isActivate: userValidateResult.isActivate,
             };
             logInfo(`result: ${stringify(result)}`, fileDetails, true);
             return result;
         } catch (err) {
-            // logError(err, fileDetails, true);
-            throw err;
+            logError(err, fileDetails, true);
+            result.message = err.message;
         }
+        return result;
     };
 
     isExistsBlacklistToken = async (key, authType) => {
@@ -194,11 +204,12 @@ class AuthService {
             }
             return await checkTokenExistsFromCache(key, authType);
         } catch (err) {
-            // logError(err, fileDetails, true);
+            logError(err, fileDetails, true);
             throw err;
         }
     };
 
+    ///TODO: Generate token and stoarge to cache (redis), but only apply for access token and refresh token
     generateTokenAndStorageCache = async (payload, authType, userValidateResult) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -207,7 +218,7 @@ class AuthService {
             expireTime: null,
         };
         try {
-            createResult = generateToken(payload, authType, userValidateResult.highestRolePermission);
+            createResult = generateToken(payload, authType, userValidateResult.user.highestRolePermission);
             logInfo(`Create result: ${stringify(createResult)}`, fileDetails, true);
 
             if (!createResult.token || !createResult.expireTime) {
@@ -219,12 +230,12 @@ class AuthService {
                 expireTime: createResult.expireTime,
             };
 
-            // const isSetTokenToCache = await setTokenToCache(createResult.token, authType, userValidateResult.highestRolePermission);
+            // const isSetTokenToCache = await setTokenToCache(createResult.token, authType, userValidateResult.user.highestRolePermission);
             const isSetTokenToCache = await setTokenToCache(
                 authType,
-                userValidateResult.id,
+                userValidateResult.user.id,
                 stringify(cacheValue),
-                userValidateResult.highestRolePermission
+                userValidateResult.user.highestRolePermission
             );
             logInfo(`isSetTokenToCache: ${stringify(isSetTokenToCache)}`, fileDetails, true);
 
@@ -260,6 +271,7 @@ class AuthService {
         }
     };
 
+    ///TODO: Re-send confirm email
     reSendConfirmEmail = async (reSendConfirmEmailDto) => {
         let result = {
             isReSendConfirmEmail: false,
@@ -274,10 +286,11 @@ class AuthService {
             }
 
             const senderMailDto = {
-                verifyType: 'email-confirm',
+                verifyType: EMAILCONFIRM,
                 email: reSendConfirmEmailDto.email,
                 subject: 'Confirm your email address',
-                text: `Click on this link to verify your email: http://localhost:49146/api/v1/auth/verify-email?token=replacedToken`,
+                // text: `Click on this link to verify your email: ${process.env.SERVER_BASE_URL}/auth/${CONFIRMEMAILVERIFYACTION}?token=replacedToken`,
+                text: `Click on this link to verify your email: ${process.env.CLIENT_BASE_URL}/${CONFIRMEMAILVERIFYACTION}?token=replacedToken`,
             };
 
             const sendResult = await this.sendVerifyEmail(senderMailDto);
@@ -293,6 +306,7 @@ class AuthService {
         return result;
     };
 
+    ///TODO: Send verify email for reset password and email confirm
     sendVerifyEmail = async (senderMailDto) => {
         let result = {
             isSendSuccess: false,
@@ -332,7 +346,6 @@ class AuthService {
                     throw new Error('Error sending verification email.');
                 }
             });
-
             result.isSendSuccess = true;
         } catch (err) {
             logError(err, fileDetails, true);
@@ -372,10 +385,17 @@ class AuthService {
 
             logInfo(`roles: ${stringify(roles)}`, fileDetails, true);
 
+            const allowedNoEmailValidateRoles = ['admin', 'superadmin'];
+
+            const isActivate = registerDto.roles.some((role) => allowedNoEmailValidateRoles.indexOf(role) !== -1);
+
+            logInfo(`isActivate: ${isActivate}`, fileDetails, true);
+
             const registerUser = new User({
                 username: registerDto.username,
                 email: registerDto.email,
                 password: bcrypt.hashSync(registerDto.password, 8),
+                isActivate: isActivate,
             });
 
             userCreated = await this.unitOfWork.users.create(registerUser);
@@ -384,7 +404,8 @@ class AuthService {
                 throw new Error('User cannot be created');
             }
 
-            if (user.roles && user.roles.length > 0) {
+            if (registerDto.roles && registerDto.roles.length > 0) {
+                logInfo('multiple roles add to one user.', fileDetails);
                 registerResult = await this.unitOfWork.users.addRoles(
                     userCreated._id,
                     roles.map((role) => role._id)
@@ -392,8 +413,9 @@ class AuthService {
                 if (!registerResult) {
                     throw new Error('Roles cannot be added');
                 }
-                logInfo(`registerResult: ${stringify(registerResult)}`, fileDetails, true);
+                // logInfo(`registerResult: ${stringify(registerResult)}`, fileDetails, true);
             } else {
+                logInfo('one role add to one user.', fileDetails);
                 const role = await this.unitOfWork.roles.findOne({ name: 'user' });
                 registerResult = await this.unitOfWork.users.addRole(userCreated._id, role._id);
             }
@@ -404,20 +426,22 @@ class AuthService {
 
             result.isRegisterSuccess = true;
 
-            const senderMailDto = {
-                verifyType: 'email-confirm',
-                email: registerResult.email,
-                subject: 'Confirm your email address',
-                text: `Click on this link to verify your email: http://localhost:49146/api/v1/auth/verify-email?token=replacedToken`,
-            };
+            if (!isActivate) {
+                const senderMailDto = {
+                    verifyType: EMAILCONFIRM,
+                    email: registerResult.email,
+                    subject: 'Confirm your email address',
+                    // text: `Click on this link to verify your email: ${process.env.SERVER_BASE_URL}/auth/${CONFIRMEMAILVERIFYACTION}?token=replacedToken`,
+                    text: `Click on this link to verify your email: ${process.env.CLIENT_BASE_URL}/${CONFIRMEMAILVERIFYACTION}?token=replacedToken`,
+                };
 
-            const sendResult = await this.sendVerifyEmail(senderMailDto);
+                const sendResult = await this.sendVerifyEmail(senderMailDto);
 
-            if (!sendResult.isSendSuccess) {
-                throw new Error('Send register confirm email failed.');
+                if (!sendResult.isSendSuccess) {
+                    throw new Error('Send register confirm email failed.');
+                }
+                result.isSendConfirmEmailSuccess = true;
             }
-            result.isSendConfirmEmailSuccess = true;
-
             return result;
         } catch (err) {
             logError(err, fileDetails, true);
@@ -455,14 +479,18 @@ class AuthService {
 
             const userValidateResult = await this.validateUserIdentity(userFilterExpression);
 
-            if (!userValidateResult) {
-                throw new Error('User not found');
+            if (userValidateResult.message) {
+                throw new Error(userValidateResult.message);
             }
 
-            const validatePassword = bcrypt.compareSync(loginDto.password, userValidateResult.password);
+            const validatePassword = bcrypt.compareSync(loginDto.password, userValidateResult.user.password);
 
             if (!validatePassword) {
                 throw new Error('Invalid password');
+            }
+
+            if (!userValidateResult.user.isActivate) {
+                throw new Error('Please confirm your mailbox activate email address.');
             }
 
             let createAccessTokenResult = {
@@ -476,7 +504,7 @@ class AuthService {
             };
 
             const payload = {
-                id: userValidateResult.id,
+                id: userValidateResult.user.id,
             };
 
             let isTokenExistsInCookie = {
@@ -488,13 +516,13 @@ class AuthService {
             ///TODO: 反之，視為第一次登入，產生 access token
             if (loginDto.cookieAccessToken) {
                 isTokenExistsInCookie.accessToken = true;
-                const isVerifyAccessToken = verifyToken(loginDto.cookieAccessToken, 'access');
+                const isVerifyAccessToken = verifyToken(loginDto.cookieAccessToken, ACCESS);
                 logInfo(`isVerifyAccessToken: ${stringify(isVerifyAccessToken)}`, fileDetails, true);
                 if (!isVerifyAccessToken) {
                     logInfo(`isVerifyAccessToken is false`, fileDetails, true);
                     createAccessTokenResult = await this.generateTokenAndStorageCache(
                         payload,
-                        'access',
+                        ACCESS,
                         userValidateResult
                     );
                 } else {
@@ -503,19 +531,18 @@ class AuthService {
                 }
             } else {
                 isTokenExistsInCookie.accessToken = false;
-                const isExistsBlacklistToken = await this.isExistsBlacklistToken(userValidateResult.id, 'access');
+                const isExistsBlacklistToken = await this.isExistsBlacklistToken(userValidateResult.user.id, ACCESS);
                 logInfo(`isExistsBlacklistToken: ${stringify(isExistsBlacklistToken)}`, fileDetails, true);
                 if (!isExistsBlacklistToken) {
                     logInfo(`isExistsBlacklistToken is false`, fileDetails, true);
                     createAccessTokenResult = await this.generateTokenAndStorageCache(
                         payload,
-                        'access',
+                        ACCESS,
                         userValidateResult
                     );
                 } else {
                     logInfo(`isExistsBlacklistToken is true`, fileDetails, true);
-                    // createAccessTokenResult.token = await getTokenFromCache(userValidateResult.id, 'access');
-                    const cacheAccessTokenItems = parse(await getTokenFromCache(userValidateResult.id, 'access'));
+                    const cacheAccessTokenItems = parse(await getTokenFromCache(userValidateResult.user.id, ACCESS));
                     createAccessTokenResult.token = cacheAccessTokenItems.token;
                     createAccessTokenResult.expireTime = cacheAccessTokenItems.expireTime;
                 }
@@ -531,13 +558,13 @@ class AuthService {
             ///TODO: Otherwise will be as first time login, Check refresh token exists in blacklist (redis cache)
             if (loginDto.cookieRefreshToken) {
                 isTokenExistsInCookie.refreshToken = true;
-                const isVerifyRefreshToken = verifyToken(loginDto.cookieRefreshToken, 'refresh');
+                const isVerifyRefreshToken = verifyToken(loginDto.cookieRefreshToken, REFRESH);
                 logInfo(`isVerifyRefreshToken: ${stringify(isVerifyRefreshToken)}`, fileDetails, true);
                 if (!isVerifyRefreshToken) {
                     logInfo(`isVerifyRefreshToken is false`, fileDetails, true);
                     createRefreshTokenResult = await this.generateTokenAndStorageCache(
                         payload,
-                        'refresh',
+                        REFRESH,
                         userValidateResult
                     );
                 } else {
@@ -546,7 +573,7 @@ class AuthService {
                 }
             } else {
                 isTokenExistsInCookie.refreshToken = false;
-                const isExistsBlacklistToken = await this.isExistsBlacklistToken(userValidateResult.id, 'refresh');
+                const isExistsBlacklistToken = await this.isExistsBlacklistToken(userValidateResult.user.id, REFRESH);
                 logInfo(`isExistsBlacklistToken: ${stringify(isExistsBlacklistToken)}`, fileDetails, true);
                 ///TODO: Check refresh token exists in blacklist (redis cache)
                 ///TODO: If exists, then generate new refresh token, otherwise return old refresh token from redis cache
@@ -554,13 +581,12 @@ class AuthService {
                     logInfo(`isExistsBlacklistToken is false`, fileDetails, true);
                     createRefreshTokenResult = await this.generateTokenAndStorageCache(
                         payload,
-                        'refresh',
+                        REFRESH,
                         userValidateResult
                     );
                 } else {
                     logInfo(`isExistsBlacklistToken is true`, fileDetails, true);
-                    // createRefreshTokenResult.token = await getTokenFromCache(userValidateResult.id, 'refresh');
-                    const cacheRefreshTokenItems = parse(await getTokenFromCache(userValidateResult.id, 'refresh'));
+                    const cacheRefreshTokenItems = parse(await getTokenFromCache(userValidateResult.user.id, REFRESH));
                     createRefreshTokenResult.token = cacheRefreshTokenItems.token;
                     createRefreshTokenResult.expireTime = cacheRefreshTokenItems.expireTime;
                 }
@@ -572,11 +598,18 @@ class AuthService {
 
             logInfo(`createRefreshTokenResult: ${stringify(createRefreshTokenResult)}`, fileDetails, true);
 
+            const decodedResult = JWTUtil.verifyToken(createAccessTokenResult.token, ACCESS);
+
+            if (!decodedResult.data || decodedResult.message) {
+                throw new Error(decodedToken.message);
+            }
+
             result.clientResponse = {
-                id: userValidateResult.id,
-                username: userValidateResult.username,
-                email: userValidateResult.email,
-                roles: userValidateResult.roles,
+                id: userValidateResult.user.id,
+                username: userValidateResult.user.username,
+                email: userValidateResult.user.email,
+                roles: userValidateResult.user.roles,
+                accessTokenExpireTime: decodedResult.data['exp'],
             };
 
             result.clientCookie = {
@@ -613,10 +646,10 @@ class AuthService {
                 throw new Error('User not found');
             }
 
-            const isDeletedAccessToken = await removeTokenFromCache(isUserExists._id, 'access');
+            const isDeletedAccessToken = await removeTokenFromCache(isUserExists._id, ACCESS);
             logInfo(`isDeletedAccessToken: ${stringify(isDeletedAccessToken)}`, fileDetails, true);
 
-            const isDeletedRefreshToken = await removeTokenFromCache(isUserExists._id, 'refresh');
+            const isDeletedRefreshToken = await removeTokenFromCache(isUserExists._id, REFRESH);
             logInfo(`isDeletedRefreshToken: ${stringify(isDeletedRefreshToken)}`, fileDetails, true);
 
             if (!isDeletedAccessToken || !isDeletedRefreshToken) {
@@ -631,11 +664,12 @@ class AuthService {
         return result;
     };
 
+    ///TODO: Verify token of confirm email letter and parse token get user email, then check email whether or exists in database or not
     verifyEmail = async (verifyEmailDto) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = {
-            isVerifyed: true,
+            isVerifyed: false,
             message: null,
         };
 
@@ -644,18 +678,140 @@ class AuthService {
                 throw new Error('Invalid verify token.');
             }
 
-            const decodedToken = JWTUtil.verifyToken(verifyEmailDto.token, 'email-confirm');
-            const verifyedEmail = decodedToken['email'];
-            const validateResult = await this.unitOfWork.users.findOne({
+            const decodedToken = JWTUtil.verifyToken(verifyEmailDto.token, EMAILCONFIRM);
+
+            if (!decodedToken.data || decodedToken.message) {
+                throw new Error(decodedToken.message);
+            }
+
+            const verifyedEmail = decodedToken.data['email'];
+            const user = await this.unitOfWork.users.findOne({
                 email: verifyedEmail,
             });
 
-            if (!validateResult) {
+            if (!user) {
                 throw new Error(`Verifyed failed, not found any ${verifyedEmail} record in database.`);
             }
-            // logInfo(`validateResult: ${validateResult}`, fileDetails, true);
+            user.isActivate = true;
+            user.save();
             result.isVerifyed = true;
-            // logInfo(`result: ${stringify(result)}`, fileDetails, true);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            result.message = err.message;
+        }
+        return result;
+    };
+
+    ///TODO: Verify token of reset password letter and parse token get user email, then check email whether or exists in database or not
+    verifyResetPassword = async (verifyResetPasswordDto) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {
+            isVerifyed: false,
+            resetUserEmail: '',
+            message: '',
+        };
+
+        try {
+            if (!verifyResetPasswordDto || !verifyResetPasswordDto.token) {
+                throw new Error('Invalid verify token.');
+            }
+
+            const decodedToken = JWTUtil.verifyToken(verifyResetPasswordDto.token, RESETPASSWORD);
+
+            if (!decodedToken.data || decodedToken.message) {
+                throw new Error(decodedToken.message);
+            }
+
+            const verifyedEmail = decodedToken.data['email'];
+            const user = await this.unitOfWork.users.findOne({
+                email: verifyedEmail,
+            });
+
+            if (!user) {
+                throw new Error(`Verifyed failed, not found any ${verifyedEmail} record in database.`);
+            }
+            result.resetUserEmail = user.email;
+            result.isVerifyed = true;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            result.message = err.message;
+        }
+        return result;
+    };
+
+    ///TODO: Receive forget password body through email
+    forgetPassword = async (applyResetPasswordDto) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {
+            isSendResetPasswordEmail: false,
+            message: '',
+        };
+
+        try {
+            if (!applyResetPasswordDto || !applyResetPasswordDto.email) {
+                throw new Error('Email field is required.');
+            }
+
+            const senderMailDto = {
+                verifyType: RESETPASSWORD,
+                email: applyResetPasswordDto.email,
+                subject: 'Reset password',
+                // text: `Click on this link to reset your password: ${process.env.SERVER_BASE_URL}/auth/${RESETPASSWORDVERIFYACTION}?token=replacedToken`,
+                text: `Click on this link to reset your password: ${process.env.CLIENT_BASE_URL}/${RESETPASSWORDVERIFYACTION}?token=replacedToken`,
+            };
+
+            const sendResult = await this.sendVerifyEmail(senderMailDto);
+
+            if (!sendResult.isSendSuccess) {
+                throw new Error(sendResult.message);
+            }
+            result.isSendResetPasswordEmail = true;
+        } catch (err) {
+            logError(err, fileDetails, true);
+            result.message = err.message;
+        }
+        return result;
+    };
+
+    ///TODO: Reset password through token, email and new password
+    resetPassword = async (resetPasswordTokenDto) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {
+            isResetSuccess: false,
+            message: '',
+        };
+
+        try {
+            if (!resetPasswordTokenDto || !resetPasswordTokenDto.token || !resetPasswordTokenDto.newPassword) {
+                throw new Error('Invalid verify token or new password.');
+            }
+
+            const decodedToken = JWTUtil.verifyToken(resetPasswordTokenDto.token, RESETPASSWORD);
+
+            if (!decodedToken.data || decodedToken.message) {
+                throw new Error(decodedToken.message);
+            }
+
+            const verifyedEmail = decodedToken.data['email'];
+            const user = await this.unitOfWork.users.findOne({
+                email: verifyedEmail,
+            });
+
+            if (!user) {
+                throw new Error(`Reset password failed, not found any ${verifyedEmail} record in database.`);
+            }
+
+            const isAllowedResetPassword = bcrypt.compareSync(resetPasswordTokenDto.newPassword, user.password);
+
+            if (isAllowedResetPassword) {
+                throw new Error('Reset password failed, because new password with old password is same.');
+            }
+            user.password = bcrypt.hashSync(resetPasswordTokenDto.newPassword, 8);
+            user.save();
+            result.isResetSuccess = true;
         } catch (err) {
             logError(err, fileDetails, true);
             result.message = err.message;
@@ -676,7 +832,7 @@ class AuthService {
 
             logInfo(`token: ${cookieAccessToken}`, fileDetails, true);
 
-            const accessTokenValidateResult = verifyToken(cookieAccessToken, 'access');
+            const accessTokenValidateResult = verifyToken(cookieAccessToken, ACCESS);
 
             logInfo(stringify(accessTokenValidateResult), fileDetails, true);
 
@@ -691,11 +847,14 @@ class AuthService {
             }
 
             const userDetails = await this.findUserById(accessTokenValidateResult.id);
-            result.id = userDetails._id;
-            result.username = userDetails.username;
-            result.email = userDetails.email;
-            result.roles = userDetails.roles;
-            result.expireTime = accessTokenValidateResult.exp;
+
+            result = {
+                id: userDetails._id,
+                username: userDetails.username,
+                email: userDetails.email,
+                roles: userDetails.roles,
+                expireTime: accessTokenValidateResult.exp
+            }
         } catch (err) {
             logError(err, fileDetails, true);
             result.message = err.message;

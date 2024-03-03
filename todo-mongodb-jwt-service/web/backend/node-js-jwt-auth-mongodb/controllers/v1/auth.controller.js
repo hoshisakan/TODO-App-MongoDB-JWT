@@ -12,9 +12,10 @@ const {
     UNAUTHORIZED,
 } = require('../../helpers/constants.helper.js');
 const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../../config/cookie.config.js');
+const { ACCESS, REFRESH } = require('../../config/auth.type.config.js');
 
 const AuthService = require('../../services/v1/auth.service.js');
-const JWTUtil = require('../../utils/jwt.util.js');
+
 
 class AuthController {
     constructor() {
@@ -39,20 +40,21 @@ class AuthController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const token = req.query.token;
-
-            if (!token) {
-                throw new Error('Invalid token.');
-            }
-            const emailDto = {
-                token: token,
-            };
-            const result = await this.authService.verifyEmail(emailDto);
-
-            if (result.message) {
-                throw new Error(result.message);
-            }
+            const result = await this.authService.verifyEmail(req.query);
             logInfo(`verifyEmail result: ${stringify(result)}`, fileDetails, true);
+            return http.successResponse(res, OK, '', result);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, err.message);
+        }
+    };
+
+    verifyResetPassword = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        try {
+            const result = await this.authService.verifyResetPassword(req.query);
+            logInfo(`verifyResetPassword result: ${stringify(result)}`, fileDetails, true);
             return http.successResponse(res, OK, '', result);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -134,13 +136,13 @@ class AuthController {
                 logInfo(`clear cookie name: ${cookieName}`, fileDetails, true);
                 // res.clearCookie(cookieName);
                 res.cookie(cookieName, '', {
-                    // expires: new Date(0), // 設置為過去的日期
-                    maxAge: new Date(0), // 設置為過去的日期
-                    // secure: true, // 只在 HTTPS 中傳送
+                    // expires: new Date(0), // Notworking
+                    maxAge: new Date(0), // Set cookie expire time
+                    // secure: true, // Only allow https send
                     secure: false,
-                    httpOnly: true, // 防止 JavaScript 讀取
-                    // sameSite: 'none' // 允許跨站點請求
-                    sameSite: 'strict', // 允許跨站點請求
+                    httpOnly: true, // Avoid Javascript read cookie content, limit onlt server can read it
+                    // sameSite: 'none'
+                    sameSite: 'strict', // Allow client cross domain request
                 });
             });
         } catch (err) {
@@ -187,14 +189,6 @@ class AuthController {
                 );
             }
             logInfo(`clientResponse: ${stringify(clientResponse)}`, fileDetails, true);
-
-            // const decodedResult = JWTUtil.decodeToken(clientCookie.accessToken);
-            const decodedResult = JWTUtil.verifyToken(clientCookie.accessToken, 'access');
-
-            if (!decodedResult) {
-                throw new Error('Decode access token failed, cannot be analysis token expire time.');
-            }
-            clientResponse.accessTokenExpireTime = decodedResult.exp;
             return http.successResponse(res, OK, 'Login Successfully!', clientResponse);
         } catch (err) {
             logError(err, fileDetails, true);
@@ -238,17 +232,17 @@ class AuthController {
 
             logInfo(`authType: ${stringify(authType)}`, fileDetails, true);
 
-            if (authType !== 'access' && authType !== 'refresh') {
+            if (authType !== ACCESS && authType !== REFRESH) {
                 throw new Error('Invalid authType!');
             }
 
-            if (authType === 'refresh') {
+            if (authType === REFRESH) {
                 const cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME) || null;
                 logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
                 if (!cookieRefreshToken) {
                     throw new Error('Invalid cookie refresh token!');
                 }
-                validateTokenResult = await this.authService.verifyTokenValidity(cookieRefreshToken, 'refresh');
+                validateTokenResult = await this.authService.verifyTokenValidity(cookieRefreshToken, REFRESH);
             } else {
                 // const headerAccessToken = req.headers['x-access-token'];
                 // logInfo(`headerAccessToken: ${headerAccessToken}`, fileDetails, true);
@@ -284,7 +278,7 @@ class AuthController {
                         refreshTokenResult.expireSecondTime
                     );
                 }
-                validateTokenResult = await this.authService.verifyTokenValidity(cookieAccessToken, 'access');
+                validateTokenResult = await this.authService.verifyTokenValidity(cookieAccessToken, ACCESS);
             }
             // logInfo(`validateTokenResult: ${stringify(validateTokenResult)}`, fileDetails, true);
             return http.successResponse(res, OK, 'Verify successfully', validateTokenResult);
@@ -346,6 +340,38 @@ class AuthController {
 
             result = await this.authService.getCurrentUser(cookieAccessToken);
 
+            if (result.message) {
+                throw new Error(result.message);
+            }
+            return http.successResponse(res, OK, '', result);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, err.message);
+        }
+    };
+
+    forgetPassword = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = null;
+        try {
+            result = await this.authService.forgetPassword(req.body);
+            if (result.message) {
+                throw new Error(result.message);
+            }
+            return http.successResponse(res, OK, '', result);
+        } catch (err) {
+            logError(err, fileDetails, true);
+            return http.errorResponse(res, BAD_REQUEST, err.message);
+        }
+    };
+
+    resetPassword = async (req, res) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = null;
+        try {
+            result = await this.authService.resetPassword(req.body);
             if (result.message) {
                 throw new Error(result.message);
             }

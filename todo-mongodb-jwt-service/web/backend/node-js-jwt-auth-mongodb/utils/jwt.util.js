@@ -3,11 +3,15 @@ const { logError, logInfo } = require('../utils/log.util.js');
 const { filenameFilter } = require('../utils/regex.util.js');
 const { set, setex, del, exists, get, mget } = require('../utils/cache.redis.util.js');
 const { stringify } = require('./json.util');
+const { 
+    ACCESS, REFRESH, EMAILCONFIRM, RESETPASSWORD, AUTHTYPELIST,
+    ADMINROLEPERMISSION, DEVELOPMENTROLEPERMISSION, MODERATORROLEPERMISSION,
+    USERROLEPERMISSION
+} = require('../config/auth.type.config.js');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 let fileDetails = `[${filenameWithoutPath}]`;
 
-const authTypeList = ['access', 'refresh', 'email-confirm', 'forget-password'];
 
 const JWTUtil = {
     getCacheTokenKey: (key, authType) => {
@@ -26,23 +30,15 @@ const JWTUtil = {
     getPrivateKey: (authType) => {
         fileDetails = `[${filenameWithoutPath}] [getPrivateKey]`;
         try {
-            if (authType === 'access') {
+            if (authType === ACCESS) {
                 return process.env.JWT_ACCESS_TOKEN_SECRET;
-            } else if (authType === 'refresh') {
+            } else if (authType === REFRESH) {
                 return process.env.JWT_REFRESH_TOKEN_SECRET;
-            } else if (authType === 'email-confirm') {
+            } else if ([EMAILCONFIRM, RESETPASSWORD].includes(authType)) {
                 return process.env.JWT_CONFIRM_AND_RESET_TOKEN_SECRET;
             } else {
                 throw new Error(`Invalid auth type: ${authType}`);
             }
-            // switch (authType) {
-            //     case 'access':
-            //         return process.env.JWT_ACCESS_TOKEN_SECRET;
-            //     case 'refresh':
-            //         return process.env.JWT_REFRESH_TOKEN_SECRET;
-            //     default:
-            //         throw new Error(`Invalid auth type: ${authType}`);
-            // }
         } catch (err) {
             logError(err, fileDetails, true);
             throw err;
@@ -52,13 +48,13 @@ const JWTUtil = {
         fileDetails = `[${filenameWithoutPath}] [getAccessTokenExpireTime]`;
         try {
             switch (roleHighestPermission) {
-                case 'admin':
+                case ADMINROLEPERMISSION:
                     return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_ADMIN;
-                case 'development':
+                case DEVELOPMENTROLEPERMISSION:
                     return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_DEV;
-                case 'moderator':
+                case MODERATORROLEPERMISSION:
                     return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_USER;
-                case 'user':
+                case USERROLEPERMISSION:
                     return process.env.JWT_ACCESS_TOKEN_EXPIRE_TIME_FOR_USER;
                 default:
                     throw new Error(`Invalid role highest permission: ${roleHighestPermission}`);
@@ -72,13 +68,13 @@ const JWTUtil = {
         fileDetails = `[${filenameWithoutPath}] [getTokenExpireTime]`;
         try {
             switch (authType) {
-                case 'access':
+                case ACCESS:
                     return JWTUtil.getAccessTokenExpireTime(roleHighestPermission);
-                case 'refresh':
+                case REFRESH:
                     return process.env.JWT_REFRESH_TOKEN_EXPIRE_TIME;
-                case 'email-confirm':
+                case EMAILCONFIRM:
                     return process.env.JWT_EMAIL_CONFIRM_TOKEN_EXPIRE_TIME;
-                case 'forget-password':
+                case RESETPASSWORD:
                     return process.env.JWT_FORGET_PASSWORD_TOKEN_EXPIRE_TIME;
                 default:
                     throw new Error(`Invalid auth type: ${authType}`);
@@ -107,7 +103,7 @@ const JWTUtil = {
                     message: 'Auth type cannot be empty',
                 };
             }
-            if (!authTypeList.includes(authType)) {
+            if (!AUTHTYPELIST.includes(authType)) {
                 result = {
                     isValid: false,
                     message: 'Invalid auth type',
@@ -124,23 +120,23 @@ const JWTUtil = {
     },
     verifyToken: (token, authType) => {
         fileDetails = `[${filenameWithoutPath}] [verifyToken]`;
-        let result = null;
+        let result = {
+            data: {},
+            message: ''
+        };
         try {
             if (!token) {
                 throw new Error('Token invalid');
             }
             const privateKey = JWTUtil.getPrivateKey(authType);
+
             if (!privateKey) {
                 throw new Error('Private token get failed');
             }
-            const params = {
-                token: token,
-                privateKey: privateKey,
-            };
-            // logInfo(`verifyToken params: ${JSON.stringify(params)}`, fileDetails, true);
-            result = jwt.verify(token, privateKey);
+            result.data = jwt.verify(token, privateKey);
         } catch (err) {
             logError(err, fileDetails, true);
+            result.message = err.message;
         }
         return result;
     },
@@ -163,7 +159,7 @@ const JWTUtil = {
                     message: 'Auth type cannot be empty',
                 };
             }
-            if (!authTypeList.includes(authType)) {
+            if (!AUTHTYPELIST.includes(authType)) {
                 result = {
                     isValid: false,
                     message: `Invaild auth type: ${authType}`,
@@ -211,9 +207,6 @@ const JWTUtil = {
                 token: jwt.sign(payload, privateKey, { expiresIn: expireTime }),
                 expireTime: expireTime,
             };
-
-            // const decoded = jwt.verify(result.token, privateKey);
-            // logInfo(`decoded: ${JSON.stringify(decoded)}`, fileDetails, true);
         } catch (err) {
             logError(err, fileDetails, true);
         }
@@ -246,9 +239,7 @@ const JWTUtil = {
         let isSet = false;
         try {
             const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
-
             const expireTime = JWTUtil.getTokenExpireTime(authType, roleHighestPermission);
-
             isSet = (await setex(cacheTokenKey, expireTime, value)) === 'OK';
             return isSet;
         } catch (err) {
@@ -260,7 +251,6 @@ const JWTUtil = {
         fileDetails = `[${filenameWithoutPath}] [getTokenFromCache]`;
         try {
             const cacheTokenKey = JWTUtil.getCacheTokenKey(key, authType);
-
             const value = await get(cacheTokenKey);
 
             if (!value) {

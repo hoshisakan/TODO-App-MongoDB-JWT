@@ -12,74 +12,29 @@ import { ResponseResult } from '../models/AxiosResponse';
 import { toast } from 'react-toastify';
 import url from 'url';
 
+
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 // axios.defaults.baseURL = 'http://localhost:49146/api/v1';
 // axios.defaults.baseURL = 'http//192.168.1.103:49146/api/v1';
 ///TODO: When cross domain request send cookie
 axios.defaults.withCredentials = true;
 
-// const request = async (axiosRequest: RequestParameters) => {
-// const options: RequestOptions = {
-//     method: axiosRequest.method,
-//     headers: {
-//         'Content-Type': 'application/json',
-//     },
-//     body: {},
-// };
 
-// if (axiosRequest.headers) {
-//     // console.log('headers is not null');
-//     options.headers = { ...options.headers, ...axiosRequest.headers };
-// } else if (!axiosRequest.headers && axiosRequest.isFile) {
-//     // console.log('headers is null');
-//     options.headers = {};
-// }
-
-// if (axiosRequest.body && !axiosRequest.isFile) {
-//     // console.log('Is not file');
-//     options.body = JSON.stringify(axiosRequest.body);
-// } else {
-//     // console.log('Is file');
-//     options.body = axiosRequest.body;
-// }
-
-// const urlApi = `${baseApi}${url}`;
-// };
-
-///TODO: response interceptors
-// axios.interceptors.response.use(
-//     ///TODO: If API request successfully, then the area perform additional processing
-//     async (response) => {
-//         return response;
-//     },
-//     (error: AxiosError) => {
-//         const { data, status, config, headers } = error.response as AxiosResponse;
-
-//         if (data.message) {
-//             toast(data.message);
-//         }
-
-//         // switch (status) {
-//         //     case 400:
-//         //         break;
-//         //     case 401:
-//         //         break;
-//         //     case 403:
-//         //         break;
-//         //     case 404:
-//         //         break;
-//         //     case 500:
-//         //         break;
-//         // }
-//         return Promise.reject(error);
-//     }
-// );
 
 const sleep = (delay: number) => {
     return new Promise((resolve) => {
         setTimeout(resolve, delay);
     });
 };
+
+axios.interceptors.request.use((config) => {
+    // const token = store.commonStore.token;
+    // if (token && config.headers) {
+    //     config.headers.Authorization = `Bearer ${token}`;
+    // }
+    console.log(`axios request config content: ${JSON.stringify(config)}`);
+    return config;
+});
 
 axios.interceptors.response.use(
     async (response) => {
@@ -106,7 +61,6 @@ axios.interceptors.response.use(
 //     if (error.response.data) {
 //         toast.error(error.response.data.message);
 //     }
-
 //     return Promise.reject(error);
 // });
 

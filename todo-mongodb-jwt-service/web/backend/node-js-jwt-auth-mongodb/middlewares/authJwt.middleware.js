@@ -110,7 +110,7 @@ isAdmin = async (req, res, next) => {
         const userId = req.userId || null;
 
         if (!userId) {
-            throw new Error('Unauthorized!');
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
         logInfo(`userId: ${userId}`, fileDetails, true);
 
@@ -122,7 +122,7 @@ isAdmin = async (req, res, next) => {
 
         if (!isAdmin) {
             logInfo(`Admin role not found.`, fileDetails, true);
-            throw new Error('Unauthorized!');
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
         return next();
     } catch (err) {
@@ -138,7 +138,7 @@ isDevelopment = async (req, res, next) => {
         const userId = req.userId || null;
 
         if (!userId) {
-            throw new Error('Unauthorized!');
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
         logInfo(`userId: ${userId}`, fileDetails, true);
 
@@ -150,7 +150,7 @@ isDevelopment = async (req, res, next) => {
 
         if (!isDevelopment) {
             logInfo(`Development role not found.`, fileDetails, true);
-            throw new Error('Unauthorized!');
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
         return next();
     } catch (err) {
@@ -166,7 +166,7 @@ isModerator = async (req, res, next) => {
         const userId = req.userId || null;
 
         if (!userId) {
-            throw new Error('Unauthorized!');
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
         logInfo(`userId: ${userId}`, fileDetails, true);
 
@@ -178,7 +178,7 @@ isModerator = async (req, res, next) => {
 
         if (!isModerator) {
             logInfo(`Moderator role not found.`, fileDetails, true);
-            throw new Error('Unauthorized!');
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
         return next();
     } catch (err) {

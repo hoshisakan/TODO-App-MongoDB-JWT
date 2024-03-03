@@ -6,6 +6,7 @@ const { sendMail } = require('../../utils/email.util');
 const { randomBytes } = require('crypto');
 const JWTUtil = require('../../utils/jwt.util');
 const { stringify } = require('querystring');
+const { EMAILCONFIRM } = require('../../config/auth.type.config');
 
 class TestController {
     constructor() {
@@ -47,10 +48,14 @@ class TestController {
             const token = req.query.token;
 
             if (!token) {
-                throw new Error('Invalid token.');
+                throw new Error('Token is required');
             }
-            const decodedToken = JWTUtil.verifyToken(token, 'email-confirm');
-            const verifyUserEmail = decodedToken['email'];
+            const decodedToken = JWTUtil.verifyToken(token, EMAILCONFIRM);
+
+            if (!decodedToken.data || decodedToken.message) {
+                throw new Error(decodedToken.message);
+            }
+            const verifyUserEmail = decodedToken.data['email'];
             
             return http.successResponse(res, OK, 'Analysis token successfully.', verifyUserEmail);
         } catch (error) {
