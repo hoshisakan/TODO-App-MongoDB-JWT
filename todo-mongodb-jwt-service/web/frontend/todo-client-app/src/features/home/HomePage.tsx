@@ -1,33 +1,15 @@
-import LoginForm from './LoginForm';
+// import LoginForm from './LoginForm';
 import { StyledHomePageOutsideDiv } from './styles/StyledComponents';
 // import './styles/style.css';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../app/stores/store';
-import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import RegisterForm from './RegisterForm';
-import RegisterSuccessNavigatePage from './RegisterSuccessNavigatePage';
-import NotFound from '../errors/NotFounds';
-
+import { Navigate, useLocation } from 'react-router-dom';
 
 export default observer(function HomePage() {
     const {
         userStore: { isLoggedIn, user },
     } = useStore();
-    // const navigate = useNavigate();
-    // const location = useLocation();
-
-    // const NotLoggedNavigationRoutes = () => {
-    //     switch (location.pathname) {
-    //         case '/sign-up':
-    //             return <RegisterForm />;
-    //         case '/sign-up-success':
-    //             return <RegisterSuccessNavigatePage />;
-    //         case '/':
-    //             return <LoginForm />;
-    //         default:
-    //             return <NotFound />
-    //     }
-    // };
+    const location = useLocation();
 
     return (
         <StyledHomePageOutsideDiv>
@@ -39,7 +21,8 @@ export default observer(function HomePage() {
                     </a>
                 </>
             ) : (
-                <LoginForm />
+                // <LoginForm />
+                <Navigate to="/sign-in" state={{ from: location }} />
             )}
         </StyledHomePageOutsideDiv>
     );

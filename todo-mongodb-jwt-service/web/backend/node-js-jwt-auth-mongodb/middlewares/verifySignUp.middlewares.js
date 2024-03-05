@@ -3,12 +3,12 @@ const ROLES = db.ROLES;
 const { logError, logInfo } = require('../utils/log.util');
 const http = require('../helpers/http.helper');
 const { BAD_REQUEST } = require('../helpers/constants.helper');
-const { filenameFilter } = require('../utils/regex.util');
+// const { filenameFilter } = require('../utils/regex.util');
 
 const UserService = require('../services/v1/user.service');
 const userService = new UserService();
 
-const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+// const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 
 getFunctionCallerName = () => {
     const err = new Error();
@@ -17,14 +17,9 @@ getFunctionCallerName = () => {
     return functionName;
 };
 
-getFileDetails = (classAndFuncName) => {
-    const classAndFuncNameArr = classAndFuncName.split('.');
-    return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
-};
-
 checkDuplicateUsernameOrEmail = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
+    const fileDetails = `[verifySignUp.middlewares.js] [${classNameAndFuncName.split('.')}]`;
     try {
         const params = req.body;
         // logInfo(`params: ${JSON.stringify(params)}`, fileDetails, true);
@@ -51,7 +46,7 @@ checkDuplicateUsernameOrEmail = async (req, res, next) => {
 
 checkRolesExisted = (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
+    const fileDetails = `[verifySignUp.middlewares.js] [${classNameAndFuncName.split('.')}]`;
     try {
         const checkRoles = req.body.roles;
         logInfo(`checkRoles: ${JSON.stringify(checkRoles)}`, fileDetails, true);

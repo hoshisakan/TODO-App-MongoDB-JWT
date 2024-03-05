@@ -1,12 +1,10 @@
 import styled from 'styled-components';
 
 export const StyledHomePageOutsideDiv = styled.div`
-    // width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    // background-color: #f5f5dc;
     background-image: linear-gradient(
         245deg,
         rgb(24, 42, 115) 0%,

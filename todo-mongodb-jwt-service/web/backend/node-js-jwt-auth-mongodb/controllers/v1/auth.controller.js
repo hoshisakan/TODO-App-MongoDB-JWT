@@ -40,7 +40,8 @@ class AuthController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.authService.verifyEmail(req.query);
+            // const result = await this.authService.verifyEmail(req.query);
+            const result = await this.authService.verifyEmail(req.body);
             logInfo(`verifyEmail result: ${stringify(result)}`, fileDetails, true);
             return http.successResponse(res, OK, '', result);
         } catch (err) {
@@ -163,10 +164,11 @@ class AuthController {
             loginDto.cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
             logInfo(`loginDto: ${stringify(loginDto)}`, fileDetails, true);
 
-            const { clientResponse, clientCookie } = await this.authService.signin(loginDto);
+            const { clientResponse, clientCookie, message } = await this.authService.signin(loginDto);
 
-            if (!clientResponse || !clientCookie) {
-                throw new Error('User was not signed in successfully!');
+            if (!clientResponse || !clientCookie || message) {
+                // throw new Error('User was not signed in successfully!');
+                throw new Error(message);
             }
 
             logInfo(`clientCookie: ${stringify(clientCookie)}`, fileDetails, true);
@@ -280,11 +282,14 @@ class AuthController {
                 }
                 validateTokenResult = await this.authService.verifyTokenValidity(cookieAccessToken, ACCESS);
             }
+            if (!validateTokenResult.data || validateTokenResult.message) {
+                throw new Error(validateTokenResult.message);
+            }
             // logInfo(`validateTokenResult: ${stringify(validateTokenResult)}`, fileDetails, true);
-            return http.successResponse(res, OK, 'Verify successfully', validateTokenResult);
+            return http.successResponse(res, OK, '', validateTokenResult.data);
         } catch (err) {
             logError(err, fileDetails, true);
-            return http.errorResponse(res, UNAUTHORIZED, err.message, {
+            return http.errorResponse(res, BAD_REQUEST, err.message, {
                 code: -1,
             });
         }

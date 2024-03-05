@@ -10,11 +10,13 @@ import {
 } from '../models/User';
 import agent from '../api/agent';
 import { router } from '../router/Routes';
+import moment from 'moment';
 
 export default class UserStore {
     user: UserDetails | null = null;
-    // isLoggedIn: Boolean = false;
     appLoaded = false;
+    isRequiredAuthPage = false;
+    refreshTokenTimeout: any;
 
     constructor() {
         makeAutoObservable(this);
@@ -29,6 +31,10 @@ export default class UserStore {
         this.appLoaded = true;
     };
 
+    setIsRequiredAuthPage = () => {
+        this.isRequiredAuthPage = true;
+    };
+
     login = async (requestValues: UserFormValuesLogin) => {
         try {
             await agent.Auth.signin(requestValues).then((response) => {
@@ -37,6 +43,7 @@ export default class UserStore {
                     this.user = response.data;
                     console.log(`UserDetails: ${JSON.stringify(this.user)}`);
                     // alert(`UserDetails: ${JSON.stringify(this.user)}`);
+                    this.startRefreshTokenTimer(this.user);
                 });
             });
             router.navigate('/todo');
@@ -50,9 +57,9 @@ export default class UserStore {
             await agent.Auth.signup(requestValues).then((response) => {
                 runInAction(() => {
                     const registerResult: UserRegisterSuccess = response.data;
-                    console.log(`registerResult: ${JSON.stringify(registerResult)}`);
-                    if (registerResult._id) {
-                        router.navigate('/sign-up-success');
+                    // console.log(`registerResult: ${JSON.stringify(registerResult)}`);
+                    if (registerResult.isRegisterSuccess) {
+                        router.navigate(`/sign-up-success?email=${requestValues.email}`);
                     }
                 });
             });
@@ -67,7 +74,7 @@ export default class UserStore {
                 const result: UserLogoutSuccess = response.data;
                 if (result.isAllowedLogout) {
                     this.user = null;
-                    router.navigate('/');
+                    router.navigate('/sign-in');
                 }
             });
         } catch (error) {
@@ -83,7 +90,8 @@ export default class UserStore {
                 if (verifyResult.id) {
                     await agent.User.details(response.data.id).then((response) => {
                         this.user = response.data;
-                        console.log(`verifyToken user details: ${JSON.stringify(this.user)}`);
+                        // console.log(`verifyToken user details: ${JSON.stringify(this.user)}`);
+                        this.startRefreshTokenTimer(this.user);
                     });
                 }
             });
@@ -94,19 +102,58 @@ export default class UserStore {
 
     getCurrentUser = async () => {
         try {
-            // const user = await agent.Auth.current();
-            // console.log(`logout: ${JSON.stringify(user)}`);
-            // runInAction(() => {
-            //     this.user = user;
-            //     console.log(`getCurrentUser user: ${user}`);
-            // });
-
             await agent.Auth.current().then((response) => {
                 this.user = response.data;
-                console.log(`getCurrentUser user details: ${JSON.stringify(this.user)}`);
+                // console.log(`getCurrentUser user details: ${JSON.stringify(this.user)}`);
+                this.startRefreshTokenTimer(this.user);
             });
         } catch (error) {
             throw error;
         }
     };
+
+    refreshToken = async () => {
+        this.stopRefreshTokenTimer();
+        try {
+            await agent.Auth.refreshToken().then((response) => {
+                runInAction(() => {
+                    const user: UserDetails = response.data;
+                    console.log(`refreshToken user: ${user}`);
+                    this.startRefreshTokenTimer(user);
+                });
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    private startRefreshTokenTimer(user: UserDetails | null) {
+        try {
+            if (user && user.accessTokenExpireTime) {
+                ///TODO: Convert timestamp to millseconds.
+                // console.log(`user.accessTokenExpireTime: ${user.accessTokenExpireTime}, Date.now(): ${Date.now()}`);
+                // multiplied by 1000 so that the argument is in milliseconds, not seconds
+                const expires = new Date(user.accessTokenExpireTime * 1000);
+                ///TODO: Convert timestamp to millseconds.
+                const timeout = expires.getTime() - Date.now() - 30 * 1000;
+                this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
+                // console.log(this.refreshTokenTimeout);
+                // console.log(`Refresh user ${user._id} token that expired time is: ${expires}, timeout: ${timeout}`);
+                const expiresDateString = moment(expires).format('yyyy-MM-DD HH:mm:ss');
+                const timeoutDateString = moment.unix(timeout / 1000).format('mm:ss');
+
+                console.log(
+                    `Refresh user ${user._id} token that expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
+                );
+            } else {
+                console.log(`User details is null.`);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    private stopRefreshTokenTimer() {
+        clearTimeout(this.refreshTokenTimeout);
+    }
 }

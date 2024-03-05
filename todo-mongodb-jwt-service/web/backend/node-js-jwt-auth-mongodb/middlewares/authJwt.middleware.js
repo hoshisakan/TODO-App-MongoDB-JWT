@@ -1,7 +1,7 @@
 const http = require('../helpers/http.helper.js');
 const { logInfo, logError } = require('../utils/log.util.js');
 const { stringify } = require('../utils/json.util.js');
-const { filenameFilter } = require('../utils/regex.util');
+// const { filenameFilter } = require('../utils/regex.util');
 const { BAD_REQUEST, UNAUTHORIZED } = require('../helpers/constants.helper.js');
 
 const AuthService = require('../services/v1/auth.service.js');
@@ -9,7 +9,7 @@ const authService = new AuthService();
 const { verifyToken } = require('../utils/jwt.util.js');
 const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../config/cookie.config.js');
 
-const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+// const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 
 getFunctionCallerName = () => {
     const err = new Error();
@@ -18,17 +18,11 @@ getFunctionCallerName = () => {
     return functionName;
 };
 
-getFileDetails = (classAndFuncName) => {
-    const classAndFuncNameArr = classAndFuncName.split('.');
-    return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
-};
-
 ///TODO: Verify refresh token
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
 verifyAcccessToken = (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
-
+    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
     try {
         // const token = req.headers['x-access-token'];
         const token = req.cookies[ACCESS_TOKEN_COOKIE_NAME];
@@ -38,15 +32,15 @@ verifyAcccessToken = (req, res, next) => {
             return http.errorResponse(res, BAD_REQUEST, 'No token provided!');
         }
 
-        const decoded = verifyToken(token, 'access');
-        logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
+        const decodedResult = verifyToken(token, ACCESS);
 
-        if (!decoded) {
-            logInfo(`decoded is null`, fileDetails, true);
-            throw new Error('Unauthorized!');
+        if (!decodedResult.data || decodedResult.message) {
+            throw new Error(decodedToken.message);
         }
 
-        req.userId = decoded.id;
+        logInfo(`decodedResult: ${stringify(decodedResult)}`, fileDetails);
+
+        req.userId = decodedResult.data['id'];
 
         logInfo(`req.userId: ${req.userId}`, fileDetails, true);
 
@@ -61,10 +55,9 @@ verifyAcccessToken = (req, res, next) => {
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
 verifyRefreshToken = (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
+    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
 
     try {
-        // const token = req.headers['x-access-token'];
         const token = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
         logInfo(`verifyToken: ${token}`, fileDetails, true);
 
@@ -72,18 +65,15 @@ verifyRefreshToken = (req, res, next) => {
             return http.errorResponse(res, BAD_REQUEST, 'No token provided!');
         }
 
-        const decoded = verifyToken(token, 'refresh');
+        const decodedResult = verifyToken(token, REFRESH);
 
-        logInfo(`decoded: ${stringify(decoded)}`, fileDetails, true);
-
-        if (!decoded) {
-            logInfo(`decoded is null`, fileDetails, true);
-            throw new Error('Unauthorized!');
+        if (!decodedResult.data || decodedResult.message) {
+            throw new Error(decodedToken.message);
         }
 
-        req.userId = decoded.id;
+        req.userId = decodedResult.data['id'];
 
-        logInfo(`res.userId: ${res.userId}`, fileDetails, true);
+        logInfo(`req.userId: ${req.userId}`, fileDetails, true);
 
         return next();
     } catch (err) {
@@ -105,7 +95,7 @@ isMatchRole = (userOwnRoleList, checkRole) => {
 
 isAdmin = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
+    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
     try {
         const userId = req.userId || null;
 
@@ -133,7 +123,7 @@ isAdmin = async (req, res, next) => {
 
 isDevelopment = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
+    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
     try {
         const userId = req.userId || null;
 
@@ -161,7 +151,7 @@ isDevelopment = async (req, res, next) => {
 
 isModerator = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = getFileDetails(classNameAndFuncName);
+    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
     try {
         const userId = req.userId || null;
 
@@ -196,6 +186,7 @@ const authJwt = {
 module.exports = authJwt;
 
 const verifySignUp = require('./verifySignUp.middlewares.js');
+const { ACCESS, REFRESH } = require('../config/auth.type.config.js');
 
 module.exports = {
     authJwt,

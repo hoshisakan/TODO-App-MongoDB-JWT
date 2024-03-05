@@ -4,7 +4,7 @@ const { filenameFilter } = require('../../utils/regex.util');
 const { OK, INTERNAL_SERVER_ERROR, BAD_REQUEST } = require('../../helpers/constants.helper');
 const { sendMail } = require('../../utils/email.util');
 const { randomBytes } = require('crypto');
-const JWTUtil = require('../../utils/jwt.util');
+const { verifyToken } = require('../../utils/jwt.util');
 const { stringify } = require('querystring');
 const { EMAILCONFIRM } = require('../../config/auth.type.config');
 
@@ -50,7 +50,7 @@ class TestController {
             if (!token) {
                 throw new Error('Token is required');
             }
-            const decodedToken = JWTUtil.verifyToken(token, EMAILCONFIRM);
+            const decodedToken = verifyToken(token, EMAILCONFIRM);
 
             if (!decodedToken.data || decodedToken.message) {
                 throw new Error(decodedToken.message);
@@ -87,8 +87,8 @@ class TestController {
                     from: process.env.EMAIL_SENDER,
                     to: email,
                     subject: 'Confirm your email address',
-                    //text: `Click on this link to verify your email: http://localhost/api/v1/test/verify?token=${token}`,
-                    text: `Click on this link to verify your email: http://localhost:49146/api/v1/test/verify?token=${result.token}`,
+                    // text: `Click on this link to verify your email: ${process.env.SERVER_BASE_URL}/api/v1/test/verify?token=${token}`,
+                    text: `Click on this link to verify your email: ${process.env.SERVER_BASE_URL}/test/verify?token=${result.token}`,
                 };
 
                 sendMail(mailOptions, (error, info) => {

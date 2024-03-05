@@ -1,6 +1,5 @@
 import { Droppable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
-import { Button } from 'react-bootstrap';
 
 /*
     DrapCard.tsx
@@ -116,7 +115,7 @@ export const StyledDashboardWrapper = styled.div`
     flex-wrap: wrap; // 若元件排列後，超出外容器主軸，則允許其換行
     // justify-content: center;
     // align-content: center;
-    margin-top: 80px; /* 與 header 的距離 */
+    margin-top: 40px; /* 與 header 的距離 */
     margin-bottom: 25px; /* 與 footer 的距離 */
     // flex-wrap: nowrap; // 防止 flex 項目換行
     // overflow-x: auto; // 當內容超出寬度時顯示水平滾輪

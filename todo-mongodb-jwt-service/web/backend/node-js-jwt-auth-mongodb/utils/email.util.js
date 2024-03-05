@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const { filenameFilter } = require('../utils/regex.util.js');
-const { logInfo } = require('./log.util.js');
+const { logInfo, logError } = require('./log.util.js');
 const { stringify } = require('./json.util.js');
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 let fileDetails = `[${filenameWithoutPath}]`;
@@ -15,7 +15,7 @@ const EmailUtil = {
                 secure: false,
                 auth: {
                     user: process.env.EMAIL_SENDER,
-                    pass: process.env.EMAIL_PASSWORD
+                    pass: process.env.EMAIL_PASSWORD,
                 },
                 logger: true,
             });

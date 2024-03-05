@@ -16,7 +16,7 @@ export interface UserFormValuesRegister {
     username: string;
     email: string;
     password: string;
-    roles: Array<string>
+    roles: Array<string>;
 }
 
 export interface UserLogout {
@@ -25,7 +25,7 @@ export interface UserLogout {
 }
 
 export interface UserLogoutSuccess {
-    isAllowedLogout: Boolean;
+    isAllowedLogout: boolean;
     message: string;
 }
 
@@ -41,8 +41,30 @@ export interface RefreshTokenResult {
 }
 
 export interface UserRegisterSuccess {
-    _id: string;
-    username: string,
-    email: string,
-    roles: Array<string>
+    // _id: string;
+    // username: string,
+    // email: string,
+    // roles: Array<string>
+    messge: string;
+    isRegisterSuccess: boolean;
+    isSendConfirmEmailSuccess: boolean;
 }
+
+export interface UserFormValuesReSendVerifyEmail {
+    email: string;
+}
+
+export interface ReSendVerifyEmailResult {
+    isReSendConfirmEmail: boolean;
+    message: string;
+}
+
+export interface UserFormValuesVerifyEmail {
+    token: string;
+}
+
+export interface VerifyEmailResult {
+    isVerifyed: boolean;
+    message: string;
+}
+

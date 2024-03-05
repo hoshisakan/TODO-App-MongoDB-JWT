@@ -1,12 +1,12 @@
 import { Navigate, RouteObject, createBrowserRouter } from 'react-router-dom';
 import App from '../layout/App';
 import NotFound from '../../features/errors/NotFounds';
-import TestLayoutLoading from '../../features/test/TestLayoutLoading';
 import RequireAuth from './RequireAuth';
-import TestLayoutLoadingSec from '../../features/test/TestLayoutLoadingSec';
 import TodoDashboard from '../../features/todos/TodoDashboard';
 import RegisterForm from '../../features/home/RegisterForm';
-import RegisterSuccessNavigatePage from '../../features/home/RegisterSuccessNavigatePage';
+// import LoginForm from '../../features/home/LoginForm';
+import RegisterSuccessConfirmPage from '../../features/home/RegisterSuccessConfirmPage';
+import VerifyEmaiResultPage from '../../features/home/VerifyEmaiResultPage';
 import LoginForm from '../../features/home/LoginForm';
 
 export const routes: RouteObject[] = [
@@ -17,15 +17,6 @@ export const routes: RouteObject[] = [
             {
                 element: <RequireAuth />,
                 children: [
-                    {
-                        path: 'testLayoutLoading',
-                        element: <TestLayoutLoading />,
-                    },
-
-                    {
-                        path: 'testLayoutLoadingSec',
-                        element: <TestLayoutLoadingSec />,
-                    },
                     {
                         path: 'todo',
                         element: <TodoDashboard />,
@@ -46,12 +37,16 @@ export const routes: RouteObject[] = [
             },
             {
                 path: 'sign-up-success',
-                element: <RegisterSuccessNavigatePage />,
+                element: <RegisterSuccessConfirmPage />,
+            },
+            {
+                path: 'verify-email',
+                element: <VerifyEmaiResultPage />,
             },
             {
                 path: '*',
                 element: <Navigate replace to="/not-found" />,
-            }
+            },
         ],
     },
 ];

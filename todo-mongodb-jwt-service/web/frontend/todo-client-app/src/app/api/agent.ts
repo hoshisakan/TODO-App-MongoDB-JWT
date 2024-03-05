@@ -3,7 +3,9 @@ import axios, { AxiosError, AxiosResponse } from 'axios';
 import {
     UserDetails,
     UserFormValuesLogin,
+    UserFormValuesReSendVerifyEmail,
     UserFormValuesRegister,
+    UserFormValuesVerifyEmail,
     UserLogout,
     UserLogoutSuccess,
     VerifyTokenResult,
@@ -12,14 +14,11 @@ import { ResponseResult } from '../models/AxiosResponse';
 import { toast } from 'react-toastify';
 import url from 'url';
 
-
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 // axios.defaults.baseURL = 'http://localhost:49146/api/v1';
 // axios.defaults.baseURL = 'http//192.168.1.103:49146/api/v1';
 ///TODO: When cross domain request send cookie
 axios.defaults.withCredentials = true;
-
-
 
 const sleep = (delay: number) => {
     return new Promise((resolve) => {
@@ -32,7 +31,7 @@ axios.interceptors.request.use((config) => {
     // if (token && config.headers) {
     //     config.headers.Authorization = `Bearer ${token}`;
     // }
-    console.log(`axios request config content: ${JSON.stringify(config)}`);
+    // console.log(`axios request config content: ${JSON.stringify(config)}`);
     return config;
 });
 
@@ -47,11 +46,7 @@ axios.interceptors.response.use(
         if (config.url) {
             const requestAPIURL = url.parse(config.url).pathname;
             console.log(`requestAPIURL: ${requestAPIURL}`);
-            if (requestAPIURL === '/auth/verify-token' && data.data.code === -1) {
-                toast.error(data.message);
-            } else {
-                toast.error(data.message);
-            }
+            toast.error(data.message);
         }
         return Promise.reject(error);
     }
@@ -83,7 +78,10 @@ const Auth = {
     signin: (user: UserFormValuesLogin) => requests.post<ResponseResult>(`/auth/signin`, user),
     signup: (user: UserFormValuesRegister) => requests.post<ResponseResult>(`/auth/signup`, user),
     signout: (user: UserLogout) => requests.post<ResponseResult>(`/auth/signout`, user),
-    refreshToken: () => requests.post<ResponseResult>,
+    refreshToken: () => requests.get<ResponseResult>(`/auth/refresh-token`),
+    reSendVerifyEmail: (user: UserFormValuesReSendVerifyEmail) =>
+        requests.post<ResponseResult>(`/auth/re-send-confirm-email`, user),
+    verifyEmail: (user: UserFormValuesVerifyEmail) => requests.post<ResponseResult>(`/auth/verify-email`, user),
 };
 
 const agent = {
