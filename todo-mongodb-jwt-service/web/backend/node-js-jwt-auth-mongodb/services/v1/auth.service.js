@@ -696,7 +696,7 @@ class AuthService {
 
         try {
             if (!verifyEmailDto || !verifyEmailDto.token) {
-                throw new Error('Invalid verify token.');
+                throw new Error('Token is required.');
             }
 
             const decodedToken = verifyToken(verifyEmailDto.token, EMAILCONFIRM);
@@ -724,7 +724,7 @@ class AuthService {
     };
 
     ///TODO: Verify token of reset password letter and parse token get user email, then check email whether or exists in database or not
-    verifyResetPassword = async (verifyResetPasswordDto) => {
+    verifyResetPasswordToken = async (verifyResetPasswordDto) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = {
@@ -735,7 +735,7 @@ class AuthService {
 
         try {
             if (!verifyResetPasswordDto || !verifyResetPasswordDto.token) {
-                throw new Error('Invalid verify token.');
+                throw new Error('Token is required.');
             }
 
             const decodedToken = verifyToken(verifyResetPasswordDto.token, RESETPASSWORD);
@@ -780,7 +780,7 @@ class AuthService {
                 email: applyResetPasswordDto.email,
                 subject: 'Reset password',
                 // text: `Click on this link to reset your password: ${process.env.SERVER_BASE_URL}/auth/${RESETPASSWORDVERIFYACTION}?token=replacedToken`,
-                text: `Click on this link to reset your password: ${process.env.CLIENT_BASE_URL}/${RESETPASSWORDVERIFYACTION}?token=replacedToken`,
+                text: `Click on this link to reset your password: ${process.env.CLIENT_BASE_URL}/${RESETPASSWORDVERIFYACTION}?token=replacedToken&email=${applyResetPasswordDto.email}`,
             };
 
             const sendResult = await this.sendVerifyEmail(senderMailDto);
@@ -806,8 +806,13 @@ class AuthService {
         };
 
         try {
-            if (!resetPasswordTokenDto || !resetPasswordTokenDto.token || !resetPasswordTokenDto.newPassword) {
-                throw new Error('Invalid verify token or new password.');
+            if (
+                !resetPasswordTokenDto ||
+                !resetPasswordTokenDto.token ||
+                !resetPasswordTokenDto.email ||
+                !resetPasswordTokenDto.newPassword
+            ) {
+                throw new Error('Invalid verify token or email or new password.');
             }
 
             const decodedToken = verifyToken(resetPasswordTokenDto.token, RESETPASSWORD);
@@ -817,6 +822,18 @@ class AuthService {
             }
 
             const verifyedEmail = decodedToken.data['email'];
+
+            logInfo(
+                `verifyedEmail: ${verifyedEmail}, resetPasswordTokenDto.email: ${resetPasswordTokenDto.email}`,
+                fileDetails
+            );
+
+            if (verifyedEmail !== resetPasswordTokenDto.email) {
+                throw new Error(
+                    `Reset password failed, because Token parsing email is different from form sending email.`
+                );
+            }
+
             const user = await this.unitOfWork.users.findOne({
                 email: verifyedEmail,
             });

@@ -1,22 +1,18 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-// import { RequestParameters, RequestOptions } from '../models/AxiosRequest';
 import {
-    UserDetails,
+    UserFormValuesApplyResetPasssword,
     UserFormValuesLogin,
     UserFormValuesReSendVerifyEmail,
     UserFormValuesRegister,
-    UserFormValuesVerifyEmail,
+    UserFormValuesResetPasssword,
+    UserFormValuesVerifyToken,
     UserLogout,
-    UserLogoutSuccess,
-    VerifyTokenResult,
 } from '../models/User';
 import { ResponseResult } from '../models/AxiosResponse';
 import { toast } from 'react-toastify';
 import url from 'url';
 
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
-// axios.defaults.baseURL = 'http://localhost:49146/api/v1';
-// axios.defaults.baseURL = 'http//192.168.1.103:49146/api/v1';
 ///TODO: When cross domain request send cookie
 axios.defaults.withCredentials = true;
 
@@ -81,7 +77,10 @@ const Auth = {
     refreshToken: () => requests.get<ResponseResult>(`/auth/refresh-token`),
     reSendVerifyEmail: (user: UserFormValuesReSendVerifyEmail) =>
         requests.post<ResponseResult>(`/auth/re-send-confirm-email`, user),
-    verifyEmail: (user: UserFormValuesVerifyEmail) => requests.post<ResponseResult>(`/auth/verify-email`, user),
+    verifyEmail: (user: UserFormValuesVerifyToken) => requests.post<ResponseResult>(`/auth/verify-email`, user),
+    applyResetPassword: (user: UserFormValuesApplyResetPasssword) => requests.post<ResponseResult>(`/auth/forget-password`, user),
+    verifyResetPasswordToken: (user: UserFormValuesVerifyToken) => requests.post<ResponseResult>(`/auth/verify-reset-password-token`, user),
+    resetPassword: (user: UserFormValuesResetPasssword) => requests.post<ResponseResult>(`/auth/reset-password`, user),
 };
 
 const agent = {

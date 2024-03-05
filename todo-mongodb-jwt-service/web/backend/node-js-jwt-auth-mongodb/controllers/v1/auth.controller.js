@@ -16,7 +16,6 @@ const { ACCESS, REFRESH } = require('../../config/auth.type.config.js');
 
 const AuthService = require('../../services/v1/auth.service.js');
 
-
 class AuthController {
     constructor() {
         this.authService = new AuthService();
@@ -50,11 +49,12 @@ class AuthController {
         }
     };
 
-    verifyResetPassword = async (req, res) => {
+    verifyResetPasswordToken = async (req, res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.authService.verifyResetPassword(req.query);
+            // const result = await this.authService.verifyResetPasswordToken(req.query);
+            const result = await this.authService.verifyResetPasswordToken(req.body);
             logInfo(`verifyResetPassword result: ${stringify(result)}`, fileDetails, true);
             return http.successResponse(res, OK, '', result);
         } catch (err) {
@@ -377,9 +377,6 @@ class AuthController {
         let result = null;
         try {
             result = await this.authService.resetPassword(req.body);
-            if (result.message) {
-                throw new Error(result.message);
-            }
             return http.successResponse(res, OK, '', result);
         } catch (err) {
             logError(err, fileDetails, true);

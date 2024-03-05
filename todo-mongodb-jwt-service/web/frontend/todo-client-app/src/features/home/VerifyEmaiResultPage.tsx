@@ -1,13 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import { useState, useEffect, useCallback } from 'react';
-import { router } from '../../app/router/Routes';
+import { useState, useEffect } from 'react';
 import { StyledOtherPageOutsideLayout } from '../../app/layout/styles/StyledComponents';
 import useQuery from '../../app/util/hooks';
 import agent from '../../app/api/agent';
 import {
     ReSendVerifyEmailResult,
     UserFormValuesReSendVerifyEmail,
-    UserFormValuesVerifyEmail,
+    UserFormValuesVerifyToken,
     VerifyEmailResult,
 } from '../../app/models/User';
 import { toast } from 'react-toastify';
@@ -40,7 +39,7 @@ const VerifyEmaiResultPage = observer(() => {
     };
 
     useEffect(() => {
-        const values: UserFormValuesVerifyEmail = {
+        const values: UserFormValuesVerifyToken = {
             token: token,
         };
 
@@ -59,7 +58,7 @@ const VerifyEmaiResultPage = observer(() => {
     }, [isActivate, token]);
 
     return (
-        <StyledOtherPageOutsideLayout>
+        <>
             {isActivate ? (
                 <div className="card border-light-subtle shadow-sm opacity-75" style={{ width: '50rem' }}>
                     <div className="card-body p-3 p-md-4 p-xl-5">
@@ -115,7 +114,7 @@ const VerifyEmaiResultPage = observer(() => {
                     </div>
                 </div>
             )}
-        </StyledOtherPageOutsideLayout>
+        </>
     );
 });
 

@@ -21,7 +21,6 @@ export default observer(function HomePage() {
                     </a>
                 </>
             ) : (
-                // <LoginForm />
                 <Navigate to="/sign-in" state={{ from: location }} />
             )}
         </StyledHomePageOutsideDiv>

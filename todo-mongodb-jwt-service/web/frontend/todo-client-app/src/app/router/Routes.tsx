@@ -8,6 +8,10 @@ import RegisterForm from '../../features/home/RegisterForm';
 import RegisterSuccessConfirmPage from '../../features/home/RegisterSuccessConfirmPage';
 import VerifyEmaiResultPage from '../../features/home/VerifyEmaiResultPage';
 import LoginForm from '../../features/home/LoginForm';
+import ApplResetPassword from '../../features/home/ApplyResetPassword';
+import ResetPassword from '../../features/home/ResetPassword';
+import ResetPasswordResultPage from '../../features/home/ResetPasswordResultPage';
+
 
 export const routes: RouteObject[] = [
     {
@@ -42,6 +46,18 @@ export const routes: RouteObject[] = [
             {
                 path: 'verify-email',
                 element: <VerifyEmaiResultPage />,
+            },
+            {
+                path: 'forget-password',
+                element: <ApplResetPassword />,
+            },
+            {
+                path: 'reset-password',
+                element: <ResetPassword />,
+            },
+            {
+                path: 'reset-password-success',
+                element: <ResetPasswordResultPage />,
             },
             {
                 path: '*',

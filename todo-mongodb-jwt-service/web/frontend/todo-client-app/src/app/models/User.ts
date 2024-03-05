@@ -8,7 +8,6 @@ export interface UserDetails {
 
 export interface UserFormValuesLogin {
     username: string;
-    // email: string;
     password: string;
 }
 
@@ -41,10 +40,6 @@ export interface RefreshTokenResult {
 }
 
 export interface UserRegisterSuccess {
-    // _id: string;
-    // username: string,
-    // email: string,
-    // roles: Array<string>
     messge: string;
     isRegisterSuccess: boolean;
     isSendConfirmEmailSuccess: boolean;
@@ -59,7 +54,7 @@ export interface ReSendVerifyEmailResult {
     message: string;
 }
 
-export interface UserFormValuesVerifyEmail {
+export interface UserFormValuesVerifyToken {
     token: string;
 }
 
@@ -68,3 +63,28 @@ export interface VerifyEmailResult {
     message: string;
 }
 
+export interface UserFormValuesApplyResetPasssword {
+    email: string;
+}
+
+export interface ApplyResetPasswordResult {
+    isSendResetPasswordEmail: boolean;
+    message: string;
+}
+
+export interface VerifyResetPasswordTokenResult {
+    isVerifyed: boolean;
+    resetUserEmail: string;
+    message: string;
+}
+
+export interface UserFormValuesResetPasssword {
+    token: string;
+    email: string;
+    newPassword: string;
+}
+
+export interface ResetPasswordResult {
+    isResetSuccess: boolean;
+    message: string;
+}
