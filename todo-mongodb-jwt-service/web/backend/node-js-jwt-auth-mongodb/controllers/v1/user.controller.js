@@ -69,7 +69,7 @@ class UserController {
             if (!decodedResult) {
                 throw new Error('Decode access token failed, cannot be analysis token expire time.');
             }
-            logInfo(`${stringify(decodedResult)}`, fileDetails, true);
+            // logInfo(`${stringify(decodedResult)}`, fileDetails, true);
 
             result['accessTokenExpireTime'] = decodedResult.exp;
 

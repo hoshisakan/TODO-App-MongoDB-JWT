@@ -1,4 +1,3 @@
-// import './styles/style.css';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../app/stores/store';
 import HeaderNavbar from '../../app/layout/HeaderNavbar';
@@ -8,7 +7,7 @@ import { StyledHomePageOutsideDiv } from './styles/StyledComponents';
 
 export default observer(function OtherPage() {
     const {
-        userStore: { isLoggedIn, user },
+        userStore: { isLoggedIn },
     } = useStore();
 
     const location = useLocation();

@@ -3,7 +3,7 @@ export interface UserDetails {
     username: string;
     email: string;
     roles: Array<string>;
-    accessTokenExpireTime: number;
+    accessTokenExpireUnixStampTime: number;
 }
 
 export interface UserFormValuesLogin {

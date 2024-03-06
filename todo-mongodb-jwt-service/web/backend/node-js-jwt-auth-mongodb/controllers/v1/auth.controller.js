@@ -162,13 +162,13 @@ class AuthController {
 
             loginDto.cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
             loginDto.cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
-            logInfo(`loginDto: ${stringify(loginDto)}`, fileDetails, true);
+            // logInfo(`loginDto: ${stringify(loginDto)}`, fileDetails, true);
 
             const { clientResponse, clientCookie, message } = await this.authService.signin(loginDto);
 
-            if (!clientResponse || !clientCookie || message) {
+            if (message) {
                 // throw new Error('User was not signed in successfully!');
-                throw new Error(message);
+                throw new Error(message ?? 'User was not signed in successfully!');
             }
 
             logInfo(`clientCookie: ${stringify(clientCookie)}`, fileDetails, true);
@@ -178,7 +178,7 @@ class AuthController {
                     res,
                     ACCESS_TOKEN_COOKIE_NAME,
                     clientCookie.accessToken,
-                    clientCookie.accessTokenExpireTime
+                    clientCookie.accessTokenExpireSecondTime
                 );
             }
 
@@ -187,7 +187,7 @@ class AuthController {
                     res,
                     REFRESH_TOKEN_COOKIE_NAME,
                     clientCookie.refreshToken,
-                    clientCookie.refreshTokenExpireTime
+                    clientCookie.refreshTokenExpireSecondTime
                 );
             }
             logInfo(`clientResponse: ${stringify(clientResponse)}`, fileDetails, true);
@@ -203,18 +203,39 @@ class AuthController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = null;
         try {
-            const cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
-            logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
-            if (!cookieRefreshToken) {
-                throw new Error('Invalid cookie refresh token!');
+            const refreshTokenDto = {
+                cookieRefreshToken: this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME),
+                cookieAccessToken: this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME),
+            };
+
+            result = await this.authService.refreshToken(refreshTokenDto);
+
+            if (result.message) {
+                // logInfo(result.message, fileDetails);
+                throw new Error(result.message);
             }
-            result = await this.authService.refreshToken(cookieRefreshToken);
+
             logInfo(`result: ${stringify(result)}`, fileDetails, true);
-            if (!result) {
-                throw new Error('Token was not refreshed successfully!');
+
+            if (result.clientCookie.accessToken && result.clientCookie.accessTokenExpireSecondTime) {
+                this.setItemToCookie(
+                    res,
+                    ACCESS_TOKEN_COOKIE_NAME,
+                    result.clientCookie.accessToken,
+                    result.clientCookie.accessTokenExpireSecondTime
+                );
+
+                const checkAccessTokenExists = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
+                logInfo(`checkAccessTokenExists: ${stringify(checkAccessTokenExists)}`, fileDetails, true);
+
+                if (!checkAccessTokenExists) {
+                    logInfo('Get access token failed from cookie', fileDetails);
+                    throw new Error('Please try login again');
+                }
+            } else {
+                throw new Error('Invalid token or accessTokenExpireSecondTime');
             }
-            this.setItemToCookie(res, ACCESS_TOKEN_COOKIE_NAME, result.token, result.expireTime);
-            return http.successResponse(res, OK, '', result);
+            return http.successResponse(res, OK, '', result.clientResponse);
         } catch (err) {
             logError(err, fileDetails, true);
             return http.errorResponse(res, BAD_REQUEST, err.message);
@@ -246,14 +267,14 @@ class AuthController {
                 }
                 validateTokenResult = await this.authService.verifyTokenValidity(cookieRefreshToken, REFRESH);
             } else {
-                // const headerAccessToken = req.headers['x-access-token'];
-                // logInfo(`headerAccessToken: ${headerAccessToken}`, fileDetails, true);
-                const cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME) || null;
-                logInfo(`cookieAccessToken: ${stringify(cookieAccessToken)}`, fileDetails, true);
-                const cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME) || null;
-                logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
+                const refreshTokenDto = {
+                    cookieRefreshToken: this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME),
+                    cookieAccessToken: this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME),
+                };
 
-                if (!cookieAccessToken && !cookieRefreshToken) {
+                logInfo(`refreshTokenDto: ${stringify(refreshTokenDto)}`, fileDetails, true);
+
+                if (!refreshTokenDto.cookieAccessToken && !refreshTokenDto.cookieRefreshToken) {
                     return http.successResponse(
                         res,
                         BAD_REQUEST,
@@ -264,26 +285,27 @@ class AuthController {
                     );
                 }
 
-                if (!cookieAccessToken && cookieRefreshToken) {
-                    logInfo('Please refresh token', fileDetails);
-                    const refreshTokenResult = await this.authService.refreshToken(cookieRefreshToken);
-                    logInfo(`Refresh token result: ${stringify(refreshTokenResult)}`);
-                    if (!refreshTokenResult.token) {
-                        return http.successResponse(res, BAD_REQUEST, 'Please try login again', '', {
+                if (!refreshTokenDto.cookieAccessToken && refreshTokenDto.cookieRefreshToken) {
+                    logInfo('Access token does exists in cookie, starting refresh access token', fileDetails);
+                    const refreshTokenResult = await this.authService.refreshToken(refreshTokenDto);
+                    logInfo(`Refresh token result: ${stringify(refreshTokenResult)}`, fileDetails);
+                    if (refreshTokenResult.message) {
+                        return http.successResponse(res, BAD_REQUEST, refreshTokenResult.message, '', {
                             code: -1,
                         });
                     }
                     this.setItemToCookie(
                         res,
                         ACCESS_TOKEN_COOKIE_NAME,
-                        refreshTokenResult.token,
-                        refreshTokenResult.expireSecondTime
+                        refreshTokenResult.clientCookie.accessToken,
+                        refreshTokenResult.clientCookie.accessTokenExpireSecondTime
                     );
+                    refreshTokenDto.cookieAccessToken = refreshTokenResult.clientCookie.accessToken;
                 }
-                validateTokenResult = await this.authService.verifyTokenValidity(cookieAccessToken, ACCESS);
+                validateTokenResult = await this.authService.verifyTokenValidity(refreshTokenDto.cookieAccessToken, ACCESS);
             }
             if (!validateTokenResult.data || validateTokenResult.message) {
-                throw new Error(validateTokenResult.message);
+                throw new Error(`Access token validate result: ${validateTokenResult.message}`);
             }
             // logInfo(`validateTokenResult: ${stringify(validateTokenResult)}`, fileDetails, true);
             return http.successResponse(res, OK, '', validateTokenResult.data);

@@ -126,7 +126,7 @@ const JWTUtil = {
         };
         try {
             if (!token) {
-                throw new Error('Token invalid');
+                throw new Error('Token is required');
             }
             const privateKey = JWTUtil.getPrivateKey(authType);
 

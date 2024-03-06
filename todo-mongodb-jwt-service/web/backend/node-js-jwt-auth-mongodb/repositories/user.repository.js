@@ -30,8 +30,8 @@ class UserRepository extends Repository {
         return await this.model.findOne(expression).populate('roles', 'name level');
     };
 
-    findById = async (id, fields = {}) => {
-        return await this.model.findById(id).populate('roles', 'name level').select(fields);
+    findById = async (id, fields = {}, fkFields = {}) => {
+        return await this.model.findById(id).populate('roles', fkFields).select(fields);
     };
 
     addRoles = async (userId, roleIds) => {

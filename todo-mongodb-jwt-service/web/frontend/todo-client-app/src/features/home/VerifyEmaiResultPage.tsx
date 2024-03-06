@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react-lite';
 import { useState, useEffect } from 'react';
-import { StyledOtherPageOutsideLayout } from '../../app/layout/styles/StyledComponents';
 import useQuery from '../../app/util/hooks';
 import agent from '../../app/api/agent';
 import {

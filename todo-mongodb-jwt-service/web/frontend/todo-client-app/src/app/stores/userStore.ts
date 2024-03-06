@@ -11,6 +11,7 @@ import {
 import agent from '../api/agent';
 import { router } from '../router/Routes';
 import moment from 'moment';
+import { toast } from 'react-toastify';
 
 export default class UserStore {
     user: UserDetails | null = null;
@@ -41,13 +42,15 @@ export default class UserStore {
                 runInAction(() => {
                     // alert(`analysis result: ${JSON.stringify(response)}`);
                     this.user = response.data;
-                    console.log(`UserDetails: ${JSON.stringify(this.user)}`);
+                    // console.log(`UserDetails: ${JSON.stringify(this.user)}`);
                     // alert(`UserDetails: ${JSON.stringify(this.user)}`);
                     this.startRefreshTokenTimer(this.user);
+                    toast.success('Token is valid.');
                 });
             });
             router.navigate('/todo');
-        } catch (error) {
+        } catch (error: any) {
+            toast.error(error.stack);
             throw error;
         }
     };
@@ -91,7 +94,7 @@ export default class UserStore {
                     await agent.User.details(response.data.id).then((response) => {
                         this.user = response.data;
                         // console.log(`verifyToken user details: ${JSON.stringify(this.user)}`);
-                        this.startRefreshTokenTimer(this.user);
+                        // this.startRefreshTokenTimer(this.user);
                     });
                 }
             });
@@ -118,7 +121,7 @@ export default class UserStore {
             await agent.Auth.refreshToken().then((response) => {
                 runInAction(() => {
                     const user: UserDetails = response.data;
-                    console.log(`refreshToken user: ${user}`);
+                    console.log(`refreshToken user: ${JSON.stringify(user)}`);
                     this.startRefreshTokenTimer(user);
                 });
             });
@@ -129,11 +132,11 @@ export default class UserStore {
 
     private startRefreshTokenTimer(user: UserDetails | null) {
         try {
-            if (user && user.accessTokenExpireTime) {
+            if (user && user.accessTokenExpireUnixStampTime) {
                 ///TODO: Convert timestamp to millseconds.
-                // console.log(`user.accessTokenExpireTime: ${user.accessTokenExpireTime}, Date.now(): ${Date.now()}`);
+                // console.log(`user.accessTokenExpireUnixStampTime: ${user.accessTokenExpireUnixStampTime}, Date.now(): ${Date.now()}`);
                 // multiplied by 1000 so that the argument is in milliseconds, not seconds
-                const expires = new Date(user.accessTokenExpireTime * 1000);
+                const expires = new Date(user.accessTokenExpireUnixStampTime * 1000);
                 ///TODO: Convert timestamp to millseconds.
                 const timeout = expires.getTime() - Date.now() - 30 * 1000;
                 this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
@@ -145,11 +148,15 @@ export default class UserStore {
                 console.log(
                     `Refresh user ${user._id} token that expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
                 );
+                toast.success(
+                    `Refresh user ${user._id} token that expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
+                );
             } else {
                 console.log(`User details is null.`);
+                toast.error(`User details is null.`);
             }
-        } catch (error) {
-            console.log(error);
+        } catch (error: any) {
+            console.log(error.stack);
         }
     }
 

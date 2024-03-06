@@ -1,5 +1,4 @@
 import { observer } from 'mobx-react-lite';
-import { StyledOtherPageOutsideLayout } from '../../app/layout/styles/StyledComponents';
 import useQuery from '../../app/util/hooks';
 import agent from '../../app/api/agent';
 import { ReSendVerifyEmailResult, UserFormValuesReSendVerifyEmail } from '../../app/models/User';
