@@ -132,7 +132,11 @@ class UserService extends BaseService {
             if (!id) {
                 throw new Error('Id is required');
             }
-            searchResult = await this.unitOfWork.users.findById(id, { '_id': 1, 'username': 1, 'email': 1, 'roles': 1 });
+            const fields = { _id: 1, username: 1, email: 1, roles: 1 };
+            const fkFields = { _id: 0, name: 1 };
+            searchResult = await this.unitOfWork.users.findById(id, fields, fkFields);
+            const tempRoles = searchResult.roles;
+            searchResult.roles = tempRoles[0];
 
             if (!searchResult) {
                 throw new Error('User not found');

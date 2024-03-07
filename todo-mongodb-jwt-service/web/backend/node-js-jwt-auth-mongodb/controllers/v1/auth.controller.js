@@ -15,6 +15,7 @@ const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../../c
 const { ACCESS, REFRESH } = require('../../config/auth.type.config.js');
 
 const AuthService = require('../../services/v1/auth.service.js');
+const { log } = require('winston');
 
 class AuthController {
     constructor() {
@@ -215,25 +216,23 @@ class AuthController {
                 throw new Error(result.message);
             }
 
-            logInfo(`result: ${stringify(result)}`, fileDetails, true);
+            // logInfo(`result: ${stringify(result)}`, fileDetails, true);
 
-            if (result.clientCookie.accessToken && result.clientCookie.accessTokenExpireSecondTime) {
+            if (result.clientCookie.accessToken && result.clientCookie.accessTokenExpireSecondTime > 0) {
+                // logInfo(`result.clientCookie: ${stringify(result.clientCookie)}`, fileDetails);
                 this.setItemToCookie(
                     res,
                     ACCESS_TOKEN_COOKIE_NAME,
                     result.clientCookie.accessToken,
                     result.clientCookie.accessTokenExpireSecondTime
                 );
-
-                const checkAccessTokenExists = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
-                logInfo(`checkAccessTokenExists: ${stringify(checkAccessTokenExists)}`, fileDetails, true);
-
-                if (!checkAccessTokenExists) {
-                    logInfo('Get access token failed from cookie', fileDetails);
-                    throw new Error('Please try login again');
-                }
+            }
+            // Verify if the cookie is successfully set
+            const accessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
+            if (accessToken) {
+                logInfo(`Access token cookie is successfully set: ${accessToken}`, fileDetails);
             } else {
-                throw new Error('Invalid token or accessTokenExpireSecondTime');
+                logError(`Failed to set access token cookie`, fileDetails);
             }
             return http.successResponse(res, OK, '', result.clientResponse);
         } catch (err) {
@@ -302,7 +301,10 @@ class AuthController {
                     );
                     refreshTokenDto.cookieAccessToken = refreshTokenResult.clientCookie.accessToken;
                 }
-                validateTokenResult = await this.authService.verifyTokenValidity(refreshTokenDto.cookieAccessToken, ACCESS);
+                validateTokenResult = await this.authService.verifyTokenValidity(
+                    refreshTokenDto.cookieAccessToken,
+                    ACCESS
+                );
             }
             if (!validateTokenResult.data || validateTokenResult.message) {
                 throw new Error(`Access token validate result: ${validateTokenResult.message}`);

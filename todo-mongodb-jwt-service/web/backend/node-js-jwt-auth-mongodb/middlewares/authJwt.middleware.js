@@ -35,7 +35,7 @@ verifyAcccessToken = (req, res, next) => {
         const decodedResult = verifyToken(token, ACCESS);
 
         if (!decodedResult.data || decodedResult.message) {
-            throw new Error(decodedToken.message);
+            throw new Error(decodedResult.message);
         }
 
         logInfo(`decodedResult: ${stringify(decodedResult)}`, fileDetails);

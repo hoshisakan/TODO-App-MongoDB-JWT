@@ -1,8 +1,8 @@
 export interface UserDetails {
-    _id: string;
+    id: string;
     username: string;
     email: string;
-    roles: Array<string>;
+    roles: string;
     accessTokenExpireUnixStampTime: number;
 }
 

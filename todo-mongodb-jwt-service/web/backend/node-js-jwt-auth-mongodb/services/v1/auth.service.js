@@ -119,7 +119,7 @@ class AuthService {
             logInfo(`refreshTokenValidateResult: ${stringify(refreshTokenValidateResult)}`, fileDetails, true);
 
             if (!refreshTokenValidateResult.data || refreshTokenValidateResult.message) {
-                throw new Error(`Refresh token validate result: ${refreshTokenValidateResult.message}`);
+                throw new Error(`Refresh token has been expired`);
             }
 
             const userValidateResult = await this.validateUserIdentity({
@@ -130,26 +130,13 @@ class AuthService {
                 throw new Error(userValidateResult.message);
             }
 
-            let validateCookieAccessToken = {
-                data: {},
-                message: '',
-            };
-
-            if (!refreshTokenDto.cookieAccessToken) {
-                const generateAccessTokenResult = await this.generateTokenAndStorageCache(
-                    {
-                        id: userValidateResult.user.id,
-                    },
-                    ACCESS,
-                    userValidateResult
-                );
-                result.clientCookie.accessToken = generateAccessTokenResult.token;
-                validateCookieAccessToken = verifyToken(generateAccessTokenResult.token, ACCESS);
-                result.clientResponse.accessTokenExpireUnixStampTime = validateCookieAccessToken.data['exp'];
-            } else {
-                result.clientCookie.accessToken = refreshTokenDto.cookieAccessToken;
+            if (refreshTokenDto.cookieAccessToken) {
                 const oldCookieAccessTokenValidateResult = verifyToken(refreshTokenDto.cookieAccessToken, ACCESS);
-
+                logInfo(
+                    `oldCookieAccessTokenValidateResult: ${stringify(oldCookieAccessTokenValidateResult)}`,
+                    fileDetails,
+                    true
+                );
                 if (!oldCookieAccessTokenValidateResult.data || oldCookieAccessTokenValidateResult.message) {
                     const generateAccessTokenResult = await this.generateTokenAndStorageCache(
                         {
@@ -158,27 +145,30 @@ class AuthService {
                         ACCESS,
                         userValidateResult
                     );
-                    validateCookieAccessToken = verifyToken(generateAccessTokenResult.token, ACCESS);
-                    result.clientResponse.accessTokenExpireUnixStampTime = validateCookieAccessToken.data['exp'];
+                    result.clientCookie.accessToken = generateAccessTokenResult.token;
+                    result.clientCookie.accessTokenExpireSecondTime = generateAccessTokenResult.expireTime;
+                    const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
+                    result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
                 } else {
-                    result.clientResponse.accessTokenExpireUnixStampTime =
-                        oldCookieAccessTokenValidateResult.data['exp'];
+                    result.clientResponse.accessTokenExpireUnixStampTime = oldCookieAccessTokenValidateResult.data['exp'];
                 }
+            } else {
+                const generateAccessTokenResult = await this.generateTokenAndStorageCache(
+                    {
+                        id: userValidateResult.user.id,
+                    },
+                    ACCESS,
+                    userValidateResult
+                );
+                result.clientCookie.accessToken = generateAccessTokenResult.token;
+                result.clientCookie.accessTokenExpireSecondTime = generateAccessTokenResult.expireTime;
+                const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
+                result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
             }
-
-            if (!result.clientResponse.accessTokenExpireUnixStampTime) {
-                throw new Error('Get access token expire unix-statmp time failed.');
-            }
-
-            const accessTokenExpireMillSecondTime = new Date(
-                result.clientResponse.accessTokenExpireUnixStampTime * 1000
-            );
-
-            result.clientCookie.accessTokenExpireSecondTime = accessTokenExpireMillSecondTime.getSeconds();
             result.clientResponse.id = userValidateResult.user.id;
             result.clientResponse.username = userValidateResult.user.username;
             result.clientResponse.email = userValidateResult.user.email;
-            result.clientResponse.roles = userValidateResult.user.roles;
+            result.clientResponse.roles = userValidateResult.user.roles[0];
         } catch (err) {
             logError(err, fileDetails, true);
             result.message = err.message;
@@ -264,28 +254,28 @@ class AuthService {
             createResult = generateToken(payload, authType, userValidateResult.user.highestRolePermission);
             logInfo(`Create result: ${stringify(createResult)}`, fileDetails, true);
 
-            if (!createResult.token || !createResult.expireTime) {
-                throw new Error('Token create failed');
-            }
+            // if (!createResult.token || !createResult.expireTime) {
+            //     throw new Error('Token create failed');
+            // }
 
-            const cacheValue = {
-                token: createResult.token,
-                expireTime: createResult.expireTime,
-            };
+            // const cacheValue = {
+            //     token: createResult.token,
+            //     expireTime: createResult.expireTime,
+            // };
 
-            // const isSetTokenToCache = await setTokenToCache(createResult.token, authType, userValidateResult.user.highestRolePermission);
-            const isSetTokenToCache = await setTokenToCache(
-                authType,
-                userValidateResult.user.id,
-                stringify(cacheValue),
-                userValidateResult.user.highestRolePermission
-            );
-            logInfo(`isSetTokenToCache: ${stringify(isSetTokenToCache)}`, fileDetails, true);
+            // // const isSetTokenToCache = await setTokenToCache(createResult.token, authType, userValidateResult.user.highestRolePermission);
+            // const isSetTokenToCache = await setTokenToCache(
+            //     authType,
+            //     userValidateResult.user.id,
+            //     stringify(cacheValue),
+            //     userValidateResult.user.highestRolePermission
+            // );
+            // logInfo(`isSetTokenToCache: ${stringify(isSetTokenToCache)}`, fileDetails, true);
 
-            if (!isSetTokenToCache) {
-                logError(`Set token to cache failed`, fileDetails, true);
-                ///TODO: 未來必須要將錯誤寫入資料庫
-            }
+            // if (!isSetTokenToCache) {
+            //     logError(`Set token to cache failed`, fileDetails, true);
+            //     ///TODO: 未來必須要將錯誤寫入資料庫
+            // }
             return createResult;
         } catch (err) {
             // logError(err, fileDetails, true);
@@ -561,20 +551,13 @@ class AuthService {
             ///TODO: 若不存在，則重新產生一組 token，並解析 token 獲取其逾期時間
             if (loginDto.cookieRefreshToken) {
                 result.clientCookie.isRefreshTokenExistsInCookie = true;
-                const validateCookieRefreshTokenResult = verifyToken(loginDto.cookieRefreshToken, REFRESH);
-                logInfo(
-                    `validateCookieRefreshTokenResult: ${stringify(validateCookieRefreshTokenResult)}`,
-                    fileDetails,
-                    true
-                );
-
-                if (validateCookieRefreshTokenResult.data && !validateCookieRefreshTokenResult.message) {
-                    result.clientCookie.refreshToken = loginDto.cookieRefreshToken;
-                    const refreshTokenExpireMillSecondTime = new Date(
-                        validateCookieRefreshTokenResult.data['exp'] * 1000
-                    );
-                    result.clientCookie.refreshTokenExpireSecondTime = refreshTokenExpireMillSecondTime.getSeconds();
-                } else {
+                const oldCookieRefreshTokenValidateResult = verifyToken(loginDto.cookieRefreshToken, REFRESH);
+                // logInfo(
+                //     `oldCookieRefreshTokenValidateResult: ${stringify(oldCookieRefreshTokenValidateResult)}`,
+                //     fileDetails,
+                //     true
+                // );
+                if (!oldCookieRefreshTokenValidateResult.data || oldCookieRefreshTokenValidateResult.message) {
                     const generateRefreshTokenResult = await this.generateTokenAndStorageCache(
                         {
                             id: userValidateResult.user.id,
@@ -586,7 +569,6 @@ class AuthService {
                     result.clientCookie.refreshTokenExpireSecondTime = generateRefreshTokenResult.expireTime;
                 }
             } else {
-                // throw new Error('test');
                 const generateRefreshTokenResult = await this.generateTokenAndStorageCache(
                     {
                         id: userValidateResult.user.id,
@@ -594,28 +576,25 @@ class AuthService {
                     REFRESH,
                     userValidateResult
                 );
-                logInfo(`generateRefreshTokenResult" ${stringify(generateRefreshTokenResult)}`, fileDetails);
+                // logInfo(`generateRefreshTokenResult" ${stringify(generateRefreshTokenResult)}`, fileDetails);
                 result.clientCookie.refreshToken = generateRefreshTokenResult.token;
                 result.clientCookie.refreshTokenExpireSecondTime = generateRefreshTokenResult.expireTime;
             }
 
-            logInfo(`result.clientCookie: ${stringify(result.clientCookie)}`, fileDetails);
+            // logInfo(`result.clientCookie: ${stringify(result.clientCookie)}`, fileDetails);
 
             ///TODO: 檢查 token 是否存在於 cookie
             ///TODO: 若存在，則驗證其 token 是否有效，若無效，則重新產生一組 token，並解析 token 獲取其逾期時間
             ///TODO: 若不存在，則重新產生一組 token，並解析 token 獲取其逾期時間
             if (loginDto.cookieAccessToken) {
                 result.clientCookie.isAccessTokenExistsInCookie = true;
-                const validateCookieAccessTokenResult = verifyToken(loginDto.cookieAccessToken, ACCESS);
-                logInfo(
-                    `validateCookieAccessTokenResult: ${stringify(validateCookieAccessTokenResult)}`,
-                    fileDetails,
-                    true
-                );
-
-                if (validateCookieAccessTokenResult.data && !validateCookieAccessTokenResult.message) {
-                    result.clientCookie.accessToken = loginDto.cookieAccessToken;
-                } else {
+                const oldCookieAccessTokenValidateResult = verifyToken(loginDto.cookieAccessToken, ACCESS);
+                // logInfo(
+                //     `oldCookieAccessTokenValidateResult: ${stringify(oldCookieAccessTokenValidateResult)}`,
+                //     fileDetails,
+                //     true
+                // );
+                if (!oldCookieAccessTokenValidateResult.data || oldCookieAccessTokenValidateResult.message) {
                     const generateAccessTokenResult = await this.generateTokenAndStorageCache(
                         {
                             id: userValidateResult.user.id,
@@ -625,18 +604,10 @@ class AuthService {
                     );
                     result.clientCookie.accessToken = generateAccessTokenResult.token;
                     result.clientCookie.accessTokenExpireSecondTime = generateAccessTokenResult.expireTime;
-                }
-                const accessTokenValidateResult = verifyToken(result.clientCookie.accessToken, ACCESS);
-                // logInfo(`accessTokenValidateResult: ${stringify(accessTokenValidateResult)}`, fileDetails, true);
-
-                if (accessTokenValidateResult.data && !accessTokenValidateResult.message) {
-                    result.clientResponse.accessTokenExpireUnixStampTime = accessTokenValidateResult.data['exp'];
-                    const accessTokenExpireMillSecondTime = new Date(
-                        result.clientResponse.accessTokenExpireUnixStampTime * 1000
-                    );
-                    result.clientCookie.accessTokenExpireSecondTime = accessTokenExpireMillSecondTime.getSeconds();
+                    const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
+                    result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
                 } else {
-                    throw new Error(accessTokenValidateResult.message);
+                    result.clientResponse.accessTokenExpireUnixStampTime = oldCookieAccessTokenValidateResult.data['exp'];
                 }
             } else {
                 const generateAccessTokenResult = await this.generateTokenAndStorageCache(
@@ -648,24 +619,13 @@ class AuthService {
                 );
                 result.clientCookie.accessToken = generateAccessTokenResult.token;
                 result.clientCookie.accessTokenExpireSecondTime = generateAccessTokenResult.expireTime;
-
                 const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
-                // logInfo(`newAccessTokenValidateResult: ${stringify(newAccessTokenValidateResult)}`, fileDetails, true);
-
-                if (newAccessTokenValidateResult.data && !newAccessTokenValidateResult.message) {
-                    result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
-                    const accessTokenExpireMillSecondTime = new Date(
-                        result.clientResponse.accessTokenExpireUnixStampTime * 1000
-                    );
-                    result.clientCookie.accessTokenExpireSecondTime = accessTokenExpireMillSecondTime.getSeconds();
-                } else {
-                    throw new Error(newAccessTokenValidateResult.message);
-                }
+                result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
             }
             result.clientResponse.id = userValidateResult.user.id;
             result.clientResponse.username = userValidateResult.user.username;
             result.clientResponse.email = userValidateResult.user.email;
-            result.clientResponse.roles = userValidateResult.user.roles;
+            result.clientResponse.roles = userValidateResult.user.roles[0];
             logInfo(`Result: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
             // logError(err, fileDetails, true);
@@ -896,7 +856,8 @@ class AuthService {
 
         try {
             if (!cookieAccessToken) {
-                throw new Error('Access token does not empty.');
+                // throw new Error('Access token does not empty.');
+                throw new Error('Access token is required.');
             }
 
             logInfo(`token: ${cookieAccessToken}`, fileDetails, true);
@@ -921,7 +882,7 @@ class AuthService {
             result.id = userDetails._id;
             result.username = userDetails.username;
             result.email = userDetails.email;
-            result.roles = userDetails.roles;
+            result.roles = userDetails.roles[0]['name'];
             result.accessTokenExpireUnixStampTime = accessTokenValidateResult.data['exp'];
         } catch (err) {
             logError(err, fileDetails, true);

@@ -1,4 +1,4 @@
-import { makeAutoObservable, reaction, runInAction } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import {
     UserDetails,
     UserFormValuesLogin,
@@ -40,12 +40,10 @@ export default class UserStore {
         try {
             await agent.Auth.signin(requestValues).then((response) => {
                 runInAction(() => {
-                    // alert(`analysis result: ${JSON.stringify(response)}`);
                     this.user = response.data;
-                    // console.log(`UserDetails: ${JSON.stringify(this.user)}`);
-                    // alert(`UserDetails: ${JSON.stringify(this.user)}`);
-                    this.startRefreshTokenTimer(this.user);
-                    toast.success('Token is valid.');
+                    this.startRefreshTokenTimer();
+                    // toast.success('Token is valid.');
+                    console.log(`login: ${JSON.stringify(this.user)}`);
                 });
             });
             router.navigate('/todo');
@@ -89,13 +87,17 @@ export default class UserStore {
         try {
             await agent.Auth.verifyToken(authType).then(async (response) => {
                 const verifyResult: VerifyTokenResult = response.data;
-
-                if (verifyResult.id) {
-                    await agent.User.details(response.data.id).then((response) => {
-                        this.user = response.data;
-                        // console.log(`verifyToken user details: ${JSON.stringify(this.user)}`);
-                        // this.startRefreshTokenTimer(this.user);
-                    });
+                toast.success(`Access token valid successfully.`);
+                if (verifyResult.id && verifyResult.exp) {
+                    await agent.Auth.current()
+                        .then((response) => {
+                            this.user = response.data;
+                            toast.success(`Access token is vaild, starting get user detail through access token.`);
+                            this.startRefreshTokenTimer();
+                        })
+                        .catch((err) => {
+                            throw err;
+                        });
                 }
             });
         } catch (error) {
@@ -107,8 +109,7 @@ export default class UserStore {
         try {
             await agent.Auth.current().then((response) => {
                 this.user = response.data;
-                // console.log(`getCurrentUser user details: ${JSON.stringify(this.user)}`);
-                this.startRefreshTokenTimer(this.user);
+                this.startRefreshTokenTimer();
             });
         } catch (error) {
             throw error;
@@ -119,41 +120,50 @@ export default class UserStore {
         this.stopRefreshTokenTimer();
         try {
             await agent.Auth.refreshToken().then((response) => {
-                runInAction(() => {
-                    const user: UserDetails = response.data;
-                    console.log(`refreshToken user: ${JSON.stringify(user)}`);
-                    this.startRefreshTokenTimer(user);
-                });
+                this.user = response.data;
+                toast.success(
+                    `Refresh token successfully! expire time is: ${this.user?.accessTokenExpireUnixStampTime}`
+                );
+                this.startRefreshTokenTimer();
             });
         } catch (error) {
             console.log(error);
         }
     };
 
-    private startRefreshTokenTimer(user: UserDetails | null) {
+    private startRefreshTokenTimer() {
         try {
-            if (user && user.accessTokenExpireUnixStampTime) {
+            // console.log(`this.user: ${JSON.stringify(this.user)}`);
+            // toast.info(`this.user: ${JSON.stringify(this.user)}`);
+            ///TODO: Convert timestamp to millseconds.
+            // console.log(`this.user.accessTokenExpireUnixStampTime: ${this.user.accessTokenExpireUnixStampTime}, Date.now(): ${Date.now()}`);
+            // multiplied by 1000 so that the argument is in milliseconds, not seconds
+            if (this.user && this.user.accessTokenExpireUnixStampTime) {
+                toast.info('Enable refresh token timer.');
+
+                const expires = new Date(this.user.accessTokenExpireUnixStampTime * 1000);
                 ///TODO: Convert timestamp to millseconds.
-                // console.log(`user.accessTokenExpireUnixStampTime: ${user.accessTokenExpireUnixStampTime}, Date.now(): ${Date.now()}`);
-                // multiplied by 1000 so that the argument is in milliseconds, not seconds
-                const expires = new Date(user.accessTokenExpireUnixStampTime * 1000);
-                ///TODO: Convert timestamp to millseconds.
-                const timeout = expires.getTime() - Date.now() - 30 * 1000;
-                this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
-                // console.log(this.refreshTokenTimeout);
-                // console.log(`Refresh user ${user._id} token that expired time is: ${expires}, timeout: ${timeout}`);
+                // const timeout = expires.getTime() - Date.now() - 30 * 1000;
+                const timeout = expires.getTime() - Date.now();
+
+                if (timeout > 0) {
+                    this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
+                    // console.log(this.refreshTokenTimeout);
+                    // console.log(`Refresh user ${this.user.id} token that expired time is: ${expires}, timeout: ${timeout}`);
+                }
                 const expiresDateString = moment(expires).format('yyyy-MM-DD HH:mm:ss');
                 const timeoutDateString = moment.unix(timeout / 1000).format('mm:ss');
 
                 console.log(
-                    `Refresh user ${user._id} token that expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
+                    `Refresh user ${this.user?.id} token that timeout: ${timeout}, accessTokenExpireUnixStampTime: ${this.user.accessTokenExpireUnixStampTime}, expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
                 );
-                toast.success(
-                    `Refresh user ${user._id} token that expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
+                toast.info(
+                    `Refresh user ${this.user?.id} token that timeout: ${timeout}, accessTokenExpireUnixStampTime: ${this.user.accessTokenExpireUnixStampTime}, expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
                 );
             } else {
-                console.log(`User details is null.`);
-                toast.error(`User details is null.`);
+                toast.error('Disable refresh token timer.');
+                // console.log(`User details is null.`);
+                // toast.error(`User details is null. try read this.user: ${JSON.stringify(this.user)}`);
             }
         } catch (error: any) {
             console.log(error.stack);
