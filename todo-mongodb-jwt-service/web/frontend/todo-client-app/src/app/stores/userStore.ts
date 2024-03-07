@@ -108,8 +108,10 @@ export default class UserStore {
     getCurrentUser = async () => {
         try {
             await agent.Auth.current().then((response) => {
-                this.user = response.data;
-                this.startRefreshTokenTimer();
+                runInAction(() => {
+                    this.user = response.data;
+                    this.startRefreshTokenTimer();
+                });
             });
         } catch (error) {
             throw error;
@@ -120,11 +122,13 @@ export default class UserStore {
         this.stopRefreshTokenTimer();
         try {
             await agent.Auth.refreshToken().then((response) => {
-                this.user = response.data;
-                toast.success(
-                    `Refresh token successfully! expire time is: ${this.user?.accessTokenExpireUnixStampTime}`
-                );
-                this.startRefreshTokenTimer();
+                runInAction(() => {
+                    this.user = response.data;
+                    toast.success(
+                        `Refresh token successfully! expire time is: ${this.user?.accessTokenExpireUnixStampTime}`
+                    );
+                    this.startRefreshTokenTimer();
+                });
             });
         } catch (error) {
             console.log(error);
