@@ -147,16 +147,24 @@ export default class UserStore {
 
                 const expires = new Date(this.user.accessTokenExpireUnixStampTime * 1000);
                 ///TODO: Convert timestamp to millseconds.
-                // const timeout = expires.getTime() - Date.now() - 30 * 1000;
-                const timeout = expires.getTime() - Date.now();
+                const timeout = expires.getTime() - Date.now() - 30 * 1000;
+                // const timeout = expires.getTime() - Date.now();
 
-                if (timeout > 0) {
-                    this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
-                    // console.log(this.refreshTokenTimeout);
-                    // console.log(`Refresh user ${this.user.id} token that expired time is: ${expires}, timeout: ${timeout}`);
-                }
+                // if (timeout > 0) {
+                //     this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
+                //     // console.log(this.refreshTokenTimeout);
+                //     // console.log(`Refresh user ${this.user.id} token that expired time is: ${expires}, timeout: ${timeout}`);
+                // }
+
+                this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
                 const expiresDateString = moment(expires).format('yyyy-MM-DD HH:mm:ss');
                 const timeoutDateString = moment.unix(timeout / 1000).format('mm:ss');
+
+                if (timeout <= 0) {
+                    toast.warning(`Token expired! time left: ${timeoutDateString}`);
+                } else {
+                    toast.info(`Token not yet expire, time left: ${timeoutDateString}`);
+                }
 
                 console.log(
                     `Refresh user ${this.user?.id} token that timeout: ${timeout}, accessTokenExpireUnixStampTime: ${this.user.accessTokenExpireUnixStampTime}, expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`

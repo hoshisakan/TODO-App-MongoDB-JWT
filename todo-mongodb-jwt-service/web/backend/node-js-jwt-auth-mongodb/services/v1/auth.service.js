@@ -150,7 +150,30 @@ class AuthService {
                     const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
                     result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
                 } else {
-                    result.clientResponse.accessTokenExpireUnixStampTime = oldCookieAccessTokenValidateResult.data['exp'];
+                    ///TODO: 若舊 token 尚未過期 ，則再進一步檢查舊 token 是否快要逾期 ()
+                    const oldTokenExpireMillSecondTime = new Date(
+                        oldCookieAccessTokenValidateResult.data['exp'] * 1000
+                    );
+                    const oldTokenAheadOfTimeCheckTime = 30 * 1000;
+                    const oldTokenTimeLeft =
+                        oldTokenExpireMillSecondTime.getTime() - Date.now() - oldTokenAheadOfTimeCheckTime;
+
+                    if (oldTokenTimeLeft <= 0) {
+                        const generateAccessTokenResult = await this.generateTokenAndStorageCache(
+                            {
+                                id: userValidateResult.user.id,
+                            },
+                            ACCESS,
+                            userValidateResult
+                        );
+                        result.clientCookie.accessToken = generateAccessTokenResult.token;
+                        result.clientCookie.accessTokenExpireSecondTime = generateAccessTokenResult.expireTime;
+                        const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
+                        result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
+                    } else {
+                        result.clientResponse.accessTokenExpireUnixStampTime =
+                            oldCookieAccessTokenValidateResult.data['exp'];
+                    }
                 }
             } else {
                 const generateAccessTokenResult = await this.generateTokenAndStorageCache(
@@ -607,7 +630,30 @@ class AuthService {
                     const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
                     result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
                 } else {
-                    result.clientResponse.accessTokenExpireUnixStampTime = oldCookieAccessTokenValidateResult.data['exp'];
+                    ///TODO: 若舊 token 尚未過期 ，則再進一步檢查舊 token 是否快要逾期 ()
+                    const oldTokenExpireMillSecondTime = new Date(
+                        oldCookieAccessTokenValidateResult.data['exp'] * 1000
+                    );
+                    const oldTokenAheadOfTimeCheckTime = 30 * 1000;
+                    const oldTokenTimeLeft =
+                        oldTokenExpireMillSecondTime.getTime() - Date.now() - oldTokenAheadOfTimeCheckTime;
+
+                    if (oldTokenTimeLeft <= 0) {
+                        const generateAccessTokenResult = await this.generateTokenAndStorageCache(
+                            {
+                                id: userValidateResult.user.id,
+                            },
+                            ACCESS,
+                            userValidateResult
+                        );
+                        result.clientCookie.accessToken = generateAccessTokenResult.token;
+                        result.clientCookie.accessTokenExpireSecondTime = generateAccessTokenResult.expireTime;
+                        const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
+                        result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
+                    } else {
+                        result.clientResponse.accessTokenExpireUnixStampTime =
+                            oldCookieAccessTokenValidateResult.data['exp'];
+                    }
                 }
             } else {
                 const generateAccessTokenResult = await this.generateTokenAndStorageCache(
