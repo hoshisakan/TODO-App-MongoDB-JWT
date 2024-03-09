@@ -14,6 +14,8 @@ const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
 
+const { toObjectId } = require('../../utils/mongoose.filter.util');
+
 class TodoService extends BaseService {
     constructor() {
         super(unitOfWork.todos);
@@ -441,25 +443,50 @@ class TodoService extends BaseService {
     };
 
     ///TODO: Find one todo by query parameters
-    findOne = async (queryParams) => {
+    findOne = async (queryParams, tokenParseResult) => {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
+            if (!tokenParseResult || !tokenParseResult.userId) {
+                throw new Error('Unauthorized!');
+            }
+
             ///TODO: Step1.1: If no query parameters, find one todo category
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.todos.findOne({});
+                if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
+                    searchResult = await this.unitOfWork.todos.findOne({});
+                } else {
+                    searchResult = await this.unitOfWork.todos.findOne({
+                        user: toObjectId(tokenParseResult.userId),
+                    });
+                }
             }
             ///TODO: Step1.2: If query parameters, find one todo category by query parameters
             else {
                 ///TODO: Step1.2.1: Get filter query, if not found throw error
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
+                logInfo(`filterQueryResult: ${stringify(filterQueryResult)}`, fileDetails);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                ///TODO: Step1.2.2: Find one todo by query parameters, if not found throw error
-                searchResult = await this.unitOfWork.todos.findOne(filterQueryResult.query);
+                if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
+                    ///TODO: Step1.2.2: Find one todo by query parameters, if not found throw error
+                    searchResult = await this.unitOfWork.todos.findOne(filterQueryResult.query);
+                } else {
+                    const limitFilterQueryResult = {
+                        $and: [
+                            filterQueryResult.query,
+                            {
+                                user: toObjectId(tokenParseResult.userId),
+                            },
+                        ],
+                    };
+                    logInfo(`limitFilterQueryResult: ${stringify(limitFilterQueryResult)}`, fileDetails);
+                    ///TODO: Step1.2.2: Find one todo by query parameters, if not found throw error
+                    searchResult = await this.unitOfWork.todos.findOne(limitFilterQueryResult);
+                }
             }
             return searchResult;
         } catch (error) {
@@ -489,20 +516,43 @@ class TodoService extends BaseService {
     };
 
     ///TODO: Find all todo category by query parameters
-    findAll = async (queryParams) => {
-        // const classNameAndFuncName = this.getFunctionCallerName();
-        // const fileDetails = this.getFileDetails(classNameAndFuncName);
+    findAll = async (queryParams, tokenParseResult) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
+            if (!tokenParseResult || !tokenParseResult.userId) {
+                throw new Error('Unauthorized!');
+            }
+
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.todos.find({});
+                if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
+                    searchResult = await this.unitOfWork.todos.find({});
+                } else {
+                    searchResult = await this.unitOfWork.todos.find({
+                        user: toObjectId(tokenParseResult.userId),
+                    });
+                }
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
-
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.todos.find(filterQueryResult.query);
+                logInfo(`filterQueryResult: ${stringify(filterQueryResult)}`, fileDetails);
+                if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
+                    searchResult = await this.unitOfWork.todos.find({});
+                } else {
+                    const limitFilterQueryResult = {
+                        $and: [
+                            filterQueryResult.query,
+                            {
+                                user: toObjectId(tokenParseResult.userId),
+                            },
+                        ],
+                    };
+                    logInfo(`limitFilterQueryResult: ${stringify(limitFilterQueryResult)}`, fileDetails);
+                    searchResult = await this.unitOfWork.todos.find(limitFilterQueryResult);
+                }
             }
             return searchResult;
         } catch (error) {

@@ -12,7 +12,13 @@ export default observer(function OtherPage() {
 
     const location = useLocation();
 
-    const exceptionRouteList = ['/sign-up-success', '/not-found', '/verify-email'];
+    const exceptionRouteList = [
+        '/sign-up-success',
+        '/not-found',
+        '/verify-email',
+        '/reset-password',
+        '/reset-password-success',
+    ];
 
     const notLoggedNavigationRoutes = () => {
         return exceptionRouteList.indexOf(location.pathname) !== -1;
@@ -22,8 +28,10 @@ export default observer(function OtherPage() {
         <Fragment>
             {isLoggedIn || notLoggedNavigationRoutes() ? (
                 <Fragment>
-                    <HeaderNavbar navbarName={'Todo'} />
-                    <Outlet />
+                    <div style={{ backgroundColor: '#f0f0f0', height: '100vh' }}>
+                        <HeaderNavbar navbarName={'Todo'} />
+                        <Outlet />
+                    </div>
                 </Fragment>
             ) : (
                 <Fragment>

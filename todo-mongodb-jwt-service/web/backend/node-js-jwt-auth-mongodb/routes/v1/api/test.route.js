@@ -14,5 +14,4 @@ router.get('/send-verification-email', [authJwt.verifyAcccessToken, authJwt.isDe
 
 router.get('/verify', testController.verify);
 
-
 module.exports = router;

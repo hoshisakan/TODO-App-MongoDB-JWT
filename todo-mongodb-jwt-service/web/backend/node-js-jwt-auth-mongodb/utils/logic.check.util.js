@@ -15,15 +15,44 @@ const LogicCheckUtil = {
             ? { isValid: true, error: null }
             : { isValid: false, error: 'No query parameters found' };
     },
-    ///TODO: Search roles by name
+    ///TODO: Search roles by name list
     searchRolesByName: async (roles = []) => {
         // const fileDetails = `[${filenameWithoutPath}] [searchRolesByName]`;
         let result = [];
         try {
             result = await unitOfWork.roles.find({ name: { $in: roles } });
-            // logInfo(`searchRolesByName result: ${stringify(result)}`, fileDetails, true);
             if (!result) {
-                throw new Error('Search roles by name list failed, please provide correct roles list');
+                throw new Error('Search roles by name list failed, please provide correct role list');
+            }
+            return result;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    },
+    ///TODO: Search ids by name list
+    searchCategoryIdByName: async (names = []) => {
+        // const fileDetails = `[${filenameWithoutPath}] [searchRolesByName]`;
+        let result = [];
+        try {
+            result = await unitOfWork.todoCategories.find({ name: { $in: names } });
+            if (!result) {
+                throw new Error('Search category id by name list failed, please provide correct name list');
+            }
+            return result;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    },
+    ///TODO: Search ids by name list
+    searchUserIdByName: async (names = []) => {
+        // const fileDetails = `[${filenameWithoutPath}] [searchRolesByName]`;
+        let result = [];
+        try {
+            result = await unitOfWork.users.find({ username: { $in: names } });
+            if (!result) {
+                throw new Error('Search user id by name list failed, please provide correct name list');
             }
             return result;
         } catch (error) {
@@ -204,7 +233,7 @@ const LogicCheckUtil = {
         return result;
     },
     ///TODO: Convert query params to mongo query
-    convertQueryParamsToMongoQuery: async (queryParams) => {
+    convertQueryParamsToMongoQuery: async (queryParams, validateModelName) => {
         const fileDetails = `[${filenameWithoutPath}] [convertQueryParamsToMongoQuery]`;
         let result = {
             query: {},
@@ -229,15 +258,26 @@ const LogicCheckUtil = {
                 newValue = String(value).split(',');
 
                 ///TODO: Step 1.1: Check each query params key and value, if key is roles, then search roles by name
-                if (key === 'roles') {
-                    const searchRolesByNameResult = await LogicCheckUtil.searchRolesByName(newValue);
-                    logInfo(`searchRolesByNameResult: ${stringify(searchRolesByNameResult)}`, fileDetails, true);
-                    const searchRolesIds = searchRolesByNameResult.map((role) => role._id);
-                    newValue = searchRolesIds;
-                }
                 logInfo(`newValue: ${stringify(newValue)}`, fileDetails, true);
-                ///TODO: Step 1.2: Add newValue to query with $in operator
-                result.query[key] = { $in: newValue };
+
+                if (key === 'category' && validateModelName === 'Todo') {
+                    const searchCategoryIdByNameResult = await LogicCheckUtil.searchCategoryIdByName(newValue);
+                    const searchCategoriesId = searchCategoryIdByNameResult.map((category) => category._id);
+                    result.query['category'] = { $in: searchCategoriesId };
+                } else if (key === 'user' && validateModelName === 'Todo') {
+                    const searchUserIdByNameResult = await LogicCheckUtil.searchUserIdByName(newValue);
+                    // logInfo(`searchUserIdByNameResult: ${searchUserIdByNameResult}`, fileDetails, true);
+                    const searchUsersId = searchUserIdByNameResult.map((user) => user._id);
+                    result.query['user'] = { $in: searchUsersId };
+                } else {
+                    if (key === 'roles') {
+                        const searchRolesByNameResult = await LogicCheckUtil.searchRolesByName(newValue);
+                        const searchRolesIds = searchRolesByNameResult.map((role) => role._id);
+                        newValue = searchRolesIds;
+                    }
+                    ///TODO: Step 1.2: Add newValue to query with $in operator
+                    result.query[key] = { $in: newValue };
+                }
             }
         } catch (err) {
             result.error = err.message;
@@ -270,7 +310,7 @@ const LogicCheckUtil = {
             }
 
             ///TODO: Step 2: Convert query params to mongo query
-            result = await LogicCheckUtil.convertQueryParamsToMongoQuery(queryParams);
+            result = await LogicCheckUtil.convertQueryParamsToMongoQuery(queryParams, validateModelName);
 
             if (!result.query || Object.keys(result.query).length === 0 || result.query.length === 0 || result.error) {
                 throw new Error(result.error);

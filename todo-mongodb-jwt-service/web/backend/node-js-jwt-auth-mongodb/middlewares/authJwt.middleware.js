@@ -18,9 +18,11 @@ getFunctionCallerName = () => {
     return functionName;
 };
 
+let userOwnRoleList = [];
+
 ///TODO: Verify refresh token
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
-verifyAcccessToken = (req, res, next) => {
+verifyAcccessToken = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
     const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
     try {
@@ -37,12 +39,14 @@ verifyAcccessToken = (req, res, next) => {
         if (!decodedResult.data || decodedResult.message) {
             throw new Error(decodedResult.message);
         }
-
         logInfo(`decodedResult: ${stringify(decodedResult)}`, fileDetails);
 
         req.userId = decodedResult.data['id'];
-
         logInfo(`req.userId: ${req.userId}`, fileDetails, true);
+
+        userOwnRoleList = await authService.findUserRolesById(req.userId, true);
+        req.highestPermission = userOwnRoleList[0]['name'];
+        logInfo(`req.highestPermission: ${req.highestPermission}`, fileDetails, true);
 
         return next();
     } catch (err) {
@@ -72,7 +76,6 @@ verifyRefreshToken = (req, res, next) => {
         }
 
         req.userId = decodedResult.data['id'];
-
         logInfo(`req.userId: ${req.userId}`, fileDetails, true);
 
         return next();
@@ -82,15 +85,16 @@ verifyRefreshToken = (req, res, next) => {
     }
 };
 
-isMatchRole = (userOwnRoleList, checkRole) => {
-    if (!userOwnRoleList || !checkRole) {
+isMatchRole = (userOwnRoleList, checkRole = []) => {
+    if (!userOwnRoleList || !checkRole || checkRole.length === 0) {
         return false;
     }
     ///TODO: find method returns the value of the first element in the provided array that satisfies the provided testing function.
     // userOwnRoleList.find((role) => role.name === checkRole) !== undefined;
     ///TODO: some method returns true if at least one element in the array passes the test implemented by the provided function.
     ///TODO: some method equals to C# LINQ Any method.
-    return userOwnRoleList.some((role) => role.name === checkRole);
+    // return userOwnRoleList.some((role) => role.name === checkRole);
+    return userOwnRoleList.some((role) => checkRole.includes(role.name));
 };
 
 isAdmin = async (req, res, next) => {
@@ -104,10 +108,7 @@ isAdmin = async (req, res, next) => {
         }
         logInfo(`userId: ${userId}`, fileDetails, true);
 
-        const userOwnRoleList = await authService.findUserRolesById(userId);
-        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
-
-        const isAdmin = isMatchRole(userOwnRoleList, 'admin');
+        const isAdmin = isMatchRole(userOwnRoleList, ['admin']);
         logInfo(`isAdmin: ${isAdmin}`, fileDetails, true);
 
         if (!isAdmin) {
@@ -132,10 +133,7 @@ isDevelopment = async (req, res, next) => {
         }
         logInfo(`userId: ${userId}`, fileDetails, true);
 
-        const userOwnRoleList = await authService.findUserRolesById(userId);
-        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
-
-        const isDevelopment = isMatchRole(userOwnRoleList, 'development');
+        const isDevelopment = isMatchRole(userOwnRoleList, ['admin', 'development']);
         logInfo(`isDevelopment: ${isDevelopment}`, fileDetails, true);
 
         if (!isDevelopment) {
@@ -160,14 +158,36 @@ isModerator = async (req, res, next) => {
         }
         logInfo(`userId: ${userId}`, fileDetails, true);
 
-        const userOwnRoleList = await authService.findUserRolesById(userId);
-        logInfo(`userOwnRoleList: ${stringify(userOwnRoleList)}`, fileDetails, true);
-
-        const isModerator = isMatchRole(userOwnRoleList, 'moderator');
+        const isModerator = isMatchRole(userOwnRoleList, ['admin', 'moderator']);
         logInfo(`isModerator: ${isModerator}`, fileDetails, true);
 
         if (!isModerator) {
             logInfo(`Moderator role not found.`, fileDetails, true);
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
+        }
+        return next();
+    } catch (err) {
+        logError(err, fileDetails, true);
+        return http.errorResponse(res, BAD_REQUEST, err.message);
+    }
+};
+
+isUser = async (req, res, next) => {
+    const classNameAndFuncName = getFunctionCallerName();
+    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    try {
+        const userId = req.userId || null;
+
+        if (!userId) {
+            return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
+        }
+        logInfo(`userId: ${userId}`, fileDetails, true);
+
+        const isUser = isMatchRole(userOwnRoleList, ['admin', 'user']);
+        logInfo(`isUser: ${isUser}`, fileDetails, true);
+
+        if (!isUser) {
+            logInfo(`User role not found.`, fileDetails, true);
             return http.errorResponse(res, UNAUTHORIZED, 'Unauthorized!');
         }
         return next();
@@ -182,6 +202,7 @@ const authJwt = {
     isAdmin,
     isDevelopment,
     isModerator,
+    isUser,
 };
 module.exports = authJwt;
 

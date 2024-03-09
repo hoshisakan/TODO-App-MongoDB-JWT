@@ -4,6 +4,7 @@ const { filenameFilter } = require('../../utils/regex.util');
 const { OK, BAD_REQUEST } = require('../../helpers/constants.helper');
 
 const TodoService = require('../../services/v1/todo.service');
+const { stringify } = require('../../utils/json.util');
 
 class TodoController {
     constructor() {
@@ -51,7 +52,9 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoService.create(req.body, req.userId);
+            const userId = req.userId;
+            logInfo(`userId: ${userId}`, fileDetails, true);
+            const result = await this.todoService.create(req.body, userId);
             return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
@@ -124,7 +127,12 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoService.findAll(req.query);
+            const tokenParseResult = {
+                userId: req.userId,
+                highestPermission: req.highestPermission,
+            };
+            logInfo(`tokenParseResult: ${stringify(tokenParseResult)}`, fileDetails, true);
+            const result = await this.todoService.findAll(req.query, tokenParseResult);
             return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);

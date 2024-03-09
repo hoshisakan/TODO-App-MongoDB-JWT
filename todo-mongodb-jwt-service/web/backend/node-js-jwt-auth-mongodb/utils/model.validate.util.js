@@ -82,7 +82,10 @@ const ModelValidateUtil = {
             } else if (validateModelName === 'Role') {
                 result.isValid = Role.schema.paths.hasOwnProperty(fieldKey);
             } else if (validateModelName === 'Todo') {
-                result.isValid = Todo.schema.paths.hasOwnProperty(fieldKey);
+                result.isValid =
+                    Todo.schema.paths.hasOwnProperty(fieldKey) ||
+                    User.schema.paths.hasOwnProperty(fieldKey) ||
+                    TodoCategory.schema.paths.hasOwnProperty(fieldKey);
             } else if (validateModelName === 'TodoCategory') {
                 result.isValid = TodoCategory.schema.paths.hasOwnProperty(fieldKey);
             } else if (validateModelName === 'TraceError') {

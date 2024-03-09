@@ -64,6 +64,10 @@ const requests = {
     del: <T>(url: string) => axios.delete<T>(url).then(responseBody),
 };
 
+const Todo = {
+    
+};
+
 const User = {
     details: (id: string) => requests.get<ResponseResult>(`user/${id}`),
 };

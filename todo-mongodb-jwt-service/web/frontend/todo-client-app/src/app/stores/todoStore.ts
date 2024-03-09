@@ -78,6 +78,8 @@ export default class TodoStore {
         this.todos = todos;
     };
 
+    
+
     setUserTodoList = (item: ListTodoItem) => {
         if (!this.userTodoList[item.status]) {
             this.userTodoList[item.status] = [];

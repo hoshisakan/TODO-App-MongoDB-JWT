@@ -12,6 +12,4 @@ db.todoCategory = require('./todo.category.model');
 db.traceError = require('./trace.error.model');
 db.errorCategory = require('./error.category.model');
 
-db.ROLES = ['user', 'admin', 'moderator'];
-
 module.exports = db;

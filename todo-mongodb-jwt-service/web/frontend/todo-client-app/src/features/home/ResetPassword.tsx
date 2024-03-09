@@ -78,7 +78,7 @@ const ResetPassword = observer(() => {
         <>
             {isAllowedReset && (
                 <div className="container-fluid">
-                    <div className="row justify-content-center">
+                    <div className="row justify-content-center p-5">
                         <div className="col-md-5">
                             <div className="card border-light-subtle shadow-sm opacity-75">
                                 <div className="card-body p-3 p-md-4 p-xl-5">

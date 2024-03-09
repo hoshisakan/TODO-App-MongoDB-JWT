@@ -24,7 +24,8 @@ class TodoRepository extends Repository {
     find = async (expression = {}) => {
         return await this.model
             .find(expression)
-            .populate('user', 'username email -_id')
+            // .populate('user', 'username email -_id')
+            .populate('user', 'username email')
             .populate('category', 'name value');
     };
 
