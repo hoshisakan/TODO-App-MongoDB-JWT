@@ -1,71 +1,70 @@
 import { useStore } from '../../app/stores/store';
 import { TodoFormValuesAddCard } from '../../app/models/Todo';
 import { toast } from 'react-toastify';
+import { observer } from 'mobx-react-lite';
+import { ChangeEvent, useState } from 'react';
 
-const TodoItemCard = () => {
+const TodoItemCard = observer(() => {
     const { todoCategoryStore, todoStore } = useStore();
     const { todoCategories } = todoCategoryStore;
     const { addTodo } = todoStore;
-    // const [selectedStatusOption, setSelectedStatusOption] = useState('default');
-    // const [selectedCategoryOption, setSelectedCategoryOption] = useState('default');
+    const [state, setState] = useState<TodoFormValuesAddCard>({
+        title: '',
+        description: '',
+        status: '',
+        startDate: '',
+        dueDate: '',
+        todoCategoryId: '',
+    });
 
-    // const handleStatusSelectEvent = (event: ChangeEvent<HTMLSelectElement>) => {
-    //     // const selectedValue = document.querySelector<HTMLSelectElement>('select[id="status"]')?.value;
-    //     // alert(event.target.value);
-    //     // alert(selectedValue);
-    //     // console.log(`Get selected value: ${selectedValue}`);
-    //     setSelectedStatusOption(event.target.value);
-    // };
+    const handleChange = (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement | HTMLSelectElement>) => {
+        const name = e.target.name;
+        const value = e.target.value;
 
-    // const handleCategorySelectEvent = (event: ChangeEvent<HTMLSelectElement>) => {
-    //     // const selectedValue = document.querySelector<HTMLSelectElement>('select[id="todoCategoryId"]')?.value;
-    //     // alert(event.target.value);
-    //     // alert(selectedValue);
-    //     // console.log(`Get selected value: ${selectedValue}`);
-    //     setSelectedCategoryOption(event.target.value);
-    // };
+        // setState((prevState) => {
+        //     // Object.assign would also work
+        //     return { ...prevState, [name]: value };
+        // });
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+        setState((prevValue) => ({
+            ...prevValue,
+            [name]: value,
+        }));
 
-        let requestValues: TodoFormValuesAddCard = {
+        ///TODO: 因為 setState是非同步的方法，故會有延遲的現象發生，非即時更新，但若在 Form 提交時，所有值皆會被更新至 state 中
+        // console.log(`result: ${JSON.stringify(state)}`);
+        // toast.info(`result: ${JSON.stringify(state)}`);
+    };
+
+    const clearFormValues = () => {
+        setState({
             title: '',
             description: '',
             status: '',
             startDate: '',
             dueDate: '',
             todoCategoryId: '',
-        };
-        let formSelectFieldNames = ['status', 'todoCategoryId'];
-        let formInputFieldNames = ['title', 'description', 'status', 'startDate', 'dueDate', 'todoCategoryId'];
-        // let formInputFieldNames = ['title', 'description', 'startDate', 'dueDate', 'todoCategoryId'];
-        let isAllowSubmit = true;
-
-        formInputFieldNames.forEach((fieldName, index) => {
-            if (formSelectFieldNames.includes(fieldName)) {
-                requestValues[fieldName as keyof TodoFormValuesAddCard] =
-                    document.querySelector<HTMLSelectElement>(`select[id="${fieldName}"]`)?.value ?? '';
-            } else {
-                requestValues[fieldName as keyof TodoFormValuesAddCard] =
-                    document.querySelector<HTMLInputElement>(`input[name="${fieldName}"]`)?.value ?? '';
-            }
-            if (fieldName !== 'description' && !requestValues[fieldName as keyof TodoFormValuesAddCard]) {
-                alert(`The field ${fieldName} can't be empty !`);
-                isAllowSubmit = false;
-                return;
-            }
         });
+        toast.info('Clear form values process completed.');
+    };
 
-        if (isAllowSubmit) {
-            console.log(`Add card requestValues: ${JSON.stringify(requestValues)}`);
-            toast.success(`Add card requestValues: ${JSON.stringify(requestValues)}`);
-            addTodo(requestValues)
-                .then((response: any) => {
-                })
-                .catch((err: any) => {
-                    toast.error(`Error: ${err.statck}`);
-                });
-        }
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        console.log(`The form submit content is: ${JSON.stringify(state)}`);
+
+        let requestValues: TodoFormValuesAddCard = state;
+
+        toast.info(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
+
+        addTodo(requestValues)
+            .then((response: any) => {
+                clearFormValues();
+                toast.info(`Read state after clear form: ${JSON.stringify(requestValues)}`);
+            })
+            .catch((err: any) => {
+                toast.error(`Error: ${err.statck}`);
+            });
     };
 
     return (
@@ -81,7 +80,8 @@ const TodoItemCard = () => {
                             className="form-control"
                             name="title"
                             id="title"
-                            // value=""
+                            value={state.title}
+                            onChange={handleChange}
                             required
                         />
                     </div>
@@ -92,7 +92,8 @@ const TodoItemCard = () => {
                             className="form-control"
                             name="description"
                             id="description"
-                            // value=""
+                            value={state.description ?? ''}
+                            onChange={handleChange}
                         />
                     </div>
                     <div className="col-12">
@@ -102,9 +103,10 @@ const TodoItemCard = () => {
                         <select
                             // defaultValue={'DEFAULT'}
                             id="status"
+                            name="status"
                             className="form-select"
-                            // onChange={handleStatusSelectEvent}
-                            // value={selectedStatusOption}
+                            value={!state.status ? 'DEFAULT' : state.status}
+                            onChange={handleChange}
                         >
                             <option value="DEFAULT" disabled>
                                 請選擇狀態
@@ -123,7 +125,8 @@ const TodoItemCard = () => {
                             className="form-control"
                             name="startDate"
                             id="startDate"
-                            // value=""
+                            value={state.startDate}
+                            onChange={handleChange}
                             required
                         />
                     </div>
@@ -136,7 +139,8 @@ const TodoItemCard = () => {
                             className="form-control"
                             name="dueDate"
                             id="dueDate"
-                            // value=""
+                            value={state.dueDate}
+                            onChange={handleChange}
                             required
                         />
                     </div>
@@ -149,8 +153,8 @@ const TodoItemCard = () => {
                             id="todoCategoryId"
                             name="todoCategoryId"
                             className="form-select"
-                            // onChange={handleCategorySelectEvent}
-                            // value={selectedCategoryOption}
+                            value={!state.todoCategoryId ? 'DEFAULT' : state.todoCategoryId}
+                            onChange={handleChange}
                         >
                             <option value="DEFAULT" disabled>
                                 請選擇類別
@@ -171,6 +175,6 @@ const TodoItemCard = () => {
             </div>
         </div>
     );
-};
+});
 
 export default TodoItemCard;

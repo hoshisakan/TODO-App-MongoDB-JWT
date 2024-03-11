@@ -611,6 +611,12 @@ class TodoService extends BaseService {
                         userFKFields,
                         categoryFKFields;
                 }
+                ///TODO: 使用 mongoose 的搜尋結果返回的資料是不可變的，故需要將其從 mongoose 的資料型態轉換成 object 才能夠讓其屬性被更動
+                searchResult = tempSearchResult.map((item) => item.toObject());
+                searchResult.forEach((item, index) => {
+                    searchResult[index]['user'] = item['user']['_id'];
+                    searchResult[index]['category'] = item['category']['name'];
+                });
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
@@ -619,7 +625,7 @@ class TodoService extends BaseService {
                 logInfo(`filterQueryResult: ${stringify(filterQueryResult)}`, fileDetails);
                 if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
                     tempSearchResult = await this.unitOfWork.todos.find(
-                        {},
+                        filterQueryResult.query,
                         selectFields,
                         userFKFields,
                         categoryFKFields
@@ -641,13 +647,14 @@ class TodoService extends BaseService {
                         categoryFKFields
                     );
                 }
+                ///TODO: 使用 mongoose 的搜尋結果返回的資料是不可變的，故需要將其從 mongoose 的資料型態轉換成 object 才能夠讓其屬性被更動
+                // searchResult = tempFilterResult.map((item) => item.toObject());
+                searchResult = tempSearchResult.map((item) => item.toObject());
+                searchResult.forEach((item, index) => {
+                    searchResult[index]['user'] = item['user']['_id'];
+                    searchResult[index]['category'] = item['category']['name'];
+                });
             }
-            ///TODO: 使用 mongoose 的搜尋結果返回的資料是不可變的，故需要將其從 mongoose 的資料型態轉換成 object 才能夠讓其屬性被更動
-            searchResult = tempSearchResult.map((item) => item.toObject());
-            searchResult.forEach((item, index) => {
-                searchResult[index]['user'] = item['user']['_id'];
-                searchResult[index]['category'] = item['category']['name'];
-            });
             return searchResult;
         } catch (error) {
             // logError(error, fileDetails, true);

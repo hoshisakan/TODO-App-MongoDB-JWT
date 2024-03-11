@@ -2,16 +2,15 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { DragCardItemAddButton, DropContextWrapper, StyledDashboardWrapper } from './styles/StyledComponents';
 import DroppableSectionWrapper from './DroppableSectionWrapper';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../../app/stores/store';
 import AddTodoItem from './AddTodoItem';
 import { Modal as BootstrapModal } from 'bootstrap';
 import { toast } from 'react-toastify';
 
-// const TodoDashboard = observer(() => {
-const TodoDashboard = () => {
+const TodoDashboard = observer(() => {
     const { todoStore, todoCategoryStore } = useStore();
-    const { userTodoList, todoStatusList, statusPatch, todos, setIsAddeedSuccess } = todoStore;
+    const { userTodoList, todoStatusList, statusPatch } = todoStore;
     const bsModalRef = useRef<InstanceType<typeof BootstrapModal> | null>(null);
 
     const showModal = async () => {
@@ -19,25 +18,53 @@ const TodoDashboard = () => {
     };
 
     const onDragEnd = (result: DropResult) => {
-        const { source, destination } = result;
+        try {
+            const { source, destination } = result;
 
-        if (!destination) {
-            return;
+            if (!destination) {
+                return;
+            }
+            let newItemObj = { ...userTodoList };
+            ///TODO: Force convert droppableId of source to newItemObj object that key type
+            ///TODO: Get status from source and destination that droppableId
+            // const sourceCardStatus = source.droppableId as keyof typeof newItemObj;
+            // const destinationCardStatus = destination.droppableId as keyof typeof newItemObj;
+            const sourceCardStatus = source.droppableId;
+            const destinationCardStatus = destination.droppableId;
+
+            if (!sourceCardStatus || !destinationCardStatus) {
+                throw new Error(`Disable drag object, because sourceCardStatus or destinationCardStatus is null.`);
+            }
+
+            const sourceIndex = source.index ?? -1;
+            const destinationIndex = destination.index ?? -1;
+
+            const isExistSourceStatus = !!newItemObj[sourceCardStatus];
+            const isExistDestinationStatus = !!newItemObj[destinationCardStatus];
+
+            const checkItems = {
+                sourceCardStatus,
+                destinationCardStatus,
+                sourceIndex: sourceIndex,
+                destinationIndex: destinationIndex,
+                isExistSourceStatus: isExistSourceStatus,
+                isExistDestinationStatus: isExistDestinationStatus,
+            };
+
+            console.log(`checkItems: ${JSON.stringify(checkItems)}`);
+
+            if (isExistSourceStatus) {
+                const removeSourceCardItemId = newItemObj[sourceCardStatus][sourceIndex]._id;
+                ///TODO: If update todo category record success, then update page todo items
+                statusPatch(removeSourceCardItemId, { status: destinationCardStatus }).catch((err) => {
+                    throw new Error(err);
+                });
+            } else {
+                throw new Error(`The ${sourceCardStatus} doesn't exists in user todo list.`);
+            }
+        } catch (err: any) {
+            toast.error(`${err}`);
         }
-        let newItemObj = { ...userTodoList };
-        ///TODO: Force convert droppableId of source to newItemObj object that key type
-        const sourceDroppableId = source.droppableId as keyof typeof newItemObj;
-        // toast.info(`source: ${JSON.stringify(sourceDroppableId)}`);
-        // toast.info(`source.droppableId: ${source.droppableId}`);
-        // // console.log(`sourceDroppableId: ${sourceDroppableId}`);
-        const removeItemId = newItemObj[sourceDroppableId][source.index]._id;
-        console.log(`remove: ${JSON.stringify(removeItemId)}, destination.droppableId: ${destination.droppableId}`);
-        toast.info(`remove: ${JSON.stringify(removeItemId)}, destination.droppableId: ${destination.droppableId}`);
-
-        ///TODO: If update todo category record success, then update page todo items
-        statusPatch(removeItemId, { status: destination.droppableId }).catch((err) => {
-            toast.error(err);
-        });
     };
 
     /*
@@ -97,6 +124,6 @@ const TodoDashboard = () => {
             </div>
         </StyledDashboardWrapper>
     );
-};
+});
 
-export default observer(TodoDashboard);
+export default TodoDashboard;

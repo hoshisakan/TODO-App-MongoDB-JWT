@@ -48,7 +48,7 @@ export default class UserStore {
             });
             router.navigate('/todo');
         } catch (error: any) {
-            toast.error(error.stack);
+            // toast.error(error.stack);
             throw error;
         }
     };

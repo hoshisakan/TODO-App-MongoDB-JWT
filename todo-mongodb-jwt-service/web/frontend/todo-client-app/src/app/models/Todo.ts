@@ -3,9 +3,6 @@ export interface Todo {
     title: string;
     description: string | null;
     status: string;
-    // priority: string;
-    // isCompleted: boolean;
-    // type: string;
     startDate: string;
     dueDate: string;
     user: string;
@@ -18,9 +15,6 @@ export interface TodoFormValuesAddCard {
     title: string;
     description: string | null;
     status: string;
-    // priority: string;
-    // isCompleted: boolean;
-    // type: string;
     startDate: string;
     dueDate: string;
     todoCategoryId: string;

@@ -3,6 +3,7 @@ const { stringify } = require('../utils/json.util');
 const { filenameFilter } = require('../utils/regex.util.js');
 const { validateFieldsAuthenticity, validateModelFields } = require('../utils/model.validate.util');
 const { fieldValidation } = require('../utils/validate.util.js').crudOperations;
+const { validObjectId, toObjectId } = require('../utils/mongoose.filter.util.js');
 
 const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 const UnitOfWork = require('../repositories/unitwork');
@@ -265,9 +266,41 @@ const LogicCheckUtil = {
                     const searchCategoriesId = searchCategoryIdByNameResult.map((category) => category._id);
                     result.query['category'] = { $in: searchCategoriesId };
                 } else if (key === 'user' && validateModelName === 'Todo') {
-                    const searchUserIdByNameResult = await LogicCheckUtil.searchUserIdByName(newValue);
-                    // logInfo(`searchUserIdByNameResult: ${searchUserIdByNameResult}`, fileDetails, true);
-                    const searchUsersId = searchUserIdByNameResult.map((user) => user._id);
+                    let searchUsersId = [];
+                    let isAllObjectId = false;
+
+                    if (newValue.length > 1) {
+                        isAllObjectId = newValue.every((currVal) => validObjectId(currVal));
+                        const isPastObjectId = newValue.some((currVal) => validObjectId(currVal));
+
+                        if (isPastObjectId && !isAllObjectId) {
+                            throw new Error('The query value must all object id or all username string.');
+                        }
+
+                        if (!isAllObjectId) {
+                            const searchUserIdByNameResult = await LogicCheckUtil.searchUserIdByName(newValue);
+                            logInfo(`searchUserIdByNameResult: ${searchUserIdByNameResult}`, fileDetails, true);
+                            searchUsersId = searchUserIdByNameResult.map((user) => user._id);
+                        } else {
+                            searchUsersId = newValue.map((val) => toObjectId(val));
+                        }
+                    } else {
+                        isAllObjectId = validObjectId(newValue[0]);
+
+                        if (!isAllObjectId) {
+                            const searchUserIdByNameResult = await LogicCheckUtil.searchUserIdByName(newValue);
+                            logInfo(`searchUserIdByNameResult: ${searchUserIdByNameResult}`, fileDetails, true);
+                            searchUsersId = searchUserIdByNameResult.map((user) => user._id);
+                        } else {
+                            searchUsersId.push(toObjectId(newValue[0]));
+                        }
+                    }
+                    logInfo(
+                        `The ${newValue} whether object id or not ? ${isAllObjectId}, searchUsersId: ${stringify(
+                            searchUsersId
+                        )}`,
+                        fileDetails
+                    );
                     result.query['user'] = { $in: searchUsersId };
                 } else {
                     if (key === 'roles') {
@@ -315,7 +348,7 @@ const LogicCheckUtil = {
             if (!result.query || Object.keys(result.query).length === 0 || result.query.length === 0 || result.error) {
                 throw new Error(result.error);
             }
-            logInfo(`getFilterQuery result: ${stringify(result)}`, fileDetails, true);
+            // logInfo(`getFilterQuery result: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
             result.error = err.message;
             // logError(err, fileDetails, true);

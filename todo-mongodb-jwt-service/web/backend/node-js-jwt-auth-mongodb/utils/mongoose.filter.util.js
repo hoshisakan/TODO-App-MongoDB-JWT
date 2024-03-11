@@ -52,6 +52,10 @@ const MongooseFilterUtil = {
         var ObjectId = require('mongoose').Types.ObjectId;
         return new ObjectId(id.toString());
     },
+    validObjectId: (id) => {
+        var ObjectId = require('mongoose').Types.ObjectId;
+        return ObjectId.isValid(id);
+    },
 };
 
 module.exports = MongooseFilterUtil;

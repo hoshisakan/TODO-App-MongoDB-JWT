@@ -19,8 +19,6 @@ export default class TodoStore {
 
     loadTodos = async () => {
         try {
-            // console.log(`userTodoList: ${JSON.stringify(Object.keys(this.userTodoList))}`);
-            // console.log(`userTodoList: ${JSON.stringify(this.userTodoList)}`);
             await agent.Todo.list().then((response) => {
                 runInAction(async () => {
                     const list: Todo[] = response.data;
@@ -98,7 +96,7 @@ export default class TodoStore {
     setIsAddeedSuccess = async (isAddedSuccess: boolean) => {
         runInAction(() => {
             this.isAddedSuccess = isAddedSuccess;
-            toast.warning(`todoStore change isAddedSuccess result: ${this.isAddedSuccess}`)
+            toast.warning(`todoStore change isAddedSuccess result: ${this.isAddedSuccess}`);
         });
     };
 
@@ -109,5 +107,7 @@ export default class TodoStore {
             }
             this.userTodoList[item.status].push(item);
         });
+        console.log(`userTodoList after: ${JSON.stringify(this.userTodoList)}`);
+        // toast.warning(`userTodoList after: ${JSON.stringify(Object.keys(this.userTodoList))}`);
     };
 }
