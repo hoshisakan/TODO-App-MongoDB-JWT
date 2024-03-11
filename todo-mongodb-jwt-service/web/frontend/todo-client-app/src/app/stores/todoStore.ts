@@ -1,89 +1,113 @@
-import { makeAutoObservable, reaction, runInAction } from 'mobx';
-// import { observer } from 'mobx-react-lite';
-import { ListTodoItem } from '../models/ListTodoItem';
+import { computed, makeAutoObservable, observable, runInAction, autorun, action } from 'mobx';
+import { Todo, TodoFormValuesAddCard, TodoPatchResult, TodoValuesUpdateDropableItem } from '../models/Todo';
+import agent from '../api/agent';
+import { toast } from 'react-toastify';
 
 export default class TodoStore {
-    todos: ListTodoItem[] = [];
-    // userTodoList = new Map<string, ListTodoItem[]>();
-    // userTodoList: { [key: string]: any[] } = {};
-    userTodoList: { [key: string]: ListTodoItem[] } = {};
-    loadTodosCount: number = 0;
+    todos: Todo[] = [];
+    userTodoList: { [key: string]: Todo[] } = {};
+    todoStatusList = ['pending', 'ongoing', 'completed'];
+    isAddedSuccess = false;
 
     constructor() {
-        makeAutoObservable(this);
+        makeAutoObservable(this, {
+            todos: observable,
+            userTodoList: observable,
+            todoStatusList: observable,
+        });
     }
 
     loadTodos = async () => {
         try {
-            const fakeData: ListTodoItem[] = [
-                {
-                    _id: '65cc550178b0f7e2914e9d64',
-                    title: 'Test Create Todo List250955155',
-                    status: 'doing',
-                    priority: 'low',
-                    isCompleted: false,
-                    type: 'private',
-                    startDate: '2024-01-03T00:47:00Z',
-                    dueDate: '2024-01-08T00:47:00Z',
-                    category: 'Test50',
-                },
-                {
-                    _id: '65cc550178b0f7e2914e9d65',
-                    title: 'Test Create Todo List250955156',
-                    status: 'pending',
-                    priority: 'low',
-                    isCompleted: false,
-                    type: 'private',
-                    startDate: '2024-01-03T00:47:00Z',
-                    dueDate: '2024-01-08T00:47:00Z',
-                    category: 'Test50',
-                },
-                {
-                    _id: '65cc550178b0f7e2914e9d66',
-                    title: 'Test Create Todo List305552',
-                    status: 'completed',
-                    priority: 'low',
-                    isCompleted: false,
-                    type: 'private',
-                    startDate: '2024-01-03T00:47:00Z',
-                    dueDate: '2024-01-08T00:47:00Z',
-                    category: 'Test50',
-                },
-                {
-                    _id: '65cc550178b0f7e2914e9d67',
-                    title: 'Test Create Todo Lis45055553',
-                    status: 'pending',
-                    priority: 'low',
-                    isCompleted: false,
-                    type: 'private',
-                    startDate: '2024-01-03T00:47:00Z',
-                    dueDate: '2024-01-08T00:47:00Z',
-                    category: 'Test50',
-                },
-            ];
-            this.setTodos(fakeData);
-
-            this.todos.map((item, index) => (
-                this.setUserTodoList(item)
-            ));
-
-            console.log(`userTodoList: ${JSON.stringify(Object.keys(this.userTodoList))}`);
+            // console.log(`userTodoList: ${JSON.stringify(Object.keys(this.userTodoList))}`);
             // console.log(`userTodoList: ${JSON.stringify(this.userTodoList)}`);
-        } catch (error) {
+            await agent.Todo.list().then((response) => {
+                runInAction(async () => {
+                    const list: Todo[] = response.data;
+                    console.log(`loadTodos list: ${JSON.stringify(list)}`);
+                    if (list.length > 1 && !Array.isArray(list)) {
+                        toast.info('Get data more than 0, but it not an array');
+                    } else if (!Array.isArray(list) || list.length === 0) {
+                        toast.error('Get todo data does empty or not array.');
+                    } else {
+                        await this.clearTodoRelatedItems();
+                        await this.setTodos(list);
+                        await Promise.all(this.todos.map((item, index) => this.setUserTodoList(item)));
+                    }
+                });
+            });
+        } catch (error: any) {
             console.log(error);
+            toast.error(error?.stack);
         }
     };
 
-    setTodos = (todos: ListTodoItem[]) => {
-        this.todos = todos;
+    addTodo = async (requestValues: TodoFormValuesAddCard) => {
+        try {
+            await agent.Todo.add(requestValues)
+                .then((response) => {
+                    runInAction(async () => {
+                        await this.loadTodos();
+                        await this.setIsAddeedSuccess(true);
+                    });
+                })
+                .catch((err) => {
+                    throw new Error(err.stack);
+                });
+        } catch (error: any) {
+            console.log(error);
+            toast.error(error?.stack);
+        }
     };
 
-    
-
-    setUserTodoList = (item: ListTodoItem) => {
-        if (!this.userTodoList[item.status]) {
-            this.userTodoList[item.status] = [];
+    statusPatch = async (id: String, requestValues: TodoValuesUpdateDropableItem) => {
+        try {
+            await agent.Todo.statusPatch(id, requestValues)
+                .then((response) => {
+                    runInAction(async () => {
+                        const patchResult: TodoPatchResult = response.data;
+                        if (patchResult && patchResult._id === id) {
+                            await this.loadTodos();
+                            console.log(`Patch ${id} item successfully.`);
+                        } else {
+                            throw new Error(`Patch ${id} item failed.`);
+                        }
+                    });
+                })
+                .catch(async (err) => {
+                    throw new Error(err.stack);
+                });
+        } catch (err: any) {
+            throw err;
         }
-        this.userTodoList[item.status].push(item);
+    };
+
+    setTodos = async (todos: Todo[]) => {
+        runInAction(() => {
+            this.todos = todos;
+        });
+    };
+
+    clearTodoRelatedItems = async () => {
+        runInAction(() => {
+            this.todos = [];
+            this.userTodoList = {};
+        });
+    };
+
+    setIsAddeedSuccess = async (isAddedSuccess: boolean) => {
+        runInAction(() => {
+            this.isAddedSuccess = isAddedSuccess;
+            toast.warning(`todoStore change isAddedSuccess result: ${this.isAddedSuccess}`)
+        });
+    };
+
+    setUserTodoList = async (item: Todo) => {
+        runInAction(() => {
+            if (!this.userTodoList[item.status]) {
+                this.userTodoList[item.status] = [];
+            }
+            this.userTodoList[item.status].push(item);
+        });
     };
 }

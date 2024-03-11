@@ -9,6 +9,7 @@ const {
     checkMultipleDuplicateExisting,
     setOneAndUpdateFields,
 } = require('../../utils/logic.check.util');
+const { getSelectFields, getSelectFKFields } = require('../../utils/mongoose.filter.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
@@ -258,7 +259,7 @@ class TodoService extends BaseService {
                 throw new Error('Invalid parameters');
             }
 
-            const searchResult = await this.unitOfWork.todos.findById(id);
+            const searchResult = await this.unitOfWork.todos.findById(id, {}, {}, {});
 
             if (!searchResult) {
                 throw new Error('Todo not found with the provided id');
@@ -319,7 +320,7 @@ class TodoService extends BaseService {
             }
             return updateResult;
         } catch (error) {
-            // logError(error, fileDetails, true);
+            logError(error, fileDetails, true);
             throw error;
         }
     };
@@ -444,22 +445,43 @@ class TodoService extends BaseService {
 
     ///TODO: Find one todo by query parameters
     findOne = async (queryParams, tokenParseResult) => {
-        // const classNameAndFuncName = this.getFunctionCallerName();
-        // const fileDetails = this.getFileDetails(classNameAndFuncName);
-        let searchResult = [];
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let searchResult = {};
+
         try {
             if (!tokenParseResult || !tokenParseResult.userId) {
                 throw new Error('Unauthorized!');
             }
 
+            const selectFields = getSelectFields(this.modelName);
+
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const userFKFields = FKFields['user'];
+
+            const categoryFKFields = FKFields['category'];
+
+            let tempSearchResult = {};
+
             ///TODO: Step1.1: If no query parameters, find one todo category
             if (!queryParams || Object.keys(queryParams).length === 0) {
                 if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
-                    searchResult = await this.unitOfWork.todos.findOne({});
+                    tempSearchResult = await this.unitOfWork.todos.findOne(
+                        {},
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields
+                    );
                 } else {
-                    searchResult = await this.unitOfWork.todos.findOne({
-                        user: toObjectId(tokenParseResult.userId),
-                    });
+                    tempSearchResult = await this.unitOfWork.todos.findOne(
+                        {
+                            user: toObjectId(tokenParseResult.userId),
+                        },
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields
+                    );
                 }
             }
             ///TODO: Step1.2: If query parameters, find one todo category by query parameters
@@ -473,7 +495,12 @@ class TodoService extends BaseService {
                 }
                 if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
                     ///TODO: Step1.2.2: Find one todo by query parameters, if not found throw error
-                    searchResult = await this.unitOfWork.todos.findOne(filterQueryResult.query);
+                    tempSearchResult = await this.unitOfWork.todos.findOne(
+                        filterQueryResult.query,
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields
+                    );
                 } else {
                     const limitFilterQueryResult = {
                         $and: [
@@ -485,9 +512,20 @@ class TodoService extends BaseService {
                     };
                     logInfo(`limitFilterQueryResult: ${stringify(limitFilterQueryResult)}`, fileDetails);
                     ///TODO: Step1.2.2: Find one todo by query parameters, if not found throw error
-                    searchResult = await this.unitOfWork.todos.findOne(limitFilterQueryResult);
+                    tempSearchResult = await this.unitOfWork.todos.findOne(
+                        limitFilterQueryResult,
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields
+                    );
                 }
             }
+            if (!tempSearchResult) {
+                throw new Error('Not found any record');
+            }
+            searchResult = tempSearchResult.toObject();
+            searchResult['user'] = tempSearchResult['user']['_id'];
+            searchResult['category'] = tempSearchResult['category']['name'];
             return searchResult;
         } catch (error) {
             // logError(error, fileDetails, true);
@@ -499,15 +537,36 @@ class TodoService extends BaseService {
     findById = async (id) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
+
         try {
             if (!id) {
                 throw new Error('Invalid id');
             }
-            const searchResult = await this.unitOfWork.todos.findById(id);
 
-            if (!searchResult) {
+            const selectFields = getSelectFields(this.modelName);
+
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const userFKFields = FKFields['user'];
+
+            const categoryFKFields = FKFields['category'];
+
+            const tempSearchResult = await this.unitOfWork.todos.findById(
+                id,
+                selectFields,
+                userFKFields,
+                categoryFKFields
+            );
+
+            if (!tempSearchResult) {
                 throw new Error(`Todo with id ${id} not found`);
             }
+
+            const searchResult = tempSearchResult.toObject();
+
+            searchResult['user'] = tempSearchResult['user']['id'];
+            searchResult['category'] = tempSearchResult['category']['name'];
+
             return searchResult;
         } catch (error) {
             // logError(error, fileDetails, true);
@@ -520,18 +579,37 @@ class TodoService extends BaseService {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
+
         try {
             if (!tokenParseResult || !tokenParseResult.userId) {
                 throw new Error('Unauthorized!');
             }
 
+            const selectFields = getSelectFields(this.modelName);
+
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const userFKFields = FKFields['user'];
+
+            const categoryFKFields = FKFields['category'];
+
+            let tempSearchResult = [];
+
             if (!queryParams || Object.keys(queryParams).length === 0) {
                 if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
-                    searchResult = await this.unitOfWork.todos.find({});
+                    tempSearchResult = await this.unitOfWork.todos.find(
+                        {},
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields
+                    );
                 } else {
-                    searchResult = await this.unitOfWork.todos.find({
+                    (tempSearchResult = await this.unitOfWork.todos.find({
                         user: toObjectId(tokenParseResult.userId),
-                    });
+                    })),
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields;
                 }
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
@@ -540,7 +618,12 @@ class TodoService extends BaseService {
                 }
                 logInfo(`filterQueryResult: ${stringify(filterQueryResult)}`, fileDetails);
                 if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
-                    searchResult = await this.unitOfWork.todos.find({});
+                    tempSearchResult = await this.unitOfWork.todos.find(
+                        {},
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields
+                    );
                 } else {
                     const limitFilterQueryResult = {
                         $and: [
@@ -551,9 +634,20 @@ class TodoService extends BaseService {
                         ],
                     };
                     logInfo(`limitFilterQueryResult: ${stringify(limitFilterQueryResult)}`, fileDetails);
-                    searchResult = await this.unitOfWork.todos.find(limitFilterQueryResult);
+                    tempSearchResult = await this.unitOfWork.todos.find(
+                        limitFilterQueryResult,
+                        selectFields,
+                        userFKFields,
+                        categoryFKFields
+                    );
                 }
             }
+            ///TODO: 使用 mongoose 的搜尋結果返回的資料是不可變的，故需要將其從 mongoose 的資料型態轉換成 object 才能夠讓其屬性被更動
+            searchResult = tempSearchResult.map((item) => item.toObject());
+            searchResult.forEach((item, index) => {
+                searchResult[index]['user'] = item['user']['_id'];
+                searchResult[index]['category'] = item['category']['name'];
+            });
             return searchResult;
         } catch (error) {
             // logError(error, fileDetails, true);

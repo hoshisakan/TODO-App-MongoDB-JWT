@@ -9,6 +9,7 @@ const {
     checkMultipleDuplicateExisting,
     setOneAndUpdateFields,
 } = require('../../utils/logic.check.util');
+const { getSelectFields } = require('../../utils/mongoose.filter.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
@@ -278,15 +279,16 @@ class TodoCategoryService extends BaseService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
+            const selectField = getSelectFields(this.modelName);
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.todoCategories.find({});
+                searchResult = await this.unitOfWork.todoCategories.find({}, selectField);
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.todoCategories.find(filterQueryResult.query);
+                searchResult = await this.unitOfWork.todoCategories.find(filterQueryResult.query, selectField);
             }
             return searchResult;
         } catch (error) {

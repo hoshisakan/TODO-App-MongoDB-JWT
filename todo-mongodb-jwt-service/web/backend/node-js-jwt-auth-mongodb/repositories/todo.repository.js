@@ -21,23 +21,43 @@ class TodoRepository extends Repository {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    find = async (expression = {}) => {
+    find = async (
+        expression = {},
+        fields = {},
+        userFKFields = { username: 1, email: 1 },
+        categoryFKFields = { name: 1, value: 1 }
+    ) => {
         return await this.model
             .find(expression)
-            // .populate('user', 'username email -_id')
-            .populate('user', 'username email')
-            .populate('category', 'name value');
+            .populate('user', userFKFields)
+            .populate('category', categoryFKFields)
+            .select(fields);
     };
 
-    findOne = async (expression = {}) => {
+    findOne = async (
+        expression = {},
+        fields = {},
+        userFKFields = { username: 1, email: 1 },
+        categoryFKFields = { name: 1, value: 1 }
+    ) => {
         return await this.model
-            .find(expression)
-            .populate('user', 'username email -_id')
-            .populate('category', 'name value');
+            .findOne(expression)
+            .populate('user', userFKFields)
+            .populate('category', categoryFKFields)
+            .select(fields);
     };
 
-    findById = async (id) => {
-        return await this.model.findById(id).populate('user', 'username email -_id').populate('category', 'name value');
+    findById = async (
+        id,
+        fields = {},
+        userFKFields = { username: 1, email: 1, _id: 0 },
+        categoryFKFields = { name: 1, value: 1, category: 0 }
+    ) => {
+        return await this.model
+            .findById(id)
+            .populate('user', userFKFields)
+            .populate('category', categoryFKFields)
+            .select(fields);
     };
 
     addTodoCategoryAndUser = async (entity, userId) => {

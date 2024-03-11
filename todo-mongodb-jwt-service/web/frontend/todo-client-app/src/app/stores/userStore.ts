@@ -87,13 +87,15 @@ export default class UserStore {
         try {
             await agent.Auth.verifyToken(authType).then(async (response) => {
                 const verifyResult: VerifyTokenResult = response.data;
-                toast.success(`Access token valid successfully.`);
+                // toast.success(`Access token valid successfully.`);
                 if (verifyResult.id && verifyResult.exp) {
                     await agent.Auth.current()
                         .then((response) => {
-                            this.user = response.data;
-                            toast.success(`Access token is vaild, starting get user detail through access token.`);
-                            this.startRefreshTokenTimer();
+                            runInAction(() => {
+                                this.user = response.data;
+                                toast.success(`Access token is vaild, starting get user detail through access token.`);
+                                this.startRefreshTokenTimer();
+                            });
                         })
                         .catch((err) => {
                             throw err;
@@ -124,9 +126,9 @@ export default class UserStore {
             await agent.Auth.refreshToken().then((response) => {
                 runInAction(() => {
                     this.user = response.data;
-                    toast.success(
-                        `Refresh token successfully! expire time is: ${this.user?.accessTokenExpireUnixStampTime}`
-                    );
+                    // toast.success(
+                    //     `Refresh token successfully! expire time is: ${this.user?.accessTokenExpireUnixStampTime}`
+                    // );
                     this.startRefreshTokenTimer();
                 });
             });
@@ -160,18 +162,18 @@ export default class UserStore {
                 const expiresDateString = moment(expires).format('yyyy-MM-DD HH:mm:ss');
                 const timeoutDateString = moment.unix(timeout / 1000).format('mm:ss');
 
-                if (timeout <= 0) {
-                    toast.warning(`Token expired! time left: ${timeoutDateString}`);
-                } else {
-                    toast.info(`Token not yet expire, time left: ${timeoutDateString}`);
-                }
+                // if (timeout <= 0) {
+                //     toast.warning(`Token expired! time left: ${timeoutDateString}`);
+                // } else {
+                //     toast.info(`Token not yet expire, time left: ${timeoutDateString}`);
+                // }
 
                 console.log(
                     `Refresh user ${this.user?.id} token that timeout: ${timeout}, accessTokenExpireUnixStampTime: ${this.user.accessTokenExpireUnixStampTime}, expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
                 );
-                toast.info(
-                    `Refresh user ${this.user?.id} token that timeout: ${timeout}, accessTokenExpireUnixStampTime: ${this.user.accessTokenExpireUnixStampTime}, expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
-                );
+                // toast.info(
+                //     `Refresh user ${this.user?.id} token that timeout: ${timeout}, accessTokenExpireUnixStampTime: ${this.user.accessTokenExpireUnixStampTime}, expiresDateString: ${expiresDateString}, timeoutDateString: ${timeoutDateString}`
+                // );
             } else {
                 toast.error('Disable refresh token timer.');
                 // console.log(`User details is null.`);

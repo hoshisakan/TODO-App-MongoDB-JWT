@@ -28,7 +28,8 @@ export default observer(function OtherPage() {
         <Fragment>
             {isLoggedIn || notLoggedNavigationRoutes() ? (
                 <Fragment>
-                    <div style={{ backgroundColor: '#f0f0f0', height: '100vh' }}>
+                    <div style={{ backgroundColor: '#f0f0f0', height: '100vh', overflow: 'auto' }}>
+                    {/* <div style={{ backgroundColor: '#ffffff', height: '100vh', overflow: 'auto' }}> */}
                         <HeaderNavbar navbarName={'Todo'} />
                         <Outlet />
                     </div>

@@ -1,9 +1,9 @@
 import { Draggable } from 'react-beautiful-dnd';
-import { ListTodoItem } from '../../app/models/ListTodoItem';
+import { Todo } from '../../app/models/Todo';
 import { DragItem, DragItemContent } from './styles/StyledComponents';
 
 interface Props {
-    item: ListTodoItem;
+    item: Todo;
     index: number;
 }
 

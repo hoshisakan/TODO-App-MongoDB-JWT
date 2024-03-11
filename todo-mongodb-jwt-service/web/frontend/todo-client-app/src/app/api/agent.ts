@@ -11,6 +11,7 @@ import {
 import { ResponseResult } from '../models/AxiosResponse';
 import { toast } from 'react-toastify';
 import url from 'url';
+import { TodoFormValuesAddCard, TodoValuesUpdateDropableItem } from '../models/Todo';
 
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 ///TODO: When cross domain request send cookie
@@ -61,11 +62,19 @@ const requests = {
     get: <T>(url: string) => axios.get<T>(url).then(responseBody),
     post: <T>(url: string, body: {}) => axios.post<T>(url, body).then(responseBody),
     put: <T>(url: string, body: {}) => axios.put<T>(url, body).then(responseBody),
+    patch: <T>(url: string, body: {}) => axios.patch<T>(url, body).then(responseBody),
     del: <T>(url: string) => axios.delete<T>(url).then(responseBody),
 };
 
+const TodoCategory = {
+    list: () => requests.get<ResponseResult>('/todoCategory'),
+};
+
 const Todo = {
-    
+    list: () => requests.get<ResponseResult>('/todo'),
+    add: (todo: TodoFormValuesAddCard) => requests.post<ResponseResult>('/todo', todo),
+    statusPatch: (id: String, todo: TodoValuesUpdateDropableItem) =>
+        requests.patch<ResponseResult>(`/todo/${id}`, todo),
 };
 
 const User = {
@@ -82,12 +91,16 @@ const Auth = {
     reSendVerifyEmail: (user: UserFormValuesReSendVerifyEmail) =>
         requests.post<ResponseResult>(`/auth/re-send-confirm-email`, user),
     verifyEmail: (user: UserFormValuesVerifyToken) => requests.post<ResponseResult>(`/auth/verify-email`, user),
-    applyResetPassword: (user: UserFormValuesApplyResetPasssword) => requests.post<ResponseResult>(`/auth/forget-password`, user),
-    verifyResetPasswordToken: (user: UserFormValuesVerifyToken) => requests.post<ResponseResult>(`/auth/verify-reset-password-token`, user),
+    applyResetPassword: (user: UserFormValuesApplyResetPasssword) =>
+        requests.post<ResponseResult>(`/auth/forget-password`, user),
+    verifyResetPasswordToken: (user: UserFormValuesVerifyToken) =>
+        requests.post<ResponseResult>(`/auth/verify-reset-password-token`, user),
     resetPassword: (user: UserFormValuesResetPasssword) => requests.post<ResponseResult>(`/auth/reset-password`, user),
 };
 
 const agent = {
+    Todo,
+    TodoCategory,
     User,
     Auth,
 };

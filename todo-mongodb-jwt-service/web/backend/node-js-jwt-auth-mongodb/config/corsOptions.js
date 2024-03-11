@@ -8,7 +8,7 @@ const corsOptions = {
         'http://localhost',
         'https://localhost',
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowHeaders: ['Content-Type', 'Authorization'],
 };
