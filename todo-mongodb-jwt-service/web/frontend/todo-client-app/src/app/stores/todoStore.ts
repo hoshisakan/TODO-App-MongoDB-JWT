@@ -1,13 +1,23 @@
-import { computed, makeAutoObservable, observable, runInAction, autorun, action } from 'mobx';
-import { Todo, TodoFormValuesAddCard, TodoPatchResult, TodoValuesUpdateDropableItem } from '../models/Todo';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
+import {
+    Todo,
+    TodoFormValuesAddCard,
+    TodoPatchResult,
+    TodoRemoveResult,
+    TodoValuesUpdateDropableItem,
+} from '../models/Todo';
 import agent from '../api/agent';
 import { toast } from 'react-toastify';
 
 export default class TodoStore {
     todos: Todo[] = [];
     userTodoList: { [key: string]: Todo[] } = {};
-    todoStatusList = ['pending', 'ongoing', 'completed'];
-    isAddedSuccess = false;
+    todoStatusList: Array<string> = ['pending', 'ongoing', 'completed'];
+    isAddedSuccess: boolean = false;
+    isEditedSuccess: boolean = false;
+    isRemovedSuccess: boolean = false;
+    editedTodoCardId: string = '';
+    removedTodoCardId: string = '';
 
     constructor() {
         makeAutoObservable(this, {
@@ -22,7 +32,7 @@ export default class TodoStore {
             await agent.Todo.list().then((response) => {
                 runInAction(async () => {
                     const list: Todo[] = response.data;
-                    console.log(`loadTodos list: ${JSON.stringify(list)}`);
+                    // console.log(`loadTodos list: ${JSON.stringify(list)}`);
                     if (list.length > 1 && !Array.isArray(list)) {
                         toast.info('Get data more than 0, but it not an array');
                     } else if (!Array.isArray(list) || list.length === 0) {
@@ -36,7 +46,7 @@ export default class TodoStore {
             });
         } catch (error: any) {
             console.log(error);
-            toast.error(error?.stack);
+            // toast.error(error?.stack);
         }
     };
 
@@ -55,6 +65,30 @@ export default class TodoStore {
         } catch (error: any) {
             console.log(error);
             toast.error(error?.stack);
+        }
+    };
+
+    removeTodo = async (id: string) => {
+        try {
+            await agent.Todo.remove(id)
+                .then((response) => {
+                    runInAction(async () => {
+                        const removeResult: TodoRemoveResult = response.data;
+                        console.log(`removeResult: ${JSON.stringify(removeResult)}`);
+                        if (removeResult.isRemovedSuccess && !removeResult.message) {
+                            await this.loadTodos();
+                            await this.setIsRemovedSuccess(true);
+                        } else {
+                            throw new Error(removeResult.message);
+                        }
+                    });
+                })
+                .catch((err) => {
+                    throw new Error(err.stack);
+                });
+        } catch (error: any) {
+            console.log(error);
+            // toast.error(`Remove error: ${error?.stack}`);
         }
     };
 
@@ -93,10 +127,32 @@ export default class TodoStore {
         });
     };
 
+    setRemovedTodoCardId = (removedTodoCardId: string) => {
+        this.removedTodoCardId = removedTodoCardId;
+    };
+
+    setEditedTodoCardId = (editedTodoCardId: string) => {
+        this.editedTodoCardId = editedTodoCardId;
+    };
+
+    setIsRemovedSuccess = async (isRemovedSuccess: boolean) => {
+        runInAction(() => {
+            this.isRemovedSuccess = isRemovedSuccess;
+            // toast.warning(`todoStore change isRemovedSuccess result: ${this.isRemovedSuccess}`);
+        });
+    };
+
+    setIsEditedSuccess = async (isEditedSuccess: boolean) => {
+        runInAction(() => {
+            this.isEditedSuccess = isEditedSuccess;
+            // toast.warning(`todoStore change isEditedSuccess result: ${this.isEditedSuccess}`);
+        });
+    };
+
     setIsAddeedSuccess = async (isAddedSuccess: boolean) => {
         runInAction(() => {
             this.isAddedSuccess = isAddedSuccess;
-            toast.warning(`todoStore change isAddedSuccess result: ${this.isAddedSuccess}`);
+            // toast.warning(`todoStore change isAddedSuccess result: ${this.isAddedSuccess}`);
         });
     };
 
@@ -107,7 +163,7 @@ export default class TodoStore {
             }
             this.userTodoList[item.status].push(item);
         });
-        console.log(`userTodoList after: ${JSON.stringify(this.userTodoList)}`);
+        // console.log(`userTodoList after: ${JSON.stringify(this.userTodoList)}`);
         // toast.warning(`userTodoList after: ${JSON.stringify(Object.keys(this.userTodoList))}`);
     };
 }

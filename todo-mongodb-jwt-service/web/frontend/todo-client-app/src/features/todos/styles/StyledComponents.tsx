@@ -47,6 +47,7 @@ export const DragCardItemAddButton = styled.button`
     -bs-btn-padding-y: 2.5rem;
     --bs-btn-padding-x: 0.5rem;
     --bs-btn-font-size: 0.95rem;
+    // margin: 5;
 `;
 
 export const DragItemHeader = styled.div`
@@ -132,3 +133,17 @@ export const StyledDashboardWrapper = styled.div`
         // height: 100%; // 在小於 600px 的視窗上，物件的高度為 100%
     }
 `;
+
+export const StyledIcon = styled.i`
+    color: white;
+`;
+
+export const DragCardItemEditOrRemoveButton = styled.button`
+    border-style: none;
+    background: none;
+    -bs-btn-padding-y: 2.5rem;
+    --bs-btn-padding-x: 0.5rem;
+    --bs-btn-font-size: 0.95rem;
+`;
+
+

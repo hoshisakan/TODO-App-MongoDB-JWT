@@ -91,6 +91,9 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.deleteById(req.params.id);
+            if (result.message && result.isRemovedSuccess) {
+                throw new Error(result.isRemovedSuccess);
+            }
             return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);

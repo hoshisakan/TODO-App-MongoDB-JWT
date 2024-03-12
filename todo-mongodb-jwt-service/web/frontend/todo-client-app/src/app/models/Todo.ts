@@ -36,3 +36,8 @@ export interface TodoPatchResult {
     createdAt: string;
     updatedAt: string | null;
 }
+
+export interface TodoRemoveResult {
+    isRemovedSuccess: boolean;
+    message: string;
+}

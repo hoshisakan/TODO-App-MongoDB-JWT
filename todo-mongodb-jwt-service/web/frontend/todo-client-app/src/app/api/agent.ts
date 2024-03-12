@@ -41,8 +41,8 @@ axios.interceptors.response.use(
         const { data, status, config, headers } = error.response as AxiosResponse;
         // console.log(`error.response: ${error.response}`);
         if (config.url) {
-            const requestAPIURL = url.parse(config.url).pathname;
-            console.log(`requestAPIURL: ${requestAPIURL}`);
+            // const requestAPIURL = url.parse(config.url).pathname;
+            // console.log(`requestAPIURL: ${requestAPIURL}`);
             toast.error(data.message);
         }
         return Promise.reject(error);
@@ -73,6 +73,7 @@ const TodoCategory = {
 const Todo = {
     list: () => requests.get<ResponseResult>('/todo'),
     add: (todo: TodoFormValuesAddCard) => requests.post<ResponseResult>('/todo', todo),
+    remove: (id: String) => requests.del<ResponseResult>(`/todo/${id}`),
     statusPatch: (id: String, todo: TodoValuesUpdateDropableItem) =>
         requests.patch<ResponseResult>(`/todo/${id}`, todo),
 };

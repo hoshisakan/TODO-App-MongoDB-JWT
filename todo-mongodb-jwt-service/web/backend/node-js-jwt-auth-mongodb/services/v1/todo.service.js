@@ -401,15 +401,27 @@ class TodoService extends BaseService {
 
     ///TODO: Delete todo by id
     deleteById = async (id) => {
-        // const classNameAndFuncName = this.getFunctionCallerName();
-        // const fileDetails = this.getFileDetails(classAndFuncName);
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let result = {
+            isRemovedSuccess: false,
+            message: '',
+        };
         try {
             if (!id) {
                 throw new Error('Invalid id');
             }
 
+            const selectFields = getSelectFields(this.modelName);
+
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const userFKFields = FKFields['user'];
+
+            const categoryFKFields = FKFields['category'];
+
             ///TODO: Step1: Find todo by id, if not found throw error
-            const searchResult = await this.unitOfWork.todos.findById(id);
+            const searchResult = await this.unitOfWork.todos.findById(id, selectFields, userFKFields, categoryFKFields);
 
             if (!searchResult) {
                 throw new Error(`Todo with id ${id} not found`);
@@ -421,11 +433,13 @@ class TodoService extends BaseService {
             if (!deleteResult) {
                 throw new Error('Delete todo failed');
             }
-            return deleteResult;
-        } catch (error) {
+            logInfo(`Remove result: ${deleteResult}`, fileDetails);
+            result.isRemovedSuccess = true;
+        } catch (err) {
             // logError(error, fileDetails, true);
-            throw error;
+            result.message = err.message;
         }
+        return result;
     };
 
     deleteAll = async () => {

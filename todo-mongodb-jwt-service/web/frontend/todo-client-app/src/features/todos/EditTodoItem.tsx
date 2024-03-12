@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { observer } from 'mobx-react-lite';
 import { ChangeEvent, useState } from 'react';
 
-const TodoItemCard = observer(() => {
+const EditTodoItem = observer(() => {
     const { todoCategoryStore, todoStore } = useStore();
     const { todoCategories } = todoCategoryStore;
     const { addTodo } = todoStore;
@@ -45,26 +45,47 @@ const TodoItemCard = observer(() => {
             dueDate: '',
             todoCategoryId: '',
         });
-        toast.info('Clear form values process completed.');
+        // toast.info('Clear form values process completed.');
+    };
+
+    const checkFormEmptyExists = (checkValues: TodoFormValuesAddCard) => {
+        let result = false;
+        Object.entries(checkValues).forEach(([key, value]) => {
+            if (key !== 'description' && !value) {
+                result = true;
+            }
+        });
+        return result;
     };
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        console.log(`The form submit content is: ${JSON.stringify(state)}`);
+        // console.log(`The form submit content is: ${JSON.stringify(state)}`);
 
-        let requestValues: TodoFormValuesAddCard = state;
+        // let requestValues: TodoFormValuesAddCard = state;
 
-        toast.info(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
+        // console.log(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
+        // // toast.info(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
 
-        addTodo(requestValues)
-            .then((response: any) => {
-                clearFormValues();
-                toast.info(`Read state after clear form: ${JSON.stringify(requestValues)}`);
-            })
-            .catch((err: any) => {
-                toast.error(`Error: ${err.statck}`);
-            });
+        // const isEmptyExists = checkFormEmptyExists(requestValues);
+
+        // if (!isEmptyExists) {
+        //     addTodo(requestValues)
+        //         .then((response: any) => {
+        //             clearFormValues();
+        //             // console.log(`Read state after clear form: ${JSON.stringify(requestValues)}`);
+        //             // toast.info(`Read state after clear form: ${JSON.stringify(requestValues)}`);
+        //             toast.success('Add successfully.');
+        //         })
+        //         .catch((err: any) => {
+        //             toast.error(`Error: ${err.statck}`);
+        //         });
+        // } else {
+        //     toast.error('Find empty value in form values.');
+        //     return;
+        // }
+        return;
     };
 
     return (
@@ -166,10 +187,20 @@ const TodoItemCard = observer(() => {
                             ))}
                         </select>
                     </div>
-                    <div className="col-12 p-2 text-end d-grid gap-2">
-                        <button type="submit" className="btn btn-primary ">
-                            Add
-                        </button>
+                    <div className="col-12 p-3 text-end d-grid gap-2">
+                        {/* <div className="row justify-content-between"> */}
+                        <div className="row justify-content-evenly">
+                            <div className="col-4 text-start">
+                                <button type="submit" className="btn btn-primary">
+                                    Add
+                                </button>
+                            </div>
+                            <div className="col-4 text-end">
+                                <button type="button" className="btn btn-danger">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -177,4 +208,4 @@ const TodoItemCard = observer(() => {
     );
 });
 
-export default TodoItemCard;
+export default EditTodoItem;

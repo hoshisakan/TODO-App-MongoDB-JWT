@@ -4,16 +4,16 @@ import DroppableSectionWrapper from './DroppableSectionWrapper';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../../app/stores/store';
-import AddTodoItem from './AddTodoItem';
 import { Modal as BootstrapModal } from 'bootstrap';
 import { toast } from 'react-toastify';
+import AddTodo from './AddTodo';
 
 const TodoDashboard = observer(() => {
     const { todoStore, todoCategoryStore } = useStore();
     const { userTodoList, todoStatusList, statusPatch } = todoStore;
     const bsModalRef = useRef<InstanceType<typeof BootstrapModal> | null>(null);
 
-    const showModal = async () => {
+    const showAddModal = async () => {
         bsModalRef.current?.show();
     };
 
@@ -91,7 +91,7 @@ const TodoDashboard = observer(() => {
 
     return (
         <StyledDashboardWrapper className="container-fluid p-1 m-3">
-            <AddTodoItem />
+            <AddTodo />
             <div className="row">
                 <div className="col-12">
                     <DragCardItemAddButton
@@ -99,14 +99,14 @@ const TodoDashboard = observer(() => {
                         type="button"
                         className="btn btn-danger btn-sm"
                         data-bs-toggle="modal"
-                        data-bs-target="#staticBackdrop"
-                        onClick={showModal}
+                        data-bs-target="#addStaticBackdrop"
+                        onClick={showAddModal}
                     >
                         Add Todo
                     </DragCardItemAddButton>
                 </div>
             </div>
-            <div className="row p-5">
+            <div className="row p-5 m-5">
                 <div className="col-9">
                     <DragDropContext onDragEnd={onDragEnd}>
                         <DropContextWrapper>
@@ -116,6 +116,7 @@ const TodoDashboard = observer(() => {
                                     droppableId={status}
                                     items={userTodoList[status]}
                                     key={`droppable_${status}`}
+                                    // isLoadEditModal={true}
                                 />
                             ))}
                         </DropContextWrapper>

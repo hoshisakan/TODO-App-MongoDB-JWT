@@ -1,15 +1,16 @@
 import DrapCard from './DrapCard';
 import { Todo } from '../../app/models/Todo';
 import {
-    // DragCardItemAddButton,
     DragItemHeader,
     DroppableContainer,
     OutsideSectionWrapper,
     StyledDroppable,
 } from './styles/StyledComponents';
 import { observer } from 'mobx-react-lite';
-// import { useRef } from 'react';
-// import { Modal as BootstrapModal } from 'bootstrap';
+import { useRef } from 'react';
+import { Modal as BootstrapModal } from 'bootstrap';
+import EditTodo from './EditTodo';
+import RemoveTodoConfirm from './RemoveTodoConfirm';
 
 interface Props {
     droppableObjName: string;
@@ -17,16 +18,28 @@ interface Props {
     items: Todo[];
 }
 
-
 const DroppableSectionWrapper = ({ droppableObjName, droppableId, items = [] }: Props) => {
+    const bsModalRef = useRef<InstanceType<typeof BootstrapModal> | null>(null);
+
     return (
         <OutsideSectionWrapper>
+            <EditTodo />
+            <RemoveTodoConfirm />
             <StyledDroppable droppableId={droppableId}>
                 {(provided, snapshot) => (
-                    <DroppableContainer ref={provided.innerRef} {...provided.droppableProps}>
+                    <DroppableContainer
+                        id={`droppable_${droppableId}_container`}
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                    >
                         <DragItemHeader>{droppableObjName}</DragItemHeader>
                         {items.map((item, index) => (
-                            <DrapCard item={item} index={index} key={`drap_card_${item._id}`} />
+                            <DrapCard
+                                item={item}
+                                index={index}
+                                key={`drap_${item._id}_card`}
+                                bsModalRef={bsModalRef}
+                            />
                         ))}
                         {provided.placeholder}
                     </DroppableContainer>
