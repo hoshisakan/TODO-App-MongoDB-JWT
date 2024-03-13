@@ -5,16 +5,28 @@ class TraceErrorRepository extends Repository {
         super(model);
     }
 
-    async find(expression = {}) {
-        return await this.model.find(expression).populate('errorCategory', 'name');
+    async find(
+        expression = {},
+        fields = {},
+        errorFKFields = { name: 1 },
+    ) {
+        return await this.model.find(expression).populate('errorCategory', errorFKFields).select(fields);
     }
 
-    async findOne(expression = {}) {
-        return await this.model.findOne(expression).populate('errorCategory', 'name');
+    async findOne(
+        expression = {},
+        fields = {},
+        errorFKFields = { name: 1 },
+    ) {
+        return await this.model.findOne(expression).populate('errorCategory', errorFKFields).select(fields);
     }
 
-    async findById(id) {
-        return await this.model.findById(id).populate('errorCategory', 'name');
+    async findById(
+        id,
+        fields = {},
+        errorFKFields = { name: 1 },
+    ) {
+        return await this.model.findById(id).populate('errorCategory', errorFKFields).select(fields);
     }
 }
 

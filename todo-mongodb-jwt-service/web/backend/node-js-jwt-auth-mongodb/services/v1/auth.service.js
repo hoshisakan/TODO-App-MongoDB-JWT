@@ -42,11 +42,11 @@ class AuthService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    findUserById = async (id, fields = {}, fkFields = {}) => {
+    findUserById = async (id, fields = {}, roleFKFields = {}) => {
         if (!id) {
             throw new Error('User id cannot be empty.');
         }
-        return await this.unitOfWork.users.findById(id, fields, fkFields);
+        return await this.unitOfWork.users.findById(id, fields, roleFKFields);
     };
 
     findUserRolesById = async (userId, isDesc) => {
@@ -235,7 +235,7 @@ class AuthService {
                 password: userValidateResult.password,
                 email: userValidateResult.email,
                 roles: userRolesName,
-                highestRolePermission: userRolesName[0],
+                highestRolePermission: userRoles.sort((a, b) => b.level - a.level)[0]['name'],
                 isActivate: userValidateResult.isActivate,
             };
             logInfo(`result: ${stringify(result)}`, fileDetails, true);
@@ -671,7 +671,7 @@ class AuthService {
             result.clientResponse.id = userValidateResult.user.id;
             result.clientResponse.username = userValidateResult.user.username;
             result.clientResponse.email = userValidateResult.user.email;
-            result.clientResponse.roles = userValidateResult.user.roles[0];
+            result.clientResponse.roles = userValidateResult.user.highestRolePermission;
             logInfo(`Result: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
             // logError(err, fileDetails, true);
@@ -928,7 +928,7 @@ class AuthService {
             result.id = userDetails._id;
             result.username = userDetails.username;
             result.email = userDetails.email;
-            result.roles = userDetails.roles[0]['name'];
+            result.roles = userDetails.roles.sort((a, b) => b.level - a.level)['0']['name'];
             result.accessTokenExpireUnixStampTime = accessTokenValidateResult.data['exp'];
         } catch (err) {
             logError(err, fileDetails, true);

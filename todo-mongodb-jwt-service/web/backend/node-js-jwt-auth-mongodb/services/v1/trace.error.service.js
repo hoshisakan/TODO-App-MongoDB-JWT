@@ -1,18 +1,11 @@
 const { logInfo, logError } = require('../../utils/log.util');
 const { stringify } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
-const {
-    getFilterQuery,
-    validateEntityParams,
-    validateEntitiesParams,
-    checkDuplicateExisting,
-    checkMultipleDuplicateExisting,
-    setOneAndUpdateFields,
-} = require('../../utils/logic.check.util');
+const { getFilterQuery, setOneAndUpdateFields } = require('../../utils/logic.check.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
-const { todoCategory } = require('../../models/mongodb');
+const { getSelectFields, getSelectFKFields, validObjectId } = require('../../utils/mongoose.filter.util');
 const unitOfWork = new UnitOfWork();
 
 class TraceErrorService extends BaseService {
@@ -118,6 +111,7 @@ class TraceErrorService extends BaseService {
                     });
                 }
             }
+            logInfo(`ids: ${ids}`, fileDetails, true);
         } catch (error) {
             logError(error, fileDetails, true);
         }
@@ -201,40 +195,66 @@ class TraceErrorService extends BaseService {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error(`Invalid parameters`);
             }
 
-            const searchResult = await this.unitOfWork.traceErrors.findById(id);
+            const selectFields = getSelectFields(this.modelName);
+
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const errorCategoryFKFields = FKFields['errorCategory'];
+
+            const searchResult = await this.unitOfWork.traceErrors.findById(id, selectFields, errorCategoryFKFields);
 
             if (!searchResult) {
-                throw new Error('Trace error not found with the provided id');
+                throw new Error(`Not found the id ${id}`);
             }
 
-            if (entity.errorCategoryName) {
-                const errorCategoryFoundResult = await this.getIdsByValue(entity.errorCategoryName);
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
+            delete oldRecord['errorCategory']['_id'];
+            oldRecord['errorCategory'] = searchResult['errorCategory']._id;
 
-                if (errorCategoryFoundResult) {
-                    entity.errorCategory = errorCategoryFoundResult._id;
-                    delete entity.errorCategoryName;
+            if (entity.errorCategoryName) {
+                const errorCategoryId = await this.getIdsByValue(entity.errorCategoryName);
+
+                if (errorCategoryId) {
+                    // entity.errorCategory = errorCategoryId._id;
+                    // delete entity.errorCategoryName;
+                    oldRecord.errorCategory = errorCategoryId;
+                    // logInfo(`errorCategoryId: ${errorCategoryId}`);
                 } else {
                     throw new Error(`Error category with name ${entity.errorCategoryName} not found`);
                 }
             }
-            entity.updatedAt = new Date();
+
+            if (entity.message) {
+                oldRecord.message = entity.message;
+            }
+            if (entity.stack) {
+                oldRecord.stack = entity.stack;
+            }
+            if (entity.description) {
+                oldRecord.description = entity.description;
+            }
+            if (entity.line) {
+                oldRecord.line = entity.line;
+            }
+            oldRecord.updatedAt = new Date();
 
             const filterCondition = {
                 _id: id,
             };
 
-            const updateResult = await this.unitOfWork.traceErrors.findOneAndUpdate(filterCondition, entity);
+            const updateResult = await this.unitOfWork.traceErrors.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
                 throw new Error('Update trace error failed');
             }
             return updateResult;
         } catch (error) {
-            // logError(error, fileDetails, true);
+            logError(error, fileDetails, true);
             throw error;
         }
     };
@@ -243,39 +263,54 @@ class TraceErrorService extends BaseService {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error(`Invalid parameters`);
             }
 
-            const isExists = await this.unitOfWork.traceErrors.findById(id);
+            const selectFields = getSelectFields(this.modelName);
 
-            if (!isExists) {
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const errorFKFields = FKFields['error'];
+
+            const searchResult = await this.unitOfWork.traceErrors.findById(id, selectFields, errorFKFields);
+
+            if (!searchResult) {
                 throw new Error(`Not found the id ${id}`);
             }
 
-            ///TODO: Update query
-            const updateQuery = setOneAndUpdateFields(entity, this.modelName, 'update');
-
-            logInfo(`Update query: ${stringify(updateQuery)}`, fileDetails);
-
-            if (!updateQuery) {
-                throw new Error(`Update query is empty`);
-            }
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
+            delete oldRecord['errorCategory']['_id'];
+            oldRecord['errorCategory'] = searchResult['errorCategory']._id;
 
             ///TODO: Check the error category name is existed or not in database, if existed, get the id and set to update query
-            if (updateQuery.errorCategoryName) {
-                const errorCategoryFoundResult = await this.getIdsByValue(entity.errorCategoryName);
+            if (entity.errorCategoryName) {
+                const errorCategoryId = await this.getIdsByValue(entity.errorCategoryName);
 
-                if (errorCategoryFoundResult) {
-                    updateQuery.errorCategory = errorCategoryFoundResult._id;
-                    delete updateQuery.errorCategoryName;
+                if (errorCategoryId) {
+                    oldRecord.errorCategory = errorCategoryId;
                 } else {
                     throw new Error(`Error category with name ${entity.errorCategoryName} not found`);
                 }
             }
-            updateQuery.updatedAt = new Date();
 
-            const updateResult = await this.unitOfWork.traceErrors.findByIdAndUpdate(id, updateQuery);
+            if (entity.message) {
+                oldRecord.message = entity.message;
+            }
+            if (entity.stack) {
+                oldRecord.stack = entity.stack;
+            }
+            if (entity.description) {
+                oldRecord.description = entity.description;
+            }
+            if (entity.line) {
+                oldRecord.line = entity.line;
+            }
+            oldRecord.updatedAt = new Date();
+
+            const filterCondition = { _id: id };
+            const updateResult = await this.unitOfWork.traceErrors.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
                 throw new Error('Update trace error failed');
@@ -291,11 +326,17 @@ class TraceErrorService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!id) {
-                throw new Error(`Invalid parameters`);
+            if (!id || !validObjectId(id)) {
+                throw new Error('Invalid id');
             }
 
-            const searchResult = await this.unitOfWork.traceErrors.findById(id);
+            const selectFields = getSelectFields(this.modelName);
+
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const errorFKFields = FKFields['error'];
+
+            const searchResult = await this.unitOfWork.traceErrors.findById(id, selectFields, errorFKFields);
 
             if (!searchResult) {
                 throw new Error(`Trace error with id ${id} not found`);
@@ -355,7 +396,17 @@ class TraceErrorService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const searchResult = await this.unitOfWork.traceErrors.findById(id);
+            if (!id || !validObjectId(id)) {
+                throw new Error('Invalid id');
+            }
+
+            const selectFields = getSelectFields(this.modelName);
+
+            const FKFields = getSelectFKFields(this.modelName);
+
+            const errorFKFields = FKFields['error'];
+
+            const searchResult = await this.unitOfWork.traceErrors.findById(id, selectFields, errorFKFields);
 
             if (!searchResult) {
                 throw new Error(`Error category with id ${id} not found`);

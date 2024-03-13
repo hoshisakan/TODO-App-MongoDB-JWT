@@ -10,8 +10,8 @@ import {
 } from '../models/User';
 import { ResponseResult } from '../models/AxiosResponse';
 import { toast } from 'react-toastify';
-import url from 'url';
-import { TodoFormValuesAddCard, TodoValuesUpdateDropableItem } from '../models/Todo';
+// import url from 'url';
+import { TodoFormValuesAddOrEdit, TodoValuesUpdateDropableItem } from '../models/Todo';
 
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 ///TODO: When cross domain request send cookie
@@ -72,31 +72,34 @@ const TodoCategory = {
 
 const Todo = {
     list: () => requests.get<ResponseResult>('/todo'),
-    add: (todo: TodoFormValuesAddCard) => requests.post<ResponseResult>('/todo', todo),
+    add: (entity: TodoFormValuesAddOrEdit) => requests.post<ResponseResult>('/todo', entity),
+    statusPatch: (id: String, entity: TodoValuesUpdateDropableItem) =>
+        requests.patch<ResponseResult>(`/todo/${id}`, entity),
+    detail: (id: String) => requests.get<ResponseResult>(`/todo/${id}`),
     remove: (id: String) => requests.del<ResponseResult>(`/todo/${id}`),
-    statusPatch: (id: String, todo: TodoValuesUpdateDropableItem) =>
-        requests.patch<ResponseResult>(`/todo/${id}`, todo),
+    update: (id: String, entity: TodoFormValuesAddOrEdit) => requests.put<ResponseResult>(`/todo/${id}`, entity),
 };
 
 const User = {
-    details: (id: string) => requests.get<ResponseResult>(`user/${id}`),
+    detail: (id: string) => requests.get<ResponseResult>(`user/${id}`),
 };
 
 const Auth = {
     current: () => requests.get<ResponseResult>('/auth/account-info'),
     verifyToken: (authType: string) => requests.post<ResponseResult>(`/auth/verify-token`, { authType: authType }),
-    signin: (user: UserFormValuesLogin) => requests.post<ResponseResult>(`/auth/signin`, user),
-    signup: (user: UserFormValuesRegister) => requests.post<ResponseResult>(`/auth/signup`, user),
-    signout: (user: UserLogout) => requests.post<ResponseResult>(`/auth/signout`, user),
+    signin: (entity: UserFormValuesLogin) => requests.post<ResponseResult>(`/auth/signin`, entity),
+    signup: (entity: UserFormValuesRegister) => requests.post<ResponseResult>(`/auth/signup`, entity),
+    signout: (entity: UserLogout) => requests.post<ResponseResult>(`/auth/signout`, entity),
     refreshToken: () => requests.get<ResponseResult>(`/auth/refresh-token`),
-    reSendVerifyEmail: (user: UserFormValuesReSendVerifyEmail) =>
-        requests.post<ResponseResult>(`/auth/re-send-confirm-email`, user),
-    verifyEmail: (user: UserFormValuesVerifyToken) => requests.post<ResponseResult>(`/auth/verify-email`, user),
-    applyResetPassword: (user: UserFormValuesApplyResetPasssword) =>
-        requests.post<ResponseResult>(`/auth/forget-password`, user),
-    verifyResetPasswordToken: (user: UserFormValuesVerifyToken) =>
-        requests.post<ResponseResult>(`/auth/verify-reset-password-token`, user),
-    resetPassword: (user: UserFormValuesResetPasssword) => requests.post<ResponseResult>(`/auth/reset-password`, user),
+    reSendVerifyEmail: (entity: UserFormValuesReSendVerifyEmail) =>
+        requests.post<ResponseResult>(`/auth/re-send-confirm-email`, entity),
+    verifyEmail: (entity: UserFormValuesVerifyToken) => requests.post<ResponseResult>(`/auth/verify-email`, entity),
+    applyResetPassword: (entity: UserFormValuesApplyResetPasssword) =>
+        requests.post<ResponseResult>(`/auth/forget-password`, entity),
+    verifyResetPasswordToken: (entity: UserFormValuesVerifyToken) =>
+        requests.post<ResponseResult>(`/auth/verify-reset-password-token`, entity),
+    resetPassword: (entity: UserFormValuesResetPasssword) =>
+        requests.post<ResponseResult>(`/auth/reset-password`, entity),
 };
 
 const agent = {

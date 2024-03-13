@@ -1,14 +1,15 @@
 import { useStore } from '../../app/stores/store';
-import { TodoFormValuesAddCard } from '../../app/models/Todo';
-import { toast } from 'react-toastify';
+import { TodoFormValuesAddOrEdit } from '../../app/models/Todo';
+// import { toast } from 'react-toastify';
 import { observer } from 'mobx-react-lite';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 const EditTodoItem = observer(() => {
     const { todoCategoryStore, todoStore } = useStore();
     const { todoCategories } = todoCategoryStore;
-    const { addTodo } = todoStore;
-    const [state, setState] = useState<TodoFormValuesAddCard>({
+    const { editDetail, editedTodoId, editTodo } = todoStore;
+    const [state, setState] = useState<TodoFormValuesAddOrEdit>({
         title: '',
         description: '',
         status: '',
@@ -48,7 +49,7 @@ const EditTodoItem = observer(() => {
         // toast.info('Clear form values process completed.');
     };
 
-    const checkFormEmptyExists = (checkValues: TodoFormValuesAddCard) => {
+    const checkFormEmptyExists = (checkValues: TodoFormValuesAddOrEdit) => {
         let result = false;
         Object.entries(checkValues).forEach(([key, value]) => {
             if (key !== 'description' && !value) {
@@ -60,33 +61,42 @@ const EditTodoItem = observer(() => {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        let requestValues: TodoFormValuesAddOrEdit = state;
+        console.log(`requestValues: ${JSON.stringify(requestValues)}`);
+        // toast.info(`requestValues: ${JSON.stringify(requestValues)}`);
+        const isEmptyExists = checkFormEmptyExists(requestValues);
 
-        // console.log(`The form submit content is: ${JSON.stringify(state)}`);
-
-        // let requestValues: TodoFormValuesAddCard = state;
-
-        // console.log(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
-        // // toast.info(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
-
-        // const isEmptyExists = checkFormEmptyExists(requestValues);
-
-        // if (!isEmptyExists) {
-        //     addTodo(requestValues)
-        //         .then((response: any) => {
-        //             clearFormValues();
-        //             // console.log(`Read state after clear form: ${JSON.stringify(requestValues)}`);
-        //             // toast.info(`Read state after clear form: ${JSON.stringify(requestValues)}`);
-        //             toast.success('Add successfully.');
-        //         })
-        //         .catch((err: any) => {
-        //             toast.error(`Error: ${err.statck}`);
-        //         });
-        // } else {
-        //     toast.error('Find empty value in form values.');
-        //     return;
-        // }
+        if (!isEmptyExists) {
+            toast.success('OK, will be submit form to backend server');
+            editTodo(editedTodoId, requestValues)
+                .then((response: any) => {
+                    clearFormValues();
+                    // console.log(`Read state after clear form: ${JSON.stringify(requestValues)}`);
+                    // toast.info(`Read state after clear form: ${JSON.stringify(requestValues)}`);
+                    toast.success('Add successfully.');
+                })
+                .catch((err: any) => {
+                    toast.error(`Error: ${err.statck}`);
+                });
+        } else {
+            toast.error('Find empty value in form values.');
+            return;
+        }
         return;
     };
+
+    useEffect(() => {
+        if (editDetail._id) {
+            setState({
+                title: editDetail.title,
+                description: editDetail.description,
+                status: editDetail.status,
+                startDate: editDetail.startDate,
+                dueDate: editDetail.dueDate,
+                todoCategoryId: editDetail.todoCategoryId,
+            });
+        }
+    }, [editDetail]);
 
     return (
         <div className="container-fluid">
@@ -142,7 +152,7 @@ const EditTodoItem = observer(() => {
                             開始日 <span className="text-danger">*</span>
                         </label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             className="form-control"
                             name="startDate"
                             id="startDate"
@@ -156,7 +166,7 @@ const EditTodoItem = observer(() => {
                             逾期日 <span className="text-danger">*</span>
                         </label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             className="form-control"
                             name="dueDate"
                             id="dueDate"
@@ -188,19 +198,9 @@ const EditTodoItem = observer(() => {
                         </select>
                     </div>
                     <div className="col-12 p-3 text-end d-grid gap-2">
-                        {/* <div className="row justify-content-between"> */}
-                        <div className="row justify-content-evenly">
-                            <div className="col-4 text-start">
-                                <button type="submit" className="btn btn-primary">
-                                    Add
-                                </button>
-                            </div>
-                            <div className="col-4 text-end">
-                                <button type="button" className="btn btn-danger">
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
+                        <button type="submit" className="btn btn-primary">
+                            Edit
+                        </button>
                     </div>
                 </form>
             </div>

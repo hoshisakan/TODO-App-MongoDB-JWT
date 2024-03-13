@@ -11,7 +11,7 @@ export interface Todo {
     updatedAt: string | null;
 }
 
-export interface TodoFormValuesAddCard {
+export interface TodoFormValuesAddOrEdit {
     title: string;
     description: string | null;
     status: string;
@@ -37,7 +37,20 @@ export interface TodoPatchResult {
     updatedAt: string | null;
 }
 
-export interface TodoRemoveResult {
-    isRemovedSuccess: boolean;
+export interface TodoDetail {
+    _id: string;
+    title: string;
+    description: string | null;
+    status: string;
+    startDate: string;
+    dueDate: string;
+    user: string;
+    createdAt: string;
+    updatedAt: string | null;
+    todoCategoryId: string;
+}
+
+export interface TodoCUDResult {
+    isSuccess: boolean;
     message: string;
 }

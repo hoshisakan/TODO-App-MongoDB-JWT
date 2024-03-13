@@ -3,12 +3,9 @@ const { stringify } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
 const {
     getFilterQuery,
-    validateEntityParams,
-    validateEntitiesParams,
-    checkDuplicateExisting,
     checkMultipleDuplicateExisting,
-    setOneAndUpdateFields,
 } = require('../../utils/logic.check.util');
+const { validObjectId } = require('../../utils/mongoose.filter.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
@@ -43,7 +40,6 @@ class RoleService extends BaseService {
                 throw new Error(`Entity is empty`);
             }
 
-            ///TODO: Step 4: Create new entity
             const createResult = await this.unitOfWork.roles.create(entity);
 
             if (!createResult) {
@@ -65,7 +61,6 @@ class RoleService extends BaseService {
                 throw new Error(`Entities is empty`);
             }
 
-            ///TODO: Step 2: Get duplicate existing query
             const duplicateCheckEntities = entities.map((entity) => {
                 return {
                     name: entity.name,
@@ -85,7 +80,6 @@ class RoleService extends BaseService {
                 throw new Error(duplicateExistingQuery.error);
             }
 
-            ///TODO: Step 3: Check duplicate existing by query, if found then create new entity
             const duplicateExistingResult = await this.unitOfWork.roles.find(duplicateExistingQuery);
 
             logInfo(`Duplicate existing result: ${stringify(duplicateExistingResult)}`, fileDetails);
@@ -94,7 +88,6 @@ class RoleService extends BaseService {
                 throw new Error(`Role with name or level already exists`);
             }
 
-            ///TODO: Step 4: Create new entity
             const createResult = await this.unitOfWork.roles.insertMany(entities);
 
             if (!createResult) {
@@ -115,7 +108,7 @@ class RoleService extends BaseService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
 
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error('Invalid parameters');
             }
 
@@ -125,15 +118,21 @@ class RoleService extends BaseService {
                 throw new Error(`Role with id ${id} not found`);
             }
 
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
+
+            if (entity.name) {
+                oldRecord.name = entity.name;
+            }
+            if (entity.level) {
+                oldRecord.level = entity.level;
+            }
+            oldRecord.updatedAt = new Date();
+
             const filterCondition = {
                 _id: id,
             };
-
-            entity.updatedAt = new Date();
-
-            // logInfo(`entity: ${stringify(entity)}`, fileDetails, true);
-
-            const updateResult = await this.unitOfWork.roles.findOneAndUpdate(filterCondition, entity);
+            const updateResult = await this.unitOfWork.roles.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
                 throw new Error('Update role failed');
@@ -150,7 +149,7 @@ class RoleService extends BaseService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
 
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error('Invalid parameters');
             }
 
@@ -160,9 +159,20 @@ class RoleService extends BaseService {
                 throw new Error(`Role with id ${id} not found`);
             }
 
-            entity.updatedAt = new Date();
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
 
-            const updateResult = await this.unitOfWork.roles.findByIdAndUpdate(id, entity);
+            if (entity.name) {
+                oldRecord.name = entity.name;
+            }
+            if (entity.level) {
+                oldRecord.level = entity.level;
+            }
+            oldRecord.updatedAt = new Date();
+
+            const filterCondition = { _id: id };
+            ///TODO: The findOneAndUpdate method if entity any field is empty, then will be set that value is null or remove field
+            const updateResult = await this.unitOfWork.roles.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
                 throw new Error('Update role failed');
@@ -178,8 +188,8 @@ class RoleService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!id) {
-                throw new Error(`Invalid parameters`);
+            if (!id || !validObjectId(id)) {
+                throw new Error(`Invalid id`);
             }
 
             const searchResult = await this.unitOfWork.roles.findById(id);
@@ -242,6 +252,10 @@ class RoleService extends BaseService {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
+            if (!id || !validObjectId(id)) {
+                throw new Error('Invalid Id');
+            }
+
             const searchResult = await this.unitOfWork.roles.findById(id);
 
             if (!searchResult) {

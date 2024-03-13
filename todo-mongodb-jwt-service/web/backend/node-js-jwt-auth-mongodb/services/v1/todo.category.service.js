@@ -1,15 +1,8 @@
 const { logInfo, logError } = require('../../utils/log.util');
 const { stringify } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
-const {
-    getFilterQuery,
-    validateEntityParams,
-    validateEntitiesParams,
-    checkDuplicateExisting,
-    checkMultipleDuplicateExisting,
-    setOneAndUpdateFields,
-} = require('../../utils/logic.check.util');
-const { getSelectFields } = require('../../utils/mongoose.filter.util');
+const { getFilterQuery, checkMultipleDuplicateExisting } = require('../../utils/logic.check.util');
+const { getSelectFields, validObjectId } = require('../../utils/mongoose.filter.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
@@ -134,7 +127,7 @@ class TodoCategoryService extends BaseService {
         const classAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classAndFuncName);
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error('Invalid parameters');
             }
 
@@ -143,14 +136,21 @@ class TodoCategoryService extends BaseService {
             if (!searchResult) {
                 throw new Error(`Todo category with id ${id} not found`);
             }
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
+
+            if (entity.name) {
+                oldRecord.name = entity.name;
+            }
+            if (entity.value) {
+                oldRecord.value = entity.value;
+            }
+            oldRecord.updatedAt = new Date();
 
             const filterCondition = {
                 _id: id,
             };
-
-            entity.updatedAt = new Date();
-
-            const updateResult = await this.unitOfWork.todoCategories.findOneAndUpdate(filterCondition, entity);
+            const updateResult = await this.unitOfWork.todoCategories.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
                 throw new Error('Update todo category failed');
@@ -166,7 +166,7 @@ class TodoCategoryService extends BaseService {
         const classAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classAndFuncName);
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error('Invalid parameters');
             }
 
@@ -176,9 +176,19 @@ class TodoCategoryService extends BaseService {
                 throw new Error(`Todo category with id ${id} not found`);
             }
 
-            entity.updatedAt = new Date();
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
 
-            const updateResult = await this.unitOfWork.todoCategories.findByIdAndUpdate(id, entity);
+            if (entity.name) {
+                oldRecord.name = entity.name;
+            }
+            if (entity.value) {
+                oldRecord.value = entity.value;
+            }
+            oldRecord.updatedAt = new Date();
+
+            const filterCondition = { _id: id };
+            const updateResult = await this.unitOfWork.todoCategories.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
                 throw new Error('Update todo category failed');
@@ -194,7 +204,7 @@ class TodoCategoryService extends BaseService {
         const classAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classAndFuncName);
         try {
-            if (!id) {
+            if (!id || !validObjectId(id)) {
                 throw new Error('Invalid id');
             }
 
@@ -258,7 +268,7 @@ class TodoCategoryService extends BaseService {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!id) {
+            if (!id || !validObjectId(id)) {
                 throw new Error(`Not found id ${id}.`);
             }
             const searchResult = await this.unitOfWork.todoCategories.findById(id);

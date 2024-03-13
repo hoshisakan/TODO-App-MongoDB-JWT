@@ -2,6 +2,7 @@ const { logInfo, logError } = require('../../utils/log.util');
 // const { stringify } = require('../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
 const { getFilterQuery } = require('../../utils/logic.check.util');
+const { getSelectFields, getSelectFKFields, validObjectId } = require('../../utils/mongoose.filter.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
@@ -63,7 +64,7 @@ class UserService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!id) {
+            if (!id || !validObjectId(id)) {
                 throw new Error(`Invalid parameters`);
             }
 
@@ -114,7 +115,11 @@ class UserService extends BaseService {
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.users.findOne(filterQueryResult.query);
+
+                const selectFields = getSelectFields(this.modelName);
+                const FKFields = getSelectFKFields(this.modelName);
+                const roleFKFields = FKFields['role'];
+                searchResult = await this.unitOfWork.users.findOne(filterQueryResult.query, selectFields, roleFKFields);
             }
             return searchResult;
         } catch (error) {
@@ -132,15 +137,19 @@ class UserService extends BaseService {
             if (!id) {
                 throw new Error('Id is required');
             }
-            const fields = { _id: 1, username: 1, email: 1, roles: 1 };
-            const fkFields = { _id: 0, name: 1 };
-            searchResult = await this.unitOfWork.users.findById(id, fields, fkFields);
-            const tempRoles = searchResult.roles;
-            searchResult.roles = tempRoles[0];
+            const selectFields = getSelectFields(this.modelName);
+            const FKFields = getSelectFKFields(this.modelName);
+            const roleFKFields = FKFields['role'];
 
-            if (!searchResult) {
+            const tempSearchResult = await this.unitOfWork.users.findById(id, selectFields, roleFKFields);
+
+            if (!tempSearchResult) {
                 throw new Error('User not found');
             }
+
+            searchResult = tempSearchResult.toObject();
+            // searchResult['roles'][0]['name'] = 111;
+
             return searchResult;
         } catch (error) {
             logError(error, fileDetails, true);
@@ -154,15 +163,20 @@ class UserService extends BaseService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
+            const selectFields = getSelectFields(this.modelName);
+            const FKFields = getSelectFKFields(this.modelName);
+            const roleFKFields = FKFields['role'];
+
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.users.find({});
+                searchResult = await this.unitOfWork.users.find({}, selectFields, roleFKFields);
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.users.find(filterQueryResult.query);
+
+                searchResult = await this.unitOfWork.users.find(filterQueryResult.query, selectFields, roleFKFields);
             }
             return searchResult;
         } catch (error) {

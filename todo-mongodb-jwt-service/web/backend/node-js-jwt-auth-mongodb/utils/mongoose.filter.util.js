@@ -3,14 +3,32 @@ const MongooseFilterUtil = {
         switch (validateModel) {
             case 'Todo':
                 return {
+                    // _id: 1,
                     // createdAt: 0,
-                    __v: 0,
                 };
             case 'TodoCategory':
+                return {
+                    _id: 1,
+                    name: 1,
+                    value: 1,
+                };
+            case 'TraceError':
+                return {
+                    // _id: 1,
+                    // createdAt: 0,
+                };
+            case 'ErrorCategory':
                 return {
                     _id: 0,
                     name: 1,
                     value: 1,
+                };
+            case 'User':
+                return {
+                    _id: 1,
+                    username: 1,
+                    email: 1,
+                    roles: 1,
                 };
             default:
                 throw new Error(`Unknown validate model name: ${validateModel}`);
@@ -30,19 +48,32 @@ const MongooseFilterUtil = {
                         createdAt: 0,
                     },
                     category: {
-                        _id: 0,
+                        _id: 1,
                         name: 1,
-                        // value: 0,
+                        value: 1,
                         // createdAt: 0,
                         // updatedAt: 0,
                         // __v: 0,
                     },
                 };
-            case 'TodoCategory':
+            case 'TraceError':
                 return {
-                    _id: 0,
-                    name: 1,
-                    value: 1,
+                    errorCategory: {
+                        _id: 1,
+                        message: 1,
+                        stack: 1,
+                        description: 1,
+                        line: 1,
+                        errorCategoryName: 1,
+                    },
+                };
+            case 'User':
+                return {
+                    // role: { _id: 1, name: 1 },
+                    // role: { _id: 1, level: 1 },
+                    // role: { _id: 1, name: 1, level: 1 },
+                    // role: { name: 1, level: 1 },
+                    role: { _id: 0, name: 1, level: 1 },
                 };
             default:
                 throw new Error(`Unknown validate model name: ${validateModel}`);

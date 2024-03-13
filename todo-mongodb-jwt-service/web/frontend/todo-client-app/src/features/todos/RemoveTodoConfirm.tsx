@@ -48,7 +48,7 @@ const RemoveTodoConfirm = observer(() => {
             className="modal fade"
             id="removeStaticBackdrop"
             data-bs-backdrop="static"
-            // data-bs-keyboard="false"
+            data-bs-keyboard="false"
             aria-labelledby="removeStaticBackdropLabel"
             aria-hidden="true"
             ref={modalRef}

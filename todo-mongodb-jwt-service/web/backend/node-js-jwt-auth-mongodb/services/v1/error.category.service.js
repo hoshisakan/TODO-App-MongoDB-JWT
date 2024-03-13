@@ -3,15 +3,12 @@ const { stringify } = require('../../utils/json.util');
 const { filenameFilter } = require('../../utils/regex.util');
 const {
     getFilterQuery,
-    validateEntityParams,
-    validateEntitiesParams,
-    checkDuplicateExisting,
     checkMultipleDuplicateExisting,
-    setOneAndUpdateFields,
 } = require('../../utils/logic.check.util');
 
 const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
+const { validObjectId } = require('../../utils/mongoose.filter.util');
 const unitOfWork = new UnitOfWork();
 
 class ErrorCategoryService extends BaseService {
@@ -114,21 +111,26 @@ class ErrorCategoryService extends BaseService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
 
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error(`Invalid parameters`);
             }
-
-            const searchResult = await this.unitOfWork.errorCategories.findById(id);
+            const searchResult = await this.unitOfWork.errorCategories.findById(id, {});
 
             if (!searchResult) {
-                throw new Error(`Error category with id ${id} not found`);
+                throw new Error('Todo not found with the provided id');
             }
+
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
+
+            if (entity.name) {
+                oldRecord.name = entity.name;
+            }
+            oldRecord.updatedAt = new Date();
 
             const filterCondition = {
                 _id: id,
             };
-
-            entity.updatedAt = new Date();
 
             const updateResult = await this.unitOfWork.errorCategories.findOneAndUpdate(filterCondition, entity);
 
@@ -147,11 +149,23 @@ class ErrorCategoryService extends BaseService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
 
         try {
-            if (!id || !entity) {
+            if (!id || !entity || !validObjectId(id)) {
                 throw new Error(`Invalid parameters`);
             }
 
-            entity.updatedAt = new Date();
+            const searchResult = await this.unitOfWork.errorCategories.findById(id, {});
+
+            if (!searchResult) {
+                throw new Error('Todo not found with the provided id');
+            }
+
+            let oldRecord = {};
+            oldRecord = searchResult.toObject();
+
+            if (entity.name) {
+                oldRecord.name = entity.name;
+            }
+            oldRecord.updatedAt = new Date();
 
             const updateResult = await this.unitOfWork.errorCategories.findByIdAndUpdate(id, entity);
 
@@ -169,7 +183,7 @@ class ErrorCategoryService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            if (!id) {
+            if (!id || !validObjectId(id)) {
                 throw new Error(`Invalid parameters`);
             }
 
@@ -233,6 +247,10 @@ class ErrorCategoryService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
+            if (!id || !validObjectId(id)) {
+                throw new Error('Invalid id');
+            }
+
             const searchResult = await this.unitOfWork.errorCategories.findById(id);
 
             if (!searchResult) {

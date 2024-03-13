@@ -52,9 +52,15 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const userId = req.userId;
-            logInfo(`userId: ${userId}`, fileDetails, true);
-            const result = await this.todoService.create(req.body, userId);
+            const tokenParseResult = {
+                userId: req.userId,
+                highestPermission: req.highestPermission,
+            };
+            logInfo(`tokenParseResult: ${stringify(tokenParseResult)}`, fileDetails, true);
+            const result = await this.todoService.create(req.body, tokenParseResult);
+            if (result.message && result.isSuccess) {
+                throw new Error(result.isSuccess);
+            }
             return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
@@ -66,7 +72,12 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoService.updateById(req.params.id, req.body);
+            const tokenParseResult = {
+                userId: req.userId,
+                highestPermission: req.highestPermission,
+            };
+            logInfo(`tokenParseResult: ${stringify(tokenParseResult)}`, fileDetails, true);
+            const result = await this.todoService.updateById(req.params.id, req.body, tokenParseResult);
             return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
@@ -78,7 +89,12 @@ class TodoController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const result = await this.todoService.patchUpdateById(req.params.id, req.body);
+            const tokenParseResult = {
+                userId: req.userId,
+                highestPermission: req.highestPermission,
+            };
+            logInfo(`tokenParseResult: ${stringify(tokenParseResult)}`, fileDetails, true);
+            const result = await this.todoService.patchUpdateById(req.params.id, req.body, tokenParseResult);
             return http.successResponse(res, OK, '', result);
         } catch (error) {
             logError(error, fileDetails, true);
@@ -91,8 +107,8 @@ class TodoController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
             const result = await this.todoService.deleteById(req.params.id);
-            if (result.message && result.isRemovedSuccess) {
-                throw new Error(result.isRemovedSuccess);
+            if (result.message && result.isSuccess) {
+                throw new Error(result.isSuccess);
             }
             return http.successResponse(res, OK, '', result);
         } catch (error) {

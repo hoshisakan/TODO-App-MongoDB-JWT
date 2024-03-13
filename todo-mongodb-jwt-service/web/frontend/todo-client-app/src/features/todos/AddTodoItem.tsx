@@ -1,5 +1,5 @@
 import { useStore } from '../../app/stores/store';
-import { TodoFormValuesAddCard } from '../../app/models/Todo';
+import { TodoFormValuesAddOrEdit } from '../../app/models/Todo';
 import { toast } from 'react-toastify';
 import { observer } from 'mobx-react-lite';
 import { ChangeEvent, FormEvent, useState } from 'react';
@@ -8,7 +8,7 @@ const AddTodoItem = observer(() => {
     const { todoCategoryStore, todoStore } = useStore();
     const { todoCategories } = todoCategoryStore;
     const { addTodo } = todoStore;
-    const [state, setState] = useState<TodoFormValuesAddCard>({
+    const [state, setState] = useState<TodoFormValuesAddOrEdit>({
         title: '',
         description: '',
         status: '',
@@ -48,7 +48,7 @@ const AddTodoItem = observer(() => {
         // toast.info('Clear form values process completed.');
     };
 
-    const checkFormEmptyExists = (checkValues: TodoFormValuesAddCard) => {
+    const checkFormEmptyExists = (checkValues: TodoFormValuesAddOrEdit) => {
         let result = false;
         Object.entries(checkValues).forEach(([key, value]) => {
             if (key !== 'description' && !value) {
@@ -60,11 +60,8 @@ const AddTodoItem = observer(() => {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
         // console.log(`The form submit content is: ${JSON.stringify(state)}`);
-
-        let requestValues: TodoFormValuesAddCard = state;
-
+        let requestValues: TodoFormValuesAddOrEdit = state;
         console.log(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
         // toast.info(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
 
@@ -139,7 +136,7 @@ const AddTodoItem = observer(() => {
                             開始日 <span className="text-danger">*</span>
                         </label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             className="form-control"
                             name="startDate"
                             id="startDate"
@@ -153,7 +150,7 @@ const AddTodoItem = observer(() => {
                             逾期日 <span className="text-danger">*</span>
                         </label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             className="form-control"
                             name="dueDate"
                             id="dueDate"

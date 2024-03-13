@@ -8,10 +8,27 @@ const EditTodo = observer(() => {
     const modalRef = useRef<HTMLDivElement | null>(null);
     const bsModalRef = useRef<InstanceType<typeof BootstrapModal> | null>(null);
     const { todoStore } = useStore();
-    const { isEditedSuccess, setIsEditedSuccess } = todoStore;
-    const { editedTodoCardId } = todoStore;
+    const {
+        isEditedSuccess,
+        setIsEditedSuccess,
+        editedTodoId,
+        detailTodo,
+        // setTodoDetail
+    } = todoStore;
 
     const hideModal = useCallback(() => {
+        // setTodoDetail({
+        //     _id: '',
+        //     title: '',
+        //     description: null,
+        //     status: '',
+        //     startDate: '',
+        //     dueDate: '',
+        //     user: '',
+        //     createdAt: '',
+        //     updatedAt: null,
+        //     todoCategoryId: ''
+        // });
         bsModalRef.current?.hide();
     }, []);
 
@@ -29,7 +46,7 @@ const EditTodo = observer(() => {
                 }
             }
         }
-    }, [hideModal, isEditedSuccess, setIsEditedSuccess]);
+    }, [detailTodo, editedTodoId, hideModal, isEditedSuccess, setIsEditedSuccess]);
 
     return (
         <div
@@ -45,7 +62,7 @@ const EditTodo = observer(() => {
                 <div className="modal-content">
                     <div className="modal-header">
                         <h5 className="modal-title" id="editStaticBackdrop">
-                            Edit Todo {editedTodoCardId} Item
+                            Edit Todo {editedTodoId} Item
                         </h5>
                         <button type="button" className="btn-close" onClick={hideModal} aria-label="Close"></button>
                     </div>

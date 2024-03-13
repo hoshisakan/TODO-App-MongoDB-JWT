@@ -29,12 +29,14 @@ class Repository {
     }
 
     async findOneAndReplace(expression, entity) {
+        ///TODO: The method doesn't exists runValidators option, so it can't be to validate model schema rules
         return await this.model.findOneAndReplace(expression, entity, { new: true });
     }
 
     ///TODO: option add new attribute for return modified document instead of original
     async findOneAndUpdate(expression, entity) {
-        return await this.model.findOneAndUpdate(expression, { $set: entity }, { new: true });
+        ///TODO: runValidators set true will be to enable model schema set rules validator
+        return await this.model.findOneAndUpdate(expression, { $set: entity }, { runValidators: true, new: true });
     }
 
     async updateOne(expression, entity) {

@@ -22,31 +22,52 @@ class UserRepository extends Repository {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    find = async (expression = {}) => {
-        return await this.model.find(expression).populate('roles', 'name level');
+    find = async (
+        expression = {},
+        fields = {},
+        roleFKFields = {
+            name: 1,
+            value: 1,
+        }
+    ) => {
+        return await this.model.find(expression).populate('roles', roleFKFields).select(fields);
     };
 
-    findOne = async (expression = {}) => {
-        return await this.model.findOne(expression).populate('roles', 'name level');
+    findOne = async (
+        expression = {},
+        fields = {},
+        roleFKFields = {
+            name: 1,
+            value: 1,
+        }
+    ) => {
+        return await this.model.findOne(expression).populate('roles', roleFKFields).select(fields);
     };
 
-    findById = async (id, fields = {}, fkFields = {}) => {
-        return await this.model.findById(id).populate('roles', fkFields).select(fields);
+    findById = async (
+        id,
+        fields = {},
+        roleFKFields = {
+            name: 1,
+            value: 1,
+        }
+    ) => {
+        return await this.model.findById(id).populate('roles', roleFKFields).select(fields);
     };
 
     addRoles = async (userId, roleIds) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const fields = { _id: 1, username: 1, email: 1, roles: 1 };
-            const user = await this.model.findById(userId).select(fields);
+            const selectFields = { _id: 1, username: 1, email: 1, roles: 1 };
+            const user = await this.model.findById(userId).select(selectFields);
             // logInfo(`addRoles: ${stringify(user)}`, fileDetails, true);
 
             if (!user) {
                 throw new Error('User Not Found');
             }
-
             user.roles = roleIds;
+
             return await user.save();
         } catch (err) {
             logError(err, fileDetails, true);
@@ -55,13 +76,12 @@ class UserRepository extends Repository {
     };
 
     addRole = async (userId, roleId) => {
-        const fields = { _id: 1, username: 1, email: 1, roles: 1 };
-        const user = await this.model.findById(userId).select(fields);
+        const selectFields = { _id: 1, username: 1, email: 1, roles: 1 };
+        const user = await this.model.findById(userId).select(selectFields);
 
         if (!user) {
             throw new Error('User Not Found');
         }
-
         user.roles = [roleId];
 
         return await user.save();
