@@ -44,6 +44,9 @@ app.use(cookieParser());
 const staticPhotoPath = path.join(__dirname, process.env.UPLOAD_PHOTO_STATIC_PATH);
 logInfo(`staticPhotoPath: ${staticPhotoPath}.`, fileDetails, true);
 
+///TODO: Reject tls certificate source check, please avoid use it in production environment.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+
 //TODO: For debug
 // const fs = require('fs');
 

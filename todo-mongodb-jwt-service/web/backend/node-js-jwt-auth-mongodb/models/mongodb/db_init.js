@@ -119,6 +119,26 @@ const createTodoStatuses = async () => {
     return;
 };
 
+const createTodoCategories = async () => {
+    try {
+        await Promise.all([
+            new TodoCategory({ name: 'Health', value: 1 }).save(),
+            new TodoCategory({ name: 'Work', value: 2 }).save(),
+            new TodoCategory({ name: 'Personal', value: 3 }).save(),
+            new TodoCategory({ name: 'Family', value: 4 }).save(),
+            new TodoCategory({ name: 'Entertainment', value: 5 }).save(),
+            new TodoCategory({ name: 'Social', value: 6 }).save(),
+            new TodoCategory({ name: 'Financial', value: 7 }).save(),
+            new TodoCategory({ name: 'Academic', value: 8 }).save(),
+            new TodoCategory({ name: 'Volunteering', value: 9 }).save(),
+            new TodoCategory({ name: 'Other', value: 10 }).save(),
+        ]);
+    } catch (error) {
+        logError(error, fileDetails, true);
+    }
+    return;
+};
+
 const createErrorCategories = async () => {
     try {
         await Promise.all([
@@ -141,8 +161,8 @@ const checkRolesExistsAndCreate = async () => {
             await createRoles();
         } else {
             logInfo(`Roles already exists.`, fileDetails, true);
-            // await dropAllCollections();
-            // await createRoles();
+            await dropCollection('Roles');
+            await createRoles();
             // logInfo(`Roles recreated.`, fileDetails, true);
         }
     } catch (error) {
@@ -154,14 +174,32 @@ const checkRolesExistsAndCreate = async () => {
 const checkTodoStatusesExistsAndCreate = async () => {
     try {
         const result = await TodoStatus.estimatedDocumentCount();
-        logInfo(`Statuses count: ${result}`, fileDetails, true);
+        logInfo(`Todo statuses count: ${result}`, fileDetails, true);
         if (result === 0) {
             await createTodoStatuses();
         } else {
             logInfo(`Statuses already exists.`, fileDetails, true);
-            // await dropAllCollections();
-            // await createTodoStatuses();
-            // logInfo(`Roles recreated.`, fileDetails, true);
+            await dropCollection('TodoStatuses');
+            await createTodoStatuses();
+            // logInfo(`Todo statuses recreated.`, fileDetails, true);
+        }
+    } catch (error) {
+        logError(error, fileDetails, true);
+    }
+    return;
+};
+
+const checkTodoCategoriesExistsAndCreate = async () => {
+    try {
+        const result = await TodoStatus.estimatedDocumentCount();
+        logInfo(`Todo categories count: ${result}`, fileDetails, true);
+        if (result === 0) {
+            await createTodoStatuses();
+        } else {
+            logInfo(`Todo ctegories already exists.`, fileDetails, true);
+            await dropCollection('TodoCategories');
+            await createTodoCategories();
+            // logInfo(`Todo categories recreated.`, fileDetails, true);
         }
     } catch (error) {
         logError(error, fileDetails, true);
@@ -177,7 +215,7 @@ const checkErrorCategoriesExistsAndCreate = async () => {
             await createErrorCategories();
         } else {
             logInfo(`Error categories already exists.`, fileDetails, true);
-            // await dropAllCollections();
+            await dropCollection('ErrorCategories');
             // await createErrorCategories();
             // logInfo(`Error categories recreated.`, fileDetails, true);
         }
@@ -257,6 +295,7 @@ const initial = async () => {
         await checkRolesExistsAndCreate();
         await checkErrorCategoriesExistsAndCreate();
         await checkTodoStatusesExistsAndCreate();
+        await checkTodoCategoriesExistsAndCreate();
         // await listIndexes();
         // await dropIndexes();
         await createIndexes();

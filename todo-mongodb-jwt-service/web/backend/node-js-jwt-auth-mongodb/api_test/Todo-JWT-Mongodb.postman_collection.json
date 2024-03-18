@@ -20,7 +20,65 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100004\",\r\n    \"email\": \"mod@bezkoder100004.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\"]\r\n}",
+									"raw": "{\r\n    \"username\": \"modera100001\",\r\n    \"email\": \"mod@bezkoder100001.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": []\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signup",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signup"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SignUp Only Give Normal User Role (format email)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"alberterosu\",\r\n    \"email\": \"alberterosu@gmail.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": []\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signup",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signup"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SignUp Only Give Development User Role",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"modera100005\",\r\n    \"email\": \"mod@bezkoder100005.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"development\"]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -78,7 +136,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100001\",\r\n    \"email\": \"mod@bezkoder100001.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"admin\"]\r\n}",
+									"raw": "{\r\n    \"username\": \"modera100000\",\r\n    \"email\": \"hoshisakan@gmail.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"admin\"]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -107,7 +165,36 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100000\",\r\n    \"email\": \"mod@bezkoder100000.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"]\r\n}",
+									"raw": "{\r\n    \"username\": \"qunjend897436\",\r\n    \"email\": \"qunjend897436@gmail.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signup",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signup"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SignUp Add All Roles In",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"hoshisorahitori\",\r\n    \"email\": \"hoshisorahitori@gmail.com\",\r\n    \"password\": \"12345678a\",\r\n    \"roles\": [\"user\", \"moderator\", \"admin\"],\r\n    \"displayName\": \"kirito\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -170,7 +257,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100004\",\r\n    \"password\": \"12345678a\"\r\n}",
+									"raw": "{\r\n    \"username\": \"qunjend897436@gmail.com\",\r\n    \"password\": \"test12345678\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -193,7 +280,65 @@
 							"response": []
 						},
 						{
-							"name": "SignIn By Modera User",
+							"name": "SignIn By Normal User (format email)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const user = pm.response.json();\r",
+											"\r",
+											"pm.test(\"Has properties\", function () {\r",
+											"    pm.expect(user.message).to.have.property('accessToken');\r",
+											"});\r",
+											"\r",
+											"if (pm.test(\"Has properties\")) {\r",
+											"    //console.log('Has properties.');\r",
+											"    pm.globals.set('normal_user_token', user.message.accessToken);\r",
+											"}\r",
+											"else {\r",
+											"    //console.log('Not has properties.');\r",
+											"}\r",
+											"\r",
+											"pm.test(\"Global token has been set\", function() {\r",
+											"    var token = pm.globals.get('normal_user_token');\r",
+											"    pm.expect(token).to.eql(user.message.accessToken);\r",
+											"    console.log(`set globals normal_user_token is: ${token}`);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"alberterosu@gmail.com\",\r\n    \"password\": \"12345678a\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signin",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signin"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SignIn By geyim39586 User",
 							"event": [
 								{
 									"listen": "test",
@@ -214,7 +359,8 @@
 											"    //console.log('Not has properties.');\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -223,7 +369,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100003\",\r\n    \"password\": \"12345678a\"\r\n}",
+									"raw": "{\r\n    \"username\": \"geyim39586@cmheia.com\",\r\n    \"password\": \"12345678a\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -282,7 +428,66 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100001\",\r\n    \"password\": \"12345678a\"\r\n}",
+									"raw": "{\r\n    \"username\": \"hoshisakan@gmail.com\",\r\n    \"password\": \"test123456\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signin",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signin"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SignIn By Dev User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"/// Admin Role User\r",
+											"const user = pm.response.json();\r",
+											"\r",
+											"pm.test(\"Has properties\", function () {\r",
+											"    pm.expect(user.message).to.have.property('accessToken');\r",
+											"});\r",
+											"\r",
+											"if (pm.test(\"Has properties\")) {\r",
+											"    //console.log('Has properties.');\r",
+											"    pm.globals.set('admin_token', user.message.accessToken);\r",
+											"}\r",
+											"else {\r",
+											"    //console.log('Not has properties.');\r",
+											"}\r",
+											"\r",
+											"pm.test(\"Global token has been set\", function() {\r",
+											"    var token = pm.globals.get('admin_token');\r",
+											"    pm.expect(token).to.eql(user.message.accessToken);\r",
+											"    console.log(`set globals admin_token is: ${token}`);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"modera100005\",\r\n    \"password\": \"12345678a\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -332,7 +537,8 @@
 											"    console.log(`set globals all_roles_token is: ${token}`);\r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -341,7 +547,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100000\",\r\n    \"password\": \"12345678a\"\r\n}",
+									"raw": "{\r\n    \"username\": \"hoshisorahitori\",\r\n    \"password\": \"12345678a\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -401,7 +607,7 @@
 								}
 							],
 							"request": {
-								"method": "POST",
+								"method": "GET",
 								"header": [],
 								"url": {
 									"raw": "{{url}}/api/v1/auth/refresh-token",
@@ -510,7 +716,7 @@
 					"name": "logout",
 					"item": [
 						{
-							"name": "Signout",
+							"name": "Signout hoshisorahitori",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -523,7 +729,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"modera100001\",\r\n    \"email\": \"mod@bezkoder100001.com\"\r\n}",
+									"raw": "{\r\n    \"username\": \"hoshisorahitori\",\r\n    \"email\": \"hoshisorahitori@gmail.com\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -540,6 +746,389 @@
 										"v1",
 										"auth",
 										"signout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Signout geyim39586",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-access-token",
+										"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTg5NDA1OWIxM2I1ZjhhYzE5YTNiY2QiLCJpYXQiOjE3MDM1ODU5MjksImV4cCI6MTcwMzU4NjIyOX0.3_2pqXjrPb_BR6unt5Fpi5J2OpLwSn6v7KTnAinPPn0",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"geyim39586\",\r\n    \"email\": \"geyim39586@cmheia.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signout",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Signout alberterosu",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-access-token",
+										"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTg5NDA1OWIxM2I1ZjhhYzE5YTNiY2QiLCJpYXQiOjE3MDM1ODU5MjksImV4cCI6MTcwMzU4NjIyOX0.3_2pqXjrPb_BR6unt5Fpi5J2OpLwSn6v7KTnAinPPn0",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"alberterosu\",\r\n    \"email\": \"alberterosu@gmail.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signout",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Signout qunjend897436",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "x-access-token",
+										"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTg5NDA1OWIxM2I1ZjhhYzE5YTNiY2QiLCJpYXQiOjE3MDM1ODU5MjksImV4cCI6MTcwMzU4NjIyOX0.3_2pqXjrPb_BR6unt5Fpi5J2OpLwSn6v7KTnAinPPn0",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"qunjend897436\",\r\n    \"email\": \"qunjend897436@gmail.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/signout",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"signout"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "account",
+					"item": [
+						{
+							"name": "Get current user info",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/api/v1/auth/current-user",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"current-user"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "user password related",
+					"item": [
+						{
+							"name": "Verify reset password mail",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/api/v1/auth/verify-reset-password-token?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFsYmVydGVyb3N1QGdtYWlsLmNvbSIsImlhdCI6MTcwOTYzOTA2NSwiZXhwIjoxNzA5NjM5MzY1fQ.2CnMQxd6XPKMPJQB9X1FsFLuRsqzdCboMg50epCD72s",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"verify-reset-password-token"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFsYmVydGVyb3N1QGdtYWlsLmNvbSIsImlhdCI6MTcwOTYzOTA2NSwiZXhwIjoxNzA5NjM5MzY1fQ.2CnMQxd6XPKMPJQB9X1FsFLuRsqzdCboMg50epCD72s"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify reset password mail (post)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFsYmVydGVyb3N1QGdtYWlsLmNvbSIsImlhdCI6MTcwOTYzOTA2NSwiZXhwIjoxNzA5NjM5MzY1fQ.2CnMQxd6XPKMPJQB9X1FsFLuRsqzdCboMg50epCD72s\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/verify-reset-password-token",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"verify-reset-password-token"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Forget password",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"alberterosu@gmail.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/forget-password",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"forget-password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reset password v1",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFsYmVydGVyb3N1QGdtYWlsLmNvbSIsImlhdCI6MTcwOTQ2NzY0NywiZXhwIjoxNzA5NDY3OTQ3fQ.c5KI4INhyMoF1QsL9rngYzoZyb7LzbW25bXOw0JVYP8\",\r\n    \"email\": \"alberterosu@gmail.com\",\r\n    \"newPassword\": \"test12345678\"\r\n    //\"newPassword\": \"12345678a\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/reset-password",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"reset-password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reset password v2",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InF1bmplbmQ4OTc0MzZAZ21haWwuY29tIiwiaWF0IjoxNzA5NDQyMzI4LCJleHAiOjE3MDk0NDI2Mjh9.KPFlmHhMvU7FWUdwmVG9oa_ujQr_t8xF2TdzZSgqtMU\",\r\n    \"newPassword\": \"test123456\",\r\n    \"email\": \"qunjend897436@gmail.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/reset-password",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"reset-password"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "email related",
+					"item": [
+						{
+							"name": "Verify confirm email",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/api/v1/auth/verify-email?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFsYmVydGVyb3N1QGdtYWlsLmNvbSIsImlhdCI6MTcwOTU1NjA5MiwiZXhwIjoxNzA5NTU2MzkyfQ.VyYSuHK77QFFjwmDhduEbu3jbZpnQnKbWl80GBFaMU8",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"verify-email"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFsYmVydGVyb3N1QGdtYWlsLmNvbSIsImlhdCI6MTcwOTU1NjA5MiwiZXhwIjoxNzA5NTU2MzkyfQ.VyYSuHK77QFFjwmDhduEbu3jbZpnQnKbWl80GBFaMU8"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify confirm email (post method)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imhvc2hpc2FrYW5AZ21haWwuY29tIiwiaWF0IjoxNzA5Mzk1MDM3LCJleHAiOjE3MDkzOTUzMzd9.WNO8cyWzWbuzD70hb7Z6H8tkvV_ZW-XxF3pyh5UpvDo\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/verify-email",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"verify-email"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Re-send confirm email",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"qunjend897436@gmail.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/auth/re-send-confirm-email",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"re-send-confirm-email"
 									]
 								}
 							},
@@ -706,6 +1295,38 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Send email verification test",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\r\n    \"email\": \"qunjend897436@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/test/send-verification-email",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"test",
+								"send-verification-email"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -718,9 +1339,48 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}",
+							"raw": "{{url}}/",
 							"host": [
 								"{{url}}"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read static photo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/Photos/photo-1516331138075-f3adc1e149cd.jpg",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"Photos",
+								"photo-1516331138075-f3adc1e149cd.jpg"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read static photo with user id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/Photos/photo-1516331138075-f3adc1e149cd.jpg",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"Photos",
+								"photo-1516331138075-f3adc1e149cd.jpg"
 							]
 						}
 					},
@@ -888,7 +1548,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/user/65894059b13b5f8ac19a3bcd",
+							"raw": "{{url}}/api/v1/user/65e03b1f039629d9bf993789",
 							"host": [
 								"{{url}}"
 							],
@@ -896,7 +1556,7 @@
 								"api",
 								"v1",
 								"user",
-								"65894059b13b5f8ac19a3bcd"
+								"65e03b1f039629d9bf993789"
 							]
 						}
 					},
@@ -945,7 +1605,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/user/65a40632f607fa77acec2e51",
+							"raw": "{{url}}/api/v1/user/65f2d4c647c963ec798e0ebc",
 							"host": [
 								"{{url}}"
 							],
@@ -953,7 +1613,7 @@
 								"api",
 								"v1",
 								"user",
-								"65a40632f607fa77acec2e51"
+								"65f2d4c647c963ec798e0ebc"
 							]
 						}
 					},
@@ -977,14 +1637,15 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/user?email=mod@bezkoder100000.com,mod@bezkoder200000.com",
+							"raw": "{{url}}/api/v1/user/",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
 								"v1",
-								"user"
+								"user",
+								""
 							],
 							"query": [
 								{
@@ -1014,7 +1675,8 @@
 								},
 								{
 									"key": "email",
-									"value": "mod@bezkoder100000.com,mod@bezkoder200000.com"
+									"value": "mod@bezkoder100000.com,mod@bezkoder200000.com",
+									"disabled": true
 								},
 								{
 									"key": "_id",
@@ -1202,7 +1864,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/role/bulkCreate",
+							"raw": "{{url}}/api/v1/role/bulk-create",
 							"host": [
 								"{{url}}"
 							],
@@ -1210,7 +1872,7 @@
 								"api",
 								"v1",
 								"role",
-								"bulkCreate"
+								"bulk-create"
 							]
 						}
 					},
@@ -1247,7 +1909,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    //\"_id\": \"65b67e89e842d997d3093aeb\",\r\n    \"name\": \"test\",\r\n    \"level\": \"32\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65b67e89e842d997d3093aeb\",\r\n    \"name\": \"test2\",\r\n    \"level\": \"32\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1300,7 +1962,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"_id\": \"65b67e89e842d997d3093aeb\",\r\n    \"name\": \"ghost1\",\r\n    \"level\": \"65\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65b67e89e842d997d3093aeb\",\r\n    \"name\": \"ghost1\",\r\n    \"level\": \"65\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1669,7 +2331,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todoCategory/bulkCreate",
+							"raw": "{{url}}/api/v1/todoCategory/bulk-create",
 							"host": [
 								"{{url}}"
 							],
@@ -1677,7 +2339,7 @@
 								"api",
 								"v1",
 								"todoCategory",
-								"bulkCreate"
+								"bulk-create"
 							]
 						}
 					},
@@ -1767,7 +2429,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    //\"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"name\": \"Health555\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"name\": \"Development\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1820,7 +2482,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n   // \"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"value\": \"55\"\r\n}",
+							"raw": "{\r\n   // \"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"value\": \"50\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2063,6 +2725,537 @@
 			]
 		},
 		{
+			"name": "todo.status",
+			"item": [
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Test50\",\r\n    \"value\": \"49\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"name\": \"Test33\",\r\n        \"value\": \"33\"\r\n    },\r\n    {\r\n        \"name\": \"Test34\",\r\n        \"value\": \"4\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/bulk-create",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								"bulk-create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Update (Not Implement)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e58909059\",\r\n        \"name\": \"Test3\",\r\n        \"value\": \"49\"\r\n    },\r\n    {\r\n        \"_id\": \"65928aab3a1f4c2e5890905a\",\r\n        \"name\": \"Test2\",\r\n        \"value\": \"50\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/bulkUpdate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								"bulkUpdate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    //\"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"name\": \"Development\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/6592fb27b0adadf24e0922d2",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								"6592fb27b0adadf24e0922d2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n   // \"_id\": \"65ac9e759355bafdccf94e4d\",\r\n    \"value\": \"50\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/6592fb27b0adadf24e0922d2",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								"6592fb27b0adadf24e0922d2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/6592fb27b0adadf24e0922d2",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								"6592fb27b0adadf24e0922d2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/65925ff5cc9bcf416bdc025a",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								"65925ff5cc9bcf416bdc025a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all with condition",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/todoStatus/?value=8,2,3",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"todoStatus",
+								""
+							],
+							"query": [
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b844",
+									"disabled": true
+								},
+								{
+									"key": "_id",
+									"value": "658930c85ca48f75f1e3b843,658930c85ca48f75f1e3b842",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Gift",
+									"disabled": true
+								},
+								{
+									"key": "name[]",
+									"value": "Vacation,Health",
+									"disabled": true
+								},
+								{
+									"key": "value",
+									"value": "658",
+									"disabled": true
+								},
+								{
+									"key": "test",
+									"value": "5555",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Gift5",
+									"disabled": true
+								},
+								{
+									"key": "value",
+									"value": "8,2,3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "error.category",
 			"item": [
 				{
@@ -2140,7 +3333,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Test491\"\r\n}",
+							"raw": "{\r\n    \"name\": \"Test4912\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2201,7 +3394,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/errorCategory/bulkCreate",
+							"raw": "{{url}}/api/v1/errorCategory/bulk-create",
 							"host": [
 								"{{url}}"
 							],
@@ -2209,7 +3402,7 @@
 								"api",
 								"v1",
 								"errorCategory",
-								"bulkCreate"
+								"bulk-create"
 							]
 						}
 					},
@@ -2299,7 +3492,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    //\"_id\": \"65ac9b80b0c0885db5eebff3\",\r\n    \"name\": \"system crashed5991\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65ac9b80b0c0885db5eebff3\",\r\n    \"name\": \"test mode\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2307,7 +3500,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/errorCategory/65b9cb2cfcafcafd330f32f7",
+							"raw": "{{url}}/api/v1/errorCategory/65f18b484526e7dba7e0b102",
 							"host": [
 								"{{url}}"
 							],
@@ -2315,7 +3508,7 @@
 								"api",
 								"v1",
 								"errorCategory",
-								"65b9cb2cfcafcafd330f32f7"
+								"65f18b484526e7dba7e0b102"
 							]
 						}
 					},
@@ -2360,7 +3553,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/errorCategory/65b9cb2cfcafcafd330f32f7",
+							"raw": "{{url}}/api/v1/errorCategory/65f18b484526e7dba7e0b102",
 							"host": [
 								"{{url}}"
 							],
@@ -2368,7 +3561,7 @@
 								"api",
 								"v1",
 								"errorCategory",
-								"65b9cb2cfcafcafd330f32f7"
+								"65f18b484526e7dba7e0b102"
 							]
 						}
 					},
@@ -2405,7 +3598,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/errorCategory/65b8c87a60c76d08b4c6d121",
+							"raw": "{{url}}/api/v1/errorCategory/65f18b484526e7dba7e0b102",
 							"host": [
 								"{{url}}"
 							],
@@ -2413,7 +3606,7 @@
 								"api",
 								"v1",
 								"errorCategory",
-								"65b8c87a60c76d08b4c6d121"
+								"65f18b484526e7dba7e0b102"
 							]
 						}
 					},
@@ -2732,7 +3925,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/traceError/bulkCreate",
+							"raw": "{{url}}/api/v1/traceError/bulk-create",
 							"host": [
 								"{{url}}"
 							],
@@ -2740,7 +3933,7 @@
 								"api",
 								"v1",
 								"traceError",
-								"bulkCreate"
+								"bulk-create"
 							]
 						}
 					},
@@ -3068,7 +4261,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/traceError/?_id=65a7c01b0e5bfb2e70d08189",
+							"raw": "{{url}}/api/v1/traceError/?_id=65b5db9615e7a55c0b148eb4",
 							"host": [
 								"{{url}}"
 							],
@@ -3079,10 +4272,6 @@
 								""
 							],
 							"query": [
-								{
-									"key": "_id",
-									"value": "65a7c01b0e5bfb2e70d08189"
-								},
 								{
 									"key": "_id",
 									"value": "658930c85ca48f75f1e3b843,658930c85ca48f75f1e3b842",
@@ -3117,6 +4306,10 @@
 									"key": "value",
 									"value": "8",
 									"disabled": true
+								},
+								{
+									"key": "_id",
+									"value": "65b5db9615e7a55c0b148eb4"
 								}
 							]
 						}
@@ -3159,7 +4352,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todo/65b22540c1242bba5661fe73",
+							"raw": "{{url}}/api/v1/todo/65f7c5f50975803ea6c64c5c",
 							"host": [
 								"{{url}}"
 							],
@@ -3167,7 +4360,7 @@
 								"api",
 								"v1",
 								"todo",
-								"65b22540c1242bba5661fe73"
+								"65f7c5f50975803ea6c64c5c"
 							]
 						}
 					},
@@ -3257,6 +4450,18 @@
 								"v1",
 								"todo",
 								""
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Health",
+									"disabled": true
+								},
+								{
+									"key": "user",
+									"value": "qunjend897436",
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -3337,7 +4542,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Test Create Todo List143353\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"3\"\r\n}",
+							"raw": "{\r\n    \"title\": \"Test Create Todo List14335354\",\r\n    \"priority\": \"low\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"3\",\r\n    \"todoStatusId\": \"1\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3390,7 +4595,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    //\"_id\": \"65b22540c1242bba5661fe73\",\r\n    \"title\": \"Test Create Todo List1733\",\r\n    \"status\": \"pending\",\r\n    \"priority\": \"high\",\r\n    \"isCompleted\": false,\r\n    \"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"49\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65b22540c1242bba5661fe73\",\r\n    \"title\": \"Test add todo 000004\",\r\n    //\"priority\": \"high\",\r\n    //\"isCompleted\": false,\r\n    //\"type\": \"private\",\r\n    \"startDate\": \"2024-01-03T00:47:00Z\",\r\n    \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n    \"todoCategoryId\": \"49\",\r\n    \"todoStatusId\": \"2\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3398,7 +4603,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todo/65b22540c1242bba5661fe73",
+							"raw": "{{url}}/api/v1/todo/65f7b87d1f355a74dcba64e4",
 							"host": [
 								"{{url}}"
 							],
@@ -3406,7 +4611,7 @@
 								"api",
 								"v1",
 								"todo",
-								"65b22540c1242bba5661fe73"
+								"65f7b87d1f355a74dcba64e4"
 							]
 						}
 					},
@@ -3443,7 +4648,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    //\"_id\": \"65b22540c1242bba5661fe73\",\r\n    //\"title\": \"Test Create Todo List153232\"\r\n    \"description\": \"yrdy\"\r\n}",
+							"raw": "{\r\n    //\"_id\": \"65b22540c1242bba5661fe73\",\r\n    \"title\": \"Test Create Todo List153232\"\r\n    //\"description\": \"yrdy\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3451,7 +4656,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todo/65b22540c1242bba5661fe73",
+							"raw": "{{url}}/api/v1/todo/65f7b87d1f355a74dcba64e4",
 							"host": [
 								"{{url}}"
 							],
@@ -3459,7 +4664,7 @@
 								"api",
 								"v1",
 								"todo",
-								"65b22540c1242bba5661fe73"
+								"65f7b87d1f355a74dcba64e4"
 							]
 						}
 					},
@@ -3496,7 +4701,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\r\n    {\r\n        \"title\": \"Test Create Todo List2509551\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"3\"\r\n    },\r\n    {\r\n        \"title\": \"Test Create Todo List305552\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"3\"\r\n    },\r\n    {\r\n        \"title\": \"Test Create Todo Lis45055553\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"1\"\r\n    }\r\n]",
+							"raw": "[\r\n    {\r\n        \"title\": \"Test Create Todo List2509551\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"3\",\r\n        \"todoStatusId\": \"1\"\r\n    },\r\n    {\r\n        \"title\": \"Test Create Todo List305552\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"3\",\r\n        \"todoStatusId\": \"1\"\r\n    },\r\n    {\r\n        \"title\": \"Test Create Todo Lis45055553\",\r\n        \"status\": \"pending\",\r\n        \"priority\": \"low\",\r\n        \"isCompleted\": false,\r\n        \"type\": \"private\",\r\n        \"startDate\": \"2024-01-03T00:47:00Z\",\r\n        \"dueDate\": \"2024-01-08T00:47:00Z\",\r\n        \"todoCategoryId\": \"1\",\r\n        \"todoStatusId\": \"1\"\r\n    }\r\n]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3504,7 +4709,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/todo/bulkCreate",
+							"raw": "{{url}}/api/v1/todo/bulk-create",
 							"host": [
 								"{{url}}"
 							],
@@ -3512,7 +4717,7 @@
 								"api",
 								"v1",
 								"todo",
-								"bulkCreate"
+								"bulk-create"
 							]
 						}
 					},
@@ -3548,7 +4753,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/v1/todo/",
+							"raw": "{{url}}/api/v1/todo/?user=cherubim",
 							"host": [
 								"{{url}}"
 							],
@@ -3570,8 +4775,8 @@
 									"disabled": true
 								},
 								{
-									"key": "name",
-									"value": "Gift",
+									"key": "category",
+									"value": "Giftd",
 									"disabled": true
 								},
 								{
@@ -3606,7 +4811,7 @@
 								},
 								{
 									"key": "_id",
-									"value": "6594421b0be881611b50038e",
+									"value": "65ed77e7e54f7f728d6f4353",
 									"disabled": true
 								},
 								{
@@ -3626,14 +4831,687 @@
 								},
 								{
 									"key": "_id",
-									"value": "65ac994c6bc71df99e4ee375",
+									"value": "65ee9c48ee60e6f125ed9971",
 									"disabled": true
 								},
 								{
 									"key": "value",
 									"value": "8",
 									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "title",
+									"value": "test1",
+									"disabled": true
+								},
+								{
+									"key": "user",
+									"value": "cherubim"
+								},
+								{
+									"key": "user",
+									"value": "65eae3873b421571814f17f9",
+									"disabled": true
+								},
+								{
+									"key": "user[]",
+									"value": "65ee9c48ee60e6f125ed9971,65eae3873b421571814f17f9",
+									"disabled": true
+								},
+								{
+									"key": "user[]",
+									"value": "cherubim,qunjend897436,modera100000,alberterosu",
+									"disabled": true
+								},
+								{
+									"key": "user[]",
+									"value": "65ee9c48ee60e6f125ed9971,65eae3873b421571814f17f9",
+									"disabled": true
+								},
+								{
+									"key": "user[]",
+									"value": "cherubim,65ee9c48ee60e6f125ed9971,65eae3873b421571814f17f9",
+									"disabled": true
+								},
+								{
+									"key": "user",
+									"value": null,
+									"disabled": true
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "profile",
+			"item": [
+				{
+					"name": "Find by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/profile/65f4018c3ca75f9e46b0f327",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"65f4018c3ca75f9e46b0f327"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/profile/65f591db6a58a5bb994b6fa1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"65f591db6a58a5bb994b6fa1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload photo and set profile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "postman-cloud:///1eee2c63-f25d-44f0-88af-f690ebcdb3f9"
+								},
+								{
+									"key": "bio",
+									"value": "test update bio",
+									"type": "text"
+								},
+								{
+									"key": "displayName",
+									"value": "donya",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "hoshisorahitori2@gmail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/profile/profile-and-photo",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"profile-and-photo"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload photo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "/D:/OneDrive/Scenery/1133_3i2uLf_UWCLLEA.jpg!r800x0.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/profile/upload-photo",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"upload-photo"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/profile/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"image\": \"test.png\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/profile/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set profile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"bio\": \"Test upadte bio 0003reweeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\r\n    \"username\": \"geyim39586\",\r\n    \"email\": \"geyim39586@cmheia.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/profile/set-profile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"set-profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"image\": \"test_update.png\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/profile/65f26487387f4b6d0966894a",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"65f26487387f4b6d0966894a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"image\": \"test_update_2.png\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/profile/65f26487387f4b6d0966894a",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"65f26487387f4b6d0966894a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multiple Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"image\": \"test_update_01.png\"\r\n    }, \r\n    {\r\n        \"image\": \"test_update_02.png\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/profile/bulk-create",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"bulk-create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find all",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/profile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "{{admin_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{all_roles_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{normal_user_token}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "x-access-token",
+								"value": "{{modera_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/v1/profile/get-profile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"get-profile"
 							]
 						}
 					},
@@ -3666,11 +5544,29 @@
 		{
 			"key": "url",
 			"value": "http://localhost:49146",
-			"type": "string"
+			"type": "string",
+			"disabled": true
 		},
 		{
 			"key": "url",
 			"value": "http://localhost:5002",
+			"type": "string"
+		},
+		{
+			"key": "url",
+			"value": "http://localhost:5003",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"key": "url",
+			"value": "http://192.168.1.103:49146",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"key": "url",
+			"value": "https://192.168.1.103:49146",
 			"type": "string",
 			"disabled": true
 		}

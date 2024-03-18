@@ -2,7 +2,7 @@ const { logError, logInfo } = require('../../utils/log.util');
 const http = require('../../helpers/http.helper');
 const { filenameFilter } = require('../../utils/regex.util');
 const { OK, BAD_REQUEST } = require('../../helpers/constants.helper');
-const JWTUtil = require('../../../node-js-jwt-auth-mongodb/utils/jwt.util');
+const JWTUtil = require('../../utils/jwt.util');
 const { ACCESS_TOKEN_COOKIE_NAME } = require('../../config/cookie.config.js');
 
 const UserService = require('../../services/v1/user.service');
