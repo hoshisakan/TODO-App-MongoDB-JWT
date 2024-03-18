@@ -2,11 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
-// const expressSession = require('express-session');
 const path = require('path');
-// const https = require('https');
-// const fs = require('fs');
-
 const env = process.env.NODE_ENV || 'development';
 const envPath = path.join(__dirname, `.env.${env.trim()}`);
 
@@ -42,8 +38,24 @@ app.use(express.json());
 ///TODO: parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-///TODO: Add cookie parser
+///TODO: add cookie parser
 app.use(cookieParser());
+
+const staticPhotoPath = path.join(__dirname, process.env.UPLOAD_PHOTO_STATIC_PATH);
+logInfo(`staticPhotoPath: ${staticPhotoPath}.`, fileDetails, true);
+
+//TODO: For debug
+// const fs = require('fs');
+
+// if (fs.existsSync(staticPhotoPath)) {
+//     logInfo(`Check path does exists`, fileDetails, true);
+// }
+// else {
+//     logInfo(`Check path doesn't exists`, fileDetails, true);
+// }
+
+// app.use('/Photos/:userId', express.static(staticPhotoPath));
+app.use('/Photos', express.static(staticPhotoPath));
 
 const apiV1Router = require('./routes/v1/index.route');
 
@@ -53,10 +65,30 @@ app.use('/api/v1', apiV1Router, (req, res, next) => {
     next();
 });
 
+///TODO: analysis multpart/form-data request
+// const multer = require('multer');
+// const upload = multer({ dest: 'uploads/' });
+
+///TODO: Allow all routes received one file
+// app.use('/api/v1', upload.single('photo'), apiV1Router, (req, res, next) => {
+//     // res.header('Access-Control-Allow-Headers', 'x-access-token, Origin, Content-Type, Accept');
+//     logInfo(`Request URL: ${req.originalUrl}`, fileDetails, true);
+//     next();
+// });
+
+///TODO: Allow all routes received mlutiple file (max limt 12 files)
+// app.use('/api/v1', upload.array('photo', 12), apiV1Router, (req, res, next) => {
+//     // res.header('Access-Control-Allow-Headers', 'x-access-token, Origin, Content-Type, Accept');
+//     logInfo(`Request URL: ${req.originalUrl}`, fileDetails, true);
+//     next();
+// });
+
 DatabackupExtension.start();
 
-// simple route
 app.get('/', (req, res) => {
+    Object.keys(req.cookies).forEach((cookieName) => {
+        res.clearCookie(cookieName);
+    });
     res.json({ message: 'Welcome to bezkoder application.' });
 });
 

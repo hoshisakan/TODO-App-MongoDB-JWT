@@ -14,10 +14,10 @@ interface Props {
 
 const DrapCard = observer(({ item, index, bsModalRef }: Props) => {
     const { todoStore } = useStore();
-    const { setEditedTodoCardId, setRemovedTodoCardId, detailTodo } = todoStore;
+    const { setEditedTodoId, setRemovedTodoId, detailTodo } = todoStore;
 
     const showEditModal = (editId: string) => {
-        setEditedTodoCardId(editId);
+        setEditedTodoId(editId);
         detailTodo(editId).catch((err: any) => {
             console.log(`Error: ${JSON.stringify(err)}`);
         });
@@ -25,7 +25,7 @@ const DrapCard = observer(({ item, index, bsModalRef }: Props) => {
     };
 
     const showRemoveModal = (removeId: string) => {
-        setRemovedTodoCardId(removeId);
+        setRemovedTodoId(removeId);
         bsModalRef.current?.show();
     };
 

@@ -6,6 +6,7 @@ import {
     TodoFormValuesAddOrEdit,
     TodoPatchResult,
     TodoValuesUpdateDropableItem,
+    TodoUpdateOrPatchResult,
 } from '../models/Todo';
 import agent from '../api/agent';
 import { toast } from 'react-toastify';
@@ -19,18 +20,18 @@ export default class TodoStore {
     isEditedSuccess: boolean = false;
     isRemovedSuccess: boolean = false;
     editedTodoId: string = '';
-    removedTodoCardId: string = '';
+    removedTodoId: string = '';
     editDetail: TodoDetail = {
         _id: '',
         title: '',
         description: null,
-        status: '',
         startDate: '',
         dueDate: '',
         user: '',
         createdAt: '',
         updatedAt: null,
         todoCategoryId: '',
+        todoStatusId: '',
     };
 
     constructor() {
@@ -42,7 +43,7 @@ export default class TodoStore {
             isEditedSuccess: observable,
             isRemovedSuccess: observable,
             editedTodoId: observable,
-            removedTodoCardId: observable,
+            removedTodoId: observable,
             editDetail: observable,
         });
     }
@@ -97,7 +98,7 @@ export default class TodoStore {
                 .then((response) => {
                     runInAction(async () => {
                         const editResult: TodoCUDResult = response.data;
-                        console.log(`editResult: ${JSON.stringify(editResult)}`);
+                        // console.log(`editResult: ${JSON.stringify(editResult)}`);
                         if (editResult.isSuccess && !editResult.message) {
                             await this.loadTodos();
                             await this.setIsEditedSuccess(true);
@@ -121,7 +122,7 @@ export default class TodoStore {
                 .then((response) => {
                     runInAction(async () => {
                         const addResult: TodoCUDResult = response.data;
-                        console.log(`addResult: ${JSON.stringify(addResult)}`);
+                        // console.log(`addResult: ${JSON.stringify(addResult)}`);
                         if (addResult.isSuccess && !addResult.message) {
                             await this.loadTodos();
                             await this.setIsAddeedSuccess(true);
@@ -145,7 +146,7 @@ export default class TodoStore {
                 .then((response) => {
                     runInAction(async () => {
                         const removeResult: TodoCUDResult = response.data;
-                        console.log(`removeResult: ${JSON.stringify(removeResult)}`);
+                        // console.log(`removeResult: ${JSON.stringify(removeResult)}`);
                         if (removeResult.isSuccess && !removeResult.message) {
                             await this.loadTodos();
                             await this.setIsRemovedSuccess(true);
@@ -163,22 +164,22 @@ export default class TodoStore {
         }
     };
 
-    statusPatch = async (id: String, requestValues: TodoValuesUpdateDropableItem) => {
+    statusPatch = async (id: string, requestValues: TodoValuesUpdateDropableItem) => {
         try {
             await agent.Todo.statusPatch(id, requestValues)
                 .then((response) => {
                     runInAction(async () => {
-                        const patchResult: TodoPatchResult = response.data;
-                        if (patchResult && patchResult._id === id) {
+                        const patchResult: TodoUpdateOrPatchResult = response.data;
+                        if (patchResult.isModifiedSuccess) {
                             await this.loadTodos();
                             console.log(`Patch ${id} item successfully.`);
                         } else {
-                            throw new Error(`Patch ${id} item failed.`);
+                            toast.error(`Patch ${id} item failed.`);
                         }
                     });
                 })
                 .catch(async (err) => {
-                    throw new Error(err.stack);
+                    toast.error(`Patch`);
                 });
         } catch (err: any) {
             throw err;
@@ -204,11 +205,11 @@ export default class TodoStore {
         });
     };
 
-    setRemovedTodoCardId = (removedTodoCardId: string) => {
-        this.removedTodoCardId = removedTodoCardId;
+    setRemovedTodoId = (removedTodoId: string) => {
+        this.removedTodoId = removedTodoId;
     };
 
-    setEditedTodoCardId = (editedTodoId: string) => {
+    setEditedTodoId = (editedTodoId: string) => {
         this.editedTodoId = editedTodoId;
     };
 

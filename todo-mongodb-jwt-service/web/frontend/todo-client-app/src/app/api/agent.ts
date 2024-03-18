@@ -12,6 +12,7 @@ import { ResponseResult } from '../models/AxiosResponse';
 import { toast } from 'react-toastify';
 // import url from 'url';
 import { TodoFormValuesAddOrEdit, TodoValuesUpdateDropableItem } from '../models/Todo';
+import { ProfileFormValuesAddOrEdit } from '../models/Profile';
 
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 ///TODO: When cross domain request send cookie
@@ -60,32 +61,52 @@ const responseBody = <T>(response: AxiosResponse<T>) => response.data;
 
 const requests = {
     get: <T>(url: string) => axios.get<T>(url).then(responseBody),
-    post: <T>(url: string, body: {}) => axios.post<T>(url, body).then(responseBody),
+    post: <T>(url: string, body: {}, headers = {}) => axios.post<T>(url, body).then(responseBody),
     put: <T>(url: string, body: {}) => axios.put<T>(url, body).then(responseBody),
     patch: <T>(url: string, body: {}) => axios.patch<T>(url, body).then(responseBody),
     del: <T>(url: string) => axios.delete<T>(url).then(responseBody),
+};
+
+const Profile = {
+    getProfile: () => requests.get<ResponseResult>('/profile/get-profile'),
+    setProfile: (entity: ProfileFormValuesAddOrEdit) => requests.post<ResponseResult>('/profile/set-profile', entity),
+    // uploadPhoto: (file: Blob) => {
+    //     let formData = new FormData();
+    //     formData.append('photo', file);
+    // return axios.post<ResponseResult>('/profile/upload-photo', formData, {
+    //     headers: { 'Content-type': 'multipart/form-data' },
+    // });
+    // return requests.post<ResponseResult>('/profile/upload-photo', file, { 'Content-type': 'multipart/form-data' });
+    // },
+    uploadPhoto: (files: FormData) =>
+        requests.post<ResponseResult>('/profile/upload-photo', files, { 'Content-type': 'multipart/form-data' }),
 };
 
 const TodoCategory = {
     list: () => requests.get<ResponseResult>('/todoCategory'),
 };
 
+const TodoStatus = {
+    list: () => requests.get<ResponseResult>('/todoStatus'),
+};
+
 const Todo = {
     list: () => requests.get<ResponseResult>('/todo'),
     add: (entity: TodoFormValuesAddOrEdit) => requests.post<ResponseResult>('/todo', entity),
-    statusPatch: (id: String, entity: TodoValuesUpdateDropableItem) =>
+    statusPatch: (id: string, entity: TodoValuesUpdateDropableItem) =>
         requests.patch<ResponseResult>(`/todo/${id}`, entity),
-    detail: (id: String) => requests.get<ResponseResult>(`/todo/${id}`),
-    remove: (id: String) => requests.del<ResponseResult>(`/todo/${id}`),
-    update: (id: String, entity: TodoFormValuesAddOrEdit) => requests.put<ResponseResult>(`/todo/${id}`, entity),
+    detail: (id: string) => requests.get<ResponseResult>(`/todo/${id}`),
+    remove: (id: string) => requests.del<ResponseResult>(`/todo/${id}`),
+    update: (id: string, entity: TodoFormValuesAddOrEdit) => requests.put<ResponseResult>(`/todo/${id}`, entity),
 };
 
 const User = {
     detail: (id: string) => requests.get<ResponseResult>(`user/${id}`),
+    // update: (id: string) => requests.put<ResponseResult>(`/user/${id}`, entity),
 };
 
 const Auth = {
-    current: () => requests.get<ResponseResult>('/auth/account-info'),
+    current: () => requests.get<ResponseResult>('/auth/current-user'),
     verifyToken: (authType: string) => requests.post<ResponseResult>(`/auth/verify-token`, { authType: authType }),
     signin: (entity: UserFormValuesLogin) => requests.post<ResponseResult>(`/auth/signin`, entity),
     signup: (entity: UserFormValuesRegister) => requests.post<ResponseResult>(`/auth/signup`, entity),
@@ -105,8 +126,10 @@ const Auth = {
 const agent = {
     Todo,
     TodoCategory,
+    TodoStatus,
     User,
     Auth,
+    Profile,
 };
 
 export default agent;

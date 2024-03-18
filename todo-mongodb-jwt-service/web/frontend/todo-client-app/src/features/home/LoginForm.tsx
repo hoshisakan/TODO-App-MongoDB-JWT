@@ -1,28 +1,70 @@
 import { useStore } from '../../app/stores/store';
 import { UserFormValuesLogin } from '../../app/models/User';
+import { ChangeEvent, FormEvent, useState } from 'react';
+import { toast } from 'react-toastify';
 
 export default function LoginForm() {
     const { userStore } = useStore();
+    const [state, setState] = useState<UserFormValuesLogin>({
+        username: '',
+        password: '',
+    });
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const name = e.target.name;
+        const value = e.target.value;
+
+        // setState((prevState) => {
+        //     // Object.assign would also work
+        //     return { ...prevState, [name]: value };
+        // });
+
+        setState((prevValue) => ({
+            ...prevValue,
+            [name]: value,
+        }));
+
+        ///TODO: 因為 setState 是非同步的方法，故會有延遲的現象發生，非即時更新，但若在 Form 提交時，所有值皆會被更新至 state 中
+        // console.log(`result: ${JSON.stringify(state)}`);
+        // toast.info(`result: ${JSON.stringify(state)}`);
+    };
+
+    const clearFormValues = () => {
+        setState({
+            username: '',
+            password: '',
+        });
+        // toast.info('Clear form values process completed.');
+    };
+
+    const checkFormEmptyExists = (checkValues: UserFormValuesLogin) => {
+        let result = false;
+        Object.entries(checkValues).forEach(([key, value]) => {
+            if (key !== 'role' && !value) {
+                result = true;
+            }
+        });
+        return result;
+    };
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const username: string = document.querySelector<HTMLInputElement>('input[name="username"]')?.value || '';
-        const password: string = document.querySelector<HTMLInputElement>('input[name="password"]')?.value || '';
+        const requestValues: UserFormValuesLogin = state;
+        const isEmptyExists = checkFormEmptyExists(requestValues);
 
-        if (!username || !password) {
-            alert('Invalid input.');
+        if (!isEmptyExists) {
+            userStore
+                .login(requestValues)
+                .then((res) => {
+                    clearFormValues();
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        } else {
+            toast.error('Find empty value in form values.');
             return;
         }
-
-        const requestValues: UserFormValuesLogin = {
-            username: username,
-            password: password,
-        };
-
-        userStore.login(requestValues).catch((err) => {
-            // alert(err);
-            // alert('login failed')
-        });
     };
 
     return (
@@ -51,6 +93,8 @@ export default function LoginForm() {
                                             name="username"
                                             id="username"
                                             placeholder="username or email"
+                                            value={state.username}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>
@@ -63,7 +107,8 @@ export default function LoginForm() {
                                             className="form-control"
                                             name="password"
                                             id="password"
-                                            // value=""
+                                            value={state.password}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>

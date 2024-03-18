@@ -24,10 +24,9 @@ const Todo = mongoose.model(
                 max: 200,
             },
             status: {
-                type: String,
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'TodoStatus',
                 required: true,
-                // enum: ['pending', 'ongoing', 'completed', 'deleted', 'archived'],
-                enum: ['pending', 'ongoing', 'completed'],
             },
             // priority: {
             //     type: String,

@@ -46,6 +46,11 @@ const HeaderNavbar = observer(({ navbarName }: Props) => {
                             <div className="collapse navbar-collapse" id="navbarTogglerDemo03">
                                 <div className="navbar-nav ms-auto">
                                     <li className="nav-item">
+                                        <span className="nav-link" style={{ color: 'white', fontWeight: 'bold' }}>
+                                            Hi {user?.username} !
+                                        </span>
+                                    </li>
+                                    <li className="nav-item">
                                         <a
                                             className="nav-link active"
                                             aria-current="page"
@@ -66,7 +71,7 @@ const HeaderNavbar = observer(({ navbarName }: Props) => {
                                             aria-haspopup="true"
                                             aria-expanded="false"
                                         >
-                                            <StyledIcon className="bi bi-person-fill h4"></StyledIcon>
+                                            <StyledIcon className="bi bi-person-fill h4" />
                                         </a>
                                         <div
                                             className="dropdown-menu"

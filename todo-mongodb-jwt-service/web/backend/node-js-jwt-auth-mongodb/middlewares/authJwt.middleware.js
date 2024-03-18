@@ -1,7 +1,7 @@
 const http = require('../helpers/http.helper.js');
 const { logInfo, logError } = require('../utils/log.util.js');
 const { stringify } = require('../utils/json.util.js');
-// const { filenameFilter } = require('../utils/regex.util');
+const { filenameFilter } = require('../utils/regex.util');
 const { BAD_REQUEST, UNAUTHORIZED } = require('../helpers/constants.helper.js');
 
 const AuthService = require('../services/v1/auth.service.js');
@@ -9,13 +9,18 @@ const authService = new AuthService();
 const { verifyToken } = require('../utils/jwt.util.js');
 const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../config/cookie.config.js');
 
-// const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+const filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
 
-getFunctionCallerName = () => {
+const getFunctionCallerName = () => {
     const err = new Error();
     const stack = err.stack.split('\n');
     const functionName = stack[2].trim().split(' ')[1];
     return functionName;
+};
+
+const getFileDetails = (classAndFuncName) => {
+    const classAndFuncNameArr = classAndFuncName.split('.');
+    return `[${filenameWithoutPath}] [${classAndFuncNameArr}]`;
 };
 
 let userOwnRoleList = [];
@@ -24,7 +29,8 @@ let userOwnRoleList = [];
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
 verifyAcccessToken = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    // const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         // const token = req.headers['x-access-token'];
         const token = req.cookies[ACCESS_TOKEN_COOKIE_NAME];
@@ -48,6 +54,9 @@ verifyAcccessToken = async (req, res, next) => {
         req.highestPermission = userOwnRoleList[0]['name'];
         logInfo(`req.highestPermission: ${req.highestPermission}`, fileDetails, true);
 
+        req.accessTokenExpireUnixStampTime = decodedResult.data['exp'];
+        logInfo(`req.accessTokenExpireUnixStampTime: ${req.accessTokenExpireUnixStampTime}`, fileDetails, true);
+
         return next();
     } catch (err) {
         logError(err, fileDetails, true);
@@ -59,7 +68,8 @@ verifyAcccessToken = async (req, res, next) => {
 ///TODO: req - request (client -> server), res - response (server -> client), next - next middleware ( server -> next middleware)
 verifyRefreshToken = (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    // const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    const fileDetails = getFileDetails(classNameAndFuncName);
 
     try {
         const token = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
@@ -99,7 +109,8 @@ isMatchRole = (userOwnRoleList, checkRole = []) => {
 
 isAdmin = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    // const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userId = req.userId || null;
 
@@ -124,7 +135,8 @@ isAdmin = async (req, res, next) => {
 
 isDevelopment = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    // const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userId = req.userId || null;
 
@@ -149,7 +161,8 @@ isDevelopment = async (req, res, next) => {
 
 isModerator = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    // const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userId = req.userId || null;
 
@@ -174,7 +187,8 @@ isModerator = async (req, res, next) => {
 
 isUser = async (req, res, next) => {
     const classNameAndFuncName = getFunctionCallerName();
-    const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    // const fileDetails = `[authJwt.middleware.js] [${classNameAndFuncName.split('.')}]`;
+    const fileDetails = getFileDetails(classNameAndFuncName);
     try {
         const userId = req.userId || null;
 

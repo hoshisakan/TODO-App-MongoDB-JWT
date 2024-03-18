@@ -17,7 +17,7 @@ function App() {
     useEffect(() => {
         const loadPage = () => {
             try {
-                const refreshTokenRouteList = ['/Todo', '/todo', '/'];
+                const refreshTokenRouteList = ['/Todo', '/todo', '/', '/profile'];
                 const currentPath = location.pathname;
                 if (refreshTokenRouteList.includes(currentPath)) {
                     verifyToken('access')
@@ -37,6 +37,7 @@ function App() {
                     // toast.info(`App load path: ${currentPath}`);
                     setApploaded();
                 }
+                console.log(`currentPath: ${currentPath}`);
             } catch (err: any) {
                 console.log(err.message);
             }

@@ -65,7 +65,7 @@ class TodoService extends BaseService {
     };
 
     ///TODO: Get todo category ids by values array
-    getIdsByValue = async (todoCategoryValues) => {
+    getIdsByCategoryValue = async (todoCategoryValues) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let ids = [];
@@ -119,6 +119,171 @@ class TodoService extends BaseService {
         return ids;
     };
 
+    ///TODO: Get todo status ids by values array
+    getIdsByStatusValue = async (todoStatusValues) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let ids = [];
+        try {
+            if (!todoStatusValues) {
+                throw new Error('Invalid todo status value');
+            }
+
+            if (!Array.isArray(todoStatusValues) || todoStatusValues.length === 0) {
+                ids = (await this.unitOfWork.todoStatuses.findOne({ value: todoStatusValues }))._id;
+            } else {
+                const getArrayUniqueItemResult = await this.getArrayUniqueItem(todoStatusValues);
+                logInfo(`getArrayUniqueItemResult: ${stringify(getArrayUniqueItemResult)}`, fileDetails, true);
+
+                if (
+                    !getArrayUniqueItemResult &&
+                    (!getArrayUniqueItemResult.arrayUniqueValues ||
+                        getArrayUniqueItemResult.arrayUniqueValues.length === 0)
+                ) {
+                    throw new Error('Invalid todo status value');
+                }
+
+                if (!getArrayUniqueItemResult.isDuplicate && getArrayUniqueItemResult.arrayUniqueValues.length > 0) {
+                    const todoStatusItems = await this.unitOfWork.todoStatuses.find({
+                        value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                    });
+                    ids = todoStatusItems.map((todoStatusItem) => todoStatusItem._id);
+                } else if (
+                    getArrayUniqueItemResult.isDuplicate &&
+                    getArrayUniqueItemResult.arrayUniqueValues.length > 0
+                ) {
+                    const todoStatusItems = await this.unitOfWork.todoStatuses.find(
+                        {
+                            value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                        },
+                        { value: 1 }
+                    );
+
+                    todoStatusValues.forEach((value) => {
+                        todoStatusItems.filter((items) => {
+                            if (items.value.toString() === value.toString()) {
+                                ids.push(items._id);
+                            }
+                        });
+                    });
+                }
+            }
+        } catch (error) {
+            logError(error, fileDetails, true);
+        }
+        return ids;
+    };
+
+    ///TODO: Get todo category ids by names array
+    getIdsByCategoryName = async (todoCategpryNames) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let ids = [];
+        try {
+            if (!todoCategpryNames) {
+                throw new Error('Invalid todo status value');
+            }
+
+            if (!Array.isArray(todoCategpryNames) || todoCategpryNames.length === 0) {
+                ids = (await this.unitOfWork.todoCategories.findOne({ name: todoCategpryNames }))._id;
+            } else {
+                const getArrayUniqueItemResult = await this.getArrayUniqueItem(todoCategpryNames);
+                logInfo(`getArrayUniqueItemResult: ${stringify(getArrayUniqueItemResult)}`, fileDetails, true);
+
+                if (
+                    !getArrayUniqueItemResult &&
+                    (!getArrayUniqueItemResult.arrayUniqueValues ||
+                        getArrayUniqueItemResult.arrayUniqueValues.length === 0)
+                ) {
+                    throw new Error('Invalid todo status value');
+                }
+
+                if (!getArrayUniqueItemResult.isDuplicate && getArrayUniqueItemResult.arrayUniqueValues.length > 0) {
+                    const todoCategoryItems = await this.unitOfWork.todoCategories.find({
+                        value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                    });
+                    ids = todoCategoryItems.map((todoStatusItem) => todoStatusItem._id);
+                } else if (
+                    getArrayUniqueItemResult.isDuplicate &&
+                    getArrayUniqueItemResult.arrayUniqueValues.length > 0
+                ) {
+                    const todoCategoryItems = await this.unitOfWork.todoCategories.find(
+                        {
+                            value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                        },
+                        { value: 1 }
+                    );
+
+                    todoCategpryNames.forEach((value) => {
+                        todoCategoryItems.filter((items) => {
+                            if (items.value.toString() === value.toString()) {
+                                ids.push(items._id);
+                            }
+                        });
+                    });
+                }
+            }
+        } catch (error) {
+            logError(error, fileDetails, true);
+        }
+        return ids;
+    };
+
+    ///TODO: Get todo status ids by names array
+    getIdsByStatusName = async (todoStatusNames) => {
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let ids = [];
+        try {
+            if (!todoStatusNames) {
+                throw new Error('Invalid todo status value');
+            }
+
+            if (!Array.isArray(todoStatusNames) || todoStatusNames.length === 0) {
+                ids = (await this.unitOfWork.todoStatuses.findOne({ name: todoStatusNames }))._id;
+            } else {
+                const getArrayUniqueItemResult = await this.getArrayUniqueItem(todoStatusNames);
+                logInfo(`getArrayUniqueItemResult: ${stringify(getArrayUniqueItemResult)}`, fileDetails, true);
+
+                if (
+                    !getArrayUniqueItemResult &&
+                    (!getArrayUniqueItemResult.arrayUniqueValues ||
+                        getArrayUniqueItemResult.arrayUniqueValues.length === 0)
+                ) {
+                    throw new Error('Invalid todo status value');
+                }
+
+                if (!getArrayUniqueItemResult.isDuplicate && getArrayUniqueItemResult.arrayUniqueValues.length > 0) {
+                    const todoStatusItems = await this.unitOfWork.todoStatuses.find({
+                        value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                    });
+                    ids = todoStatusItems.map((todoStatusItem) => todoStatusItem._id);
+                } else if (
+                    getArrayUniqueItemResult.isDuplicate &&
+                    getArrayUniqueItemResult.arrayUniqueValues.length > 0
+                ) {
+                    const todoStatusItems = await this.unitOfWork.todoStatuses.find(
+                        {
+                            value: { $in: getArrayUniqueItemResult.arrayUniqueValues },
+                        },
+                        { value: 1 }
+                    );
+
+                    todoStatusNames.forEach((value) => {
+                        todoStatusItems.filter((items) => {
+                            if (items.value.toString() === value.toString()) {
+                                ids.push(items._id);
+                            }
+                        });
+                    });
+                }
+            }
+        } catch (error) {
+            logError(error, fileDetails, true);
+        }
+        return ids;
+    };
+
     ///TODO: Create todo for specific user
     create = async (entity, tokenParseResult) => {
         const classAndFuncName = this.getFunctionCallerName();
@@ -137,24 +302,31 @@ class TodoService extends BaseService {
                 throw new Error('Invalid user id, please login again');
             }
 
-            const searchIdResult = await this.getIdsByValue(entity.todoCategoryId);
+            const searchCategoryIdResult = await this.getIdsByCategoryValue(entity.todoCategoryId);
+            const searchStatusIdResult = await this.getIdsByStatusValue(entity.todoStatusId);
 
-            if (!searchIdResult || searchIdResult.length == 0) {
-                throw new Error(`Invalid todoCategoryId: ${entity.todoCategoryId}`);
+            if (!searchCategoryIdResult || searchCategoryIdResult.length == 0) {
+                throw new Error(`Invalid todo category id: ${entity.todoCategoryId}`);
+            }
+            if (!searchStatusIdResult || searchStatusIdResult.length == 0) {
+                throw new Error(`Invalid todo status id: ${entity.todoStatusId}`);
             }
 
-            logInfo(`searchIdResult: ${searchIdResult}`, fileDetails, true);
+            logInfo(`Search category id result: ${searchCategoryIdResult}`, fileDetails, true);
+            logInfo(`Search status id result: ${searchStatusIdResult}`, fileDetails, true);
 
-            entity.category = searchIdResult;
+            entity.category = searchCategoryIdResult;
+            entity.status = searchStatusIdResult;
             entity.user = tokenParseResult.userId;
             delete entity.todoCategoryId;
+            delete entity.todoStatusId;
 
             logInfo(`Entity of todo create: ${stringify(entity)}`, fileDetails);
 
             const createResult = await this.unitOfWork.todos.create(entity);
 
             if (!createResult) {
-                throw new Error('Todo category creation failed');
+                throw new Error('Todo create failed');
             }
             logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
 
@@ -193,7 +365,6 @@ class TodoService extends BaseService {
                 };
             });
 
-            // TODO: Step 2: Get duplicate existing query, if not found throw error
             const duplicateExistingQuery = await checkMultipleDuplicateExisting(
                 checkDatabaseDuplicateItems,
                 this.modelName,
@@ -206,7 +377,6 @@ class TodoService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            ///TODO: Step 3: Check duplicate existing by query, if found, throw error
             const duplicateExistingResult = await this.unitOfWork.todos.find(duplicateExistingQuery);
 
             if (duplicateExistingResult && duplicateExistingResult.length > 0) {
@@ -214,31 +384,43 @@ class TodoService extends BaseService {
             }
             logInfo(`duplicateExistingResult: ${stringify(duplicateExistingResult)}`, fileDetails, true);
 
-            //TODO: Step 3: Get todo category name from todo category id
             const todoCategoryNames = await entities.map((entity) => entity.todoCategoryId);
+            const todoStatusNames = await entities.map((entity) => entity.todoStatusId);
 
-            const searchIdResult = await this.getIdsByValue(todoCategoryNames);
+            const searchCategoryIdResult = await this.getIdsByCategoryValue(todoCategoryNames);
+            const searchStatusIdResult = await this.getIdsByStatusValue(todoStatusNames);
 
-            if (!searchIdResult || searchIdResult.length === 0) {
-                throw new Error('Invalid todo value');
+            if (!searchCategoryIdResult || searchCategoryIdResult.length === 0) {
+                throw new Error('Invalid todo category value');
             }
 
-            if (searchIdResult.length !== todoCategoryNames.length) {
-                throw new Error(`Two items do not match.`);
+            if (searchCategoryIdResult.length !== todoCategoryNames.length) {
+                throw new Error(`Two todo category items do not match.`);
             }
 
-            logInfo(`searchIdResult: ${stringify(searchIdResult)}`, fileDetails, true);
+            if (!searchStatusIdResult || searchStatusIdResult.length === 0) {
+                throw new Error('Invalid todo status value');
+            }
+
+            if (searchStatusIdResult.length !== todoStatusNames.length) {
+                throw new Error(`Two todo status items do not match.`);
+            }
+
+            logInfo(`Search category id result: ${stringify(searchCategoryIdResult)}`, fileDetails, true);
+            logInfo(`Search status id result: ${stringify(searchStatusIdResult)}`, fileDetails, true);
 
             entities.forEach((entity, index) => {
-                entity.category = searchIdResult[index];
+                entity.category = searchCategoryIdResult[index];
+                entity.status = searchStatusIdResult[index];
                 entity.user = userId;
                 delete entity.todoCategoryId;
+                delete entity.todoStatusId;
             });
 
             const createResult = await this.unitOfWork.todos.insertMany(entities);
 
             if (!createResult) {
-                throw new Error('Todo category bulk creation failed');
+                throw new Error('Todo bulk create failed');
             }
 
             logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
@@ -254,6 +436,10 @@ class TodoService extends BaseService {
     patchUpdateById = async (id, entity, tokenParseResult) => {
         const classAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classAndFuncName);
+        const result = {
+            isModifiedSuccess: false,
+            message: '',
+        };
         try {
             if (!id || !entity || !validObjectId(id)) {
                 throw new Error('Invalid parameters');
@@ -271,16 +457,28 @@ class TodoService extends BaseService {
 
             const categoryFKFields = FKFields['category'];
 
-            const searchResult = await this.unitOfWork.todos.findById(id, selectFields, userFKFields, categoryFKFields);
+            const statusFKFields = FKFields['status'];
+
+            const searchResult = await this.unitOfWork.todos.findById(
+                id,
+                selectFields,
+                userFKFields,
+                categoryFKFields,
+                statusFKFields
+            );
 
             if (!searchResult) {
                 throw new Error('Todo not found with the provided id');
             }
 
+            let isAllowedUpadte = false;
+
             let oldRecord = {};
             oldRecord = searchResult.toObject();
             delete oldRecord['category']['_id'];
+            delete oldRecord['status']['_id'];
             oldRecord['category'] = searchResult['category']._id;
+            oldRecord['status'] = searchResult['status']._id;
 
             if (entity.title) {
                 const duplicateCheckEntity = {
@@ -320,47 +518,82 @@ class TodoService extends BaseService {
             }
 
             if (entity.todoCategoryId) {
-                const todoCategoryId = await this.getIdsByValue(entity.todoCategoryId);
+                const todoCategoryId = await this.getIdsByCategoryValue(entity.todoCategoryId);
                 // delete entity.todoCategoryId;
                 if (!todoCategoryId || todoCategoryId.length === 0) {
                     throw new Error('Invalid todo category value');
                 }
                 logInfo(`todoCategoryId: ${todoCategoryId}`, fileDetails);
                 oldRecord.category = todoCategoryId;
+                isAllowedUpadte = true;
+            }
+
+            if (entity.todoStatusId) {
+                const todoStatusId = await this.getIdsByStatusValue(entity.todoStatusId);
+                // delete entity.todoStatusId;
+                if (!todoStatusId || todoStatusId.length === 0) {
+                    throw new Error('Invalid todo status value');
+                }
+                logInfo(`todoStatusId: ${todoStatusId}`, fileDetails);
+                oldRecord.status = todoStatusId;
+                isAllowedUpadte = true;
+            }
+
+            if (entity.todoCategoryId) {
+                const todoCategoryId = await this.getIdsByCategoryName(entity.todoCategoryId);
+                // delete entity.todoCategoryId;
+                if (!todoCategoryId || todoCategoryId.length === 0) {
+                    throw new Error('Invalid todo category value');
+                }
+                logInfo(`todoCategoryId: ${todoCategoryId}`, fileDetails);
+                oldRecord.category = todoCategoryId;
+                isAllowedUpadte = true;
+            }
+
+            if (entity.status) {
+                const todoStatusId = await this.getIdsByStatusName(entity.status);
+                // delete entity.todoStatusId;
+                if (!todoStatusId || todoStatusId.length === 0) {
+                    throw new Error('Invalid todo status value');
+                }
+                logInfo(`todoStatusId: ${todoStatusId}`, fileDetails);
+                oldRecord.status = todoStatusId;
+                isAllowedUpadte = true;
             }
 
             if (entity.description) {
                 oldRecord.description = entity.description;
-            }
-
-            if (entity.status) {
-                oldRecord.status = entity.status;
+                isAllowedUpadte = true;
             }
 
             if (entity.startDate) {
                 oldRecord.startDate = entity.startDate;
+                isAllowedUpadte = true;
             }
 
             if (entity.dueDate) {
                 oldRecord.dueDate = entity.dueDate;
+                isAllowedUpadte = true;
             }
 
-            oldRecord.user = tokenParseResult.userId;
-            oldRecord.updatedAt = Date.now();
+            if (isAllowedUpadte) {
+                oldRecord.user = tokenParseResult.userId;
+                oldRecord.updatedAt = Date.now();
+                const filterCondition = {
+                    _id: id,
+                };
+                const updateResult = await this.unitOfWork.todos.findOneAndUpdate(filterCondition, oldRecord);
 
-            const filterCondition = {
-                _id: id,
-            };
-            const updateResult = await this.unitOfWork.todos.findOneAndUpdate(filterCondition, oldRecord);
-
-            if (!updateResult) {
-                throw new Error('Update todo item failed');
+                if (!updateResult) {
+                    throw new Error('Update todo item failed');
+                }
             }
-            return updateResult;
+            result.isModifiedSuccess = true;
         } catch (error) {
             logError(error, fileDetails, true);
-            throw error;
+            result.message = error.message;
         }
+        return result;
     };
 
     ///TODO: Update todo by id for equal or more than one field
@@ -388,9 +621,17 @@ class TodoService extends BaseService {
 
             const categoryFKFields = FKFields['category'];
 
+            const statusFKFields = FKFields['status'];
+
             ///TODO: Remind if not add categoryFKField filter, will be get the following message:
             ///TODO: Cannot do exclusion on field category in inclusion projection
-            const searchResult = await this.unitOfWork.todos.findById(id, selectFields, userFKFields, categoryFKFields);
+            const searchResult = await this.unitOfWork.todos.findById(
+                id,
+                selectFields,
+                userFKFields,
+                categoryFKFields,
+                statusFKFields
+            );
 
             if (!searchResult) {
                 throw new Error('Todo not found with the provided id');
@@ -400,6 +641,8 @@ class TodoService extends BaseService {
             oldRecord = searchResult.toObject();
             delete oldRecord['category']['_id'];
             oldRecord['category'] = searchResult['category']._id;
+            delete oldRecord['status']['_id'];
+            oldRecord['status'] = searchResult['status']._id;
 
             if (entity.title) {
                 const duplicateCheckEntity = {
@@ -433,7 +676,8 @@ class TodoService extends BaseService {
                     duplicateExistingQuery,
                     selectFields,
                     userFKFields,
-                    categoryFKFields
+                    categoryFKFields,
+                    statusFKFields
                 );
 
                 if (duplicateItemsFound && duplicateItemsFound.length > 0) {
@@ -443,13 +687,23 @@ class TodoService extends BaseService {
             }
 
             if (entity.todoCategoryId) {
-                const todoCategoryId = await this.getIdsByValue(entity.todoCategoryId);
+                const todoCategoryId = await this.getIdsByCategoryValue(entity.todoCategoryId);
 
                 if (!todoCategoryId || todoCategoryId.length === 0) {
                     throw new Error('Invalid todo category value');
                 }
                 // delete entity.todoCategoryId;
                 oldRecord.category = todoCategoryId;
+            }
+
+            if (entity.todoStatusId) {
+                const todoStatusId = await this.getIdsByStatusValue(entity.todoStatusId);
+
+                if (!todoStatusId || todoStatusId.length === 0) {
+                    throw new Error('Invalid todo status value');
+                }
+                // delete entity.todoStatusId;
+                oldRecord.status = todoStatusId;
             }
 
             if (entity.description) {
@@ -562,6 +816,8 @@ class TodoService extends BaseService {
 
             const categoryFKFields = FKFields['category'];
 
+            const statusFKFields = FKFields['status'];
+
             let tempSearchResult = {};
 
             ///TODO: Step1.1: If no query parameters, find one todo category
@@ -571,7 +827,8 @@ class TodoService extends BaseService {
                         {},
                         selectFields,
                         userFKFields,
-                        categoryFKFields
+                        categoryFKFields,
+                        statusFKFields
                     );
                 } else {
                     tempSearchResult = await this.unitOfWork.todos.findOne(
@@ -580,7 +837,8 @@ class TodoService extends BaseService {
                         },
                         selectFields,
                         userFKFields,
-                        categoryFKFields
+                        categoryFKFields,
+                        statusFKFields
                     );
                 }
             }
@@ -599,7 +857,8 @@ class TodoService extends BaseService {
                         filterQueryResult.query,
                         selectFields,
                         userFKFields,
-                        categoryFKFields
+                        categoryFKFields,
+                        statusFKFields
                     );
                 } else {
                     const limitFilterQueryResult = {
@@ -616,7 +875,8 @@ class TodoService extends BaseService {
                         limitFilterQueryResult,
                         selectFields,
                         userFKFields,
-                        categoryFKFields
+                        categoryFKFields,
+                        statusFKFields
                     );
                 }
             }
@@ -626,6 +886,7 @@ class TodoService extends BaseService {
             searchResult = tempSearchResult.toObject();
             searchResult['user'] = tempSearchResult['user']['_id'];
             searchResult['category'] = tempSearchResult['category']['name'];
+            searchResult['status'] = tempSearchResult['status']['name'];
             return searchResult;
         } catch (error) {
             // logError(error, fileDetails, true);
@@ -651,11 +912,14 @@ class TodoService extends BaseService {
 
             const categoryFKFields = FKFields['category'];
 
+            const statusFKFields = FKFields['status'];
+
             const tempSearchResult = await this.unitOfWork.todos.findById(
                 id,
                 selectFields,
                 userFKFields,
-                categoryFKFields
+                categoryFKFields,
+                statusFKFields
             );
 
             if (!tempSearchResult) {
@@ -666,7 +930,9 @@ class TodoService extends BaseService {
 
             searchResult['user'] = tempSearchResult['user']?.id || null;
             delete searchResult['category'];
+            delete searchResult['status'];
             searchResult['todoCategoryId'] = tempSearchResult['category']['value'].toString();
+            searchResult['todoStatusId'] = tempSearchResult['status']['value'].toString();
 
             return searchResult;
         } catch (error) {
@@ -694,6 +960,8 @@ class TodoService extends BaseService {
 
             const categoryFKFields = FKFields['category'];
 
+            const statusFKFields = FKFields['status'];
+
             let tempSearchResult = [];
 
             if (!queryParams || Object.keys(queryParams).length === 0) {
@@ -702,7 +970,8 @@ class TodoService extends BaseService {
                         {},
                         selectFields,
                         userFKFields,
-                        categoryFKFields
+                        categoryFKFields,
+                        statusFKFields
                     );
                 } else {
                     (tempSearchResult = await this.unitOfWork.todos.find({
@@ -710,13 +979,15 @@ class TodoService extends BaseService {
                     })),
                         selectFields,
                         userFKFields,
-                        categoryFKFields;
+                        categoryFKFields,
+                        statusFKFields;
                 }
                 ///TODO: 使用 mongoose 的搜尋結果返回的資料是不可變的，故需要將其從 mongoose 的資料型態轉換成 object 才能夠讓其屬性被更動
                 searchResult = tempSearchResult.map((item) => item.toObject());
                 searchResult.forEach((item, index) => {
                     searchResult[index]['user'] = item['user']?._id || null;
                     searchResult[index]['category'] = item['category']['name'];
+                    searchResult[index]['status'] = item['status']['name'];
                 });
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
@@ -729,7 +1000,8 @@ class TodoService extends BaseService {
                         filterQueryResult.query,
                         selectFields,
                         userFKFields,
-                        categoryFKFields
+                        categoryFKFields,
+                        statusFKFields
                     );
                 } else {
                     const limitFilterQueryResult = {
@@ -745,15 +1017,16 @@ class TodoService extends BaseService {
                         limitFilterQueryResult,
                         selectFields,
                         userFKFields,
-                        categoryFKFields
+                        categoryFKFields,
+                        statusFKFields
                     );
                 }
                 ///TODO: 使用 mongoose 的搜尋結果返回的資料是不可變的，故需要將其從 mongoose 的資料型態轉換成 object 才能夠讓其屬性被更動
-                // searchResult = tempFilterResult.map((item) => item.toObject());
                 searchResult = tempSearchResult.map((item) => item.toObject());
                 searchResult.forEach((item, index) => {
                     searchResult[index]['user'] = item['user']['_id'];
                     searchResult[index]['category'] = item['category']['name'];
+                    searchResult[index]['status'] = item['status']['name'];
                 });
             }
             return searchResult;

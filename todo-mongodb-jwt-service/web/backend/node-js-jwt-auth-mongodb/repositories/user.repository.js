@@ -28,9 +28,17 @@ class UserRepository extends Repository {
         roleFKFields = {
             name: 1,
             value: 1,
+        },
+        profileFKFields = {
+            id: 0,
+            photoFileName: 1,
         }
     ) => {
-        return await this.model.find(expression).populate('roles', roleFKFields).select(fields);
+        return await this.model
+            .find(expression)
+            .populate('roles', roleFKFields)
+            .populate('profile', profileFKFields)
+            .select(fields);
     };
 
     findOne = async (
@@ -39,9 +47,17 @@ class UserRepository extends Repository {
         roleFKFields = {
             name: 1,
             value: 1,
+        },
+        ///TODO: 排除 _id 欄位
+        profileFKFields = {
+            photoFileName: 1,
         }
     ) => {
-        return await this.model.findOne(expression).populate('roles', roleFKFields).select(fields);
+        return await this.model
+            .findOne(expression)
+            .populate('roles', roleFKFields)
+            .populate('profile', profileFKFields)
+            .select(fields);
     };
 
     findById = async (
@@ -50,9 +66,17 @@ class UserRepository extends Repository {
         roleFKFields = {
             name: 1,
             value: 1,
+        },
+        profileFKFields = {
+            id: 0,
+            photoFileName: 1,
         }
     ) => {
-        return await this.model.findById(id).populate('roles', roleFKFields).select(fields);
+        return await this.model
+            .findById(id)
+            .populate('roles', roleFKFields)
+            .populate('profile', profileFKFields)
+            .select(fields);
     };
 
     addRoles = async (userId, roleIds) => {

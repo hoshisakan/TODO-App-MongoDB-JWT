@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import AddTodo from './AddTodo';
 
 const TodoDashboard = observer(() => {
-    const { todoStore, todoCategoryStore } = useStore();
+    const { todoStore, todoCategoryStore, todoStatusStore } = useStore();
     const { userTodoList, todoStatusList, statusPatch } = todoStore;
     const bsModalRef = useRef<InstanceType<typeof BootstrapModal> | null>(null);
 
@@ -55,15 +55,16 @@ const TodoDashboard = observer(() => {
 
             if (isExistSourceStatus) {
                 const removeSourceCardItemId = newItemObj[sourceCardStatus][sourceIndex]._id;
+                // console.log(`removeSourceCardItemId: ${removeSourceCardItemId}`);
                 ///TODO: If update todo category record success, then update page todo items
                 statusPatch(removeSourceCardItemId, { status: destinationCardStatus }).catch((err) => {
-                    throw new Error(err);
+                    toast.error(err);
                 });
             } else {
                 throw new Error(`The ${sourceCardStatus} doesn't exists in user todo list.`);
             }
         } catch (err: any) {
-            toast.error(`${err}`);
+            toast.error(err);
         }
     };
 
@@ -74,14 +75,15 @@ const TodoDashboard = observer(() => {
     const loadTodoRelatedDataCallback = useCallback(() => {
         todoStore.loadTodos();
         todoCategoryStore.loadTodoCategories();
-    }, [todoStore, todoCategoryStore]); // 依賴列表
+        todoStatusStore.loadTodoStatuses();
+    }, [todoStore, todoCategoryStore, todoStatusStore]); // 依賴列表
 
     const capitalizeFirstLetter = (word: string) => {
         return word.charAt(0).toUpperCase() + word.slice(1);
     };
 
     /*
-        避免重複渲染 loadTodos 方法，故使用 useCallback 僅在todoStore 狀態被變更時，才會調用其方法；
+        避免重複渲染 loadTodos 方法，故使用 useCallback 僅在 todoStore 狀態被變更時，才會調用其方法；
         否則，會造成 loadTodos 方法重複被持續調用，形成一個無限迴圈，
         原因是每次都會產生一個新的 loadTodos 方法，個別指向不同的記憶體位址
     */

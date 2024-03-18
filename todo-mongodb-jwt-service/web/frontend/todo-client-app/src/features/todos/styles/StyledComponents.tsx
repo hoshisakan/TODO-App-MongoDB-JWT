@@ -126,7 +126,7 @@ export const StyledDashboardWrapper = styled.div`
     margin-bottom: 25px; /* 與 footer 的距離 */
     // flex-wrap: nowrap; // 防止 flex 項目換行
     // overflow-x: auto; // 當內容超出寬度時顯示水平滾輪
-    overflow: visible; // 當內容超出寬度時顯示水平與垂直滾輪
+    // overflow: visible; // 當內容超出寬度時顯示水平與垂直滾輪
     height: 100vh;
     @media (max-width: 768px) {
         width: 100%; // 在小於 600px 的視窗上，物件的寬度為 100%
@@ -145,5 +145,3 @@ export const DragCardItemEditOrRemoveButton = styled.button`
     --bs-btn-padding-x: 0.5rem;
     --bs-btn-font-size: 0.95rem;
 `;
-
-

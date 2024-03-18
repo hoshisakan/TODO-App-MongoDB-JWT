@@ -9,7 +9,7 @@ router.put('/:id', [authJwt.verifyAcccessToken, authJwt.isUser], todoController.
 router.patch('/:id', [authJwt.verifyAcccessToken, authJwt.isUser], todoController.patchUpdateById);
 router.delete('/', [authJwt.verifyAcccessToken, authJwt.isAdmin], todoController.deleteAll);
 router.delete('/:id', [authJwt.verifyAcccessToken, authJwt.isUser], todoController.deleteById);
-router.post('/bulkCreate', [authJwt.verifyAcccessToken, authJwt.isUser], todoController.bulkCreate);
-// router.put('/bulkUpdate', [authJwt.verifyAcccessToken, authJwt.isUser], todoController.bulkUpdate);
+router.post('/bulk-create', [authJwt.verifyAcccessToken, authJwt.isUser], todoController.bulkCreate);
+// router.put('/bulk-update', [authJwt.verifyAcccessToken, authJwt.isUser], todoController.bulkUpdate);
 
 module.exports = router;

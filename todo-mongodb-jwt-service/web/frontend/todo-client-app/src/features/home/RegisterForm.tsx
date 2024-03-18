@@ -1,30 +1,76 @@
 import { useStore } from '../../app/stores/store';
 import { UserFormValuesRegister } from '../../app/models/User';
+import { ChangeEvent, FormEvent, useState } from 'react';
+import { toast } from 'react-toastify';
 
 export default function RegisterForm() {
     const { userStore } = useStore();
+    const [state, setState] = useState<UserFormValuesRegister>({
+        username: '',
+        email: '',
+        displayName: '',
+        password: '',
+        roles: [],
+    });
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const name = e.target.name;
+        const value = e.target.value;
+
+        // setState((prevState) => {
+        //     // Object.assign would also work
+        //     return { ...prevState, [name]: value };
+        // });
+
+        setState((prevValue) => ({
+            ...prevValue,
+            [name]: value,
+        }));
+
+        ///TODO: 因為 setState 是非同步的方法，故會有延遲的現象發生，非即時更新，但若在 Form 提交時，所有值皆會被更新至 state 中
+        // console.log(`result: ${JSON.stringify(state)}`);
+        // toast.info(`result: ${JSON.stringify(state)}`);
+    };
+
+    const clearFormValues = () => {
+        setState({
+            username: '',
+            email: '',
+            displayName: '',
+            password: '',
+            roles: [],
+        });
+        // toast.info('Clear form values process completed.');
+    };
+
+    const checkFormEmptyExists = (checkValues: UserFormValuesRegister) => {
+        let result = false;
+        Object.entries(checkValues).forEach(([key, value]) => {
+            if (key !== 'role' && !value) {
+                result = true;
+            }
+        });
+        return result;
+    };
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const username: string = document.querySelector<HTMLInputElement>('input[name="username"]')?.value || '';
-        const email: string = document.querySelector<HTMLInputElement>('input[name="email"]')?.value || '';
-        const password: string = document.querySelector<HTMLInputElement>('input[name="password"]')?.value || '';
+        const requestValues: UserFormValuesRegister = state;
+        const isEmptyExists = checkFormEmptyExists(requestValues);
 
-        if (!username || !password || !email) {
-            alert('Invalid input.');
+        if (!isEmptyExists) {
+            userStore
+                .register(requestValues)
+                .then((res) => {
+                    clearFormValues();
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        } else {
+            toast.error('Find empty value in form values.');
             return;
         }
-
-        const requestValues: UserFormValuesRegister = {
-            username: username,
-            email: email,
-            password: password,
-            roles: [],
-        };
-
-        userStore.register(requestValues).catch((err) => {
-            console.log(err);
-        });
     };
 
     return (
@@ -44,6 +90,21 @@ export default function RegisterForm() {
                                 <div className="row gy-3 gy-md-4 overflow-hidden">
                                     <div className="col-12">
                                         <label className="form-label">
+                                            顯示名稱 <span className="text-danger">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            name="displayName"
+                                            id="displayName"
+                                            placeholder="displayName"
+                                            value={state.displayName}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="col-12">
+                                        <label className="form-label">
                                             使用者名稱 <span className="text-danger">*</span>
                                         </label>
                                         <input
@@ -52,6 +113,8 @@ export default function RegisterForm() {
                                             name="username"
                                             id="username"
                                             placeholder="username"
+                                            value={state.username}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>
@@ -65,6 +128,8 @@ export default function RegisterForm() {
                                             name="email"
                                             id="email"
                                             placeholder="email"
+                                            value={state.email}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>
@@ -77,7 +142,8 @@ export default function RegisterForm() {
                                             className="form-control"
                                             name="password"
                                             id="password"
-                                            // value=""
+                                            value={state.password}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>

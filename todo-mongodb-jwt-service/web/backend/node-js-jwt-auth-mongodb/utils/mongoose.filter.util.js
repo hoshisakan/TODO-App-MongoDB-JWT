@@ -12,6 +12,12 @@ const MongooseFilterUtil = {
                     name: 1,
                     value: 1,
                 };
+            case 'TodoStatus':
+                return {
+                    _id: 1,
+                    name: 1,
+                    value: 1,
+                };
             case 'TraceError':
                 return {
                     // _id: 1,
@@ -26,12 +32,23 @@ const MongooseFilterUtil = {
             case 'User':
                 return {
                     _id: 1,
+                    bio: 1,
                     username: 1,
+                    password: 1,
+                    displayName: 1,
                     email: 1,
                     roles: 1,
+                    profile: 1,
+                    isActivate: 1,
+                };
+            case 'Profile':
+                return {
+                    _id: 1,
+                    photoFileName: 1,
+                    // isMainPhoto: 1,
                 };
             default:
-                throw new Error(`Unknown validate model name: ${validateModel}`);
+                throw new Error(`Get select fields failed, because unknown validate model name: ${validateModel}`);
         }
     },
     getSelectFKFields: (validateModel) => {
@@ -48,6 +65,14 @@ const MongooseFilterUtil = {
                         createdAt: 0,
                     },
                     category: {
+                        _id: 1,
+                        name: 1,
+                        value: 1,
+                        // createdAt: 0,
+                        // updatedAt: 0,
+                        // __v: 0,
+                    },
+                    status: {
                         _id: 1,
                         name: 1,
                         value: 1,
@@ -74,6 +99,11 @@ const MongooseFilterUtil = {
                     // role: { _id: 1, name: 1, level: 1 },
                     // role: { name: 1, level: 1 },
                     role: { _id: 0, name: 1, level: 1 },
+                    profile: { _id: 0, photoFileName: 1 },
+                };
+            case 'Profile':
+                return {
+                    user: { _id: 1, username: 1, email: 1, displayName: 1, bio: 1 },
                 };
             default:
                 throw new Error(`Unknown validate model name: ${validateModel}`);

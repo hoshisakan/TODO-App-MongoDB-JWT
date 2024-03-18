@@ -9,6 +9,6 @@ router.put('/:id', [authJwt.verifyAcccessToken, authJwt.isAdmin], roleController
 router.patch('/:id', [authJwt.verifyAcccessToken, authJwt.isAdmin], roleController.patchUpdateById);
 router.delete('/', [authJwt.verifyAcccessToken, authJwt.isAdmin], roleController.deleteAll);
 router.delete('/:id', [authJwt.verifyAcccessToken, authJwt.isAdmin], roleController.deleteById);
-router.post('/bulkCreate', [authJwt.verifyAcccessToken, authJwt.isAdmin], roleController.bulkCreate);
+router.post('/bulk-create', [authJwt.verifyAcccessToken, authJwt.isAdmin], roleController.bulkCreate);
 
 module.exports = router;

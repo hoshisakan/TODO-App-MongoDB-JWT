@@ -4,6 +4,7 @@ const TodoCategory = require('../models/mongodb/todo.category.model');
 const Todo = require('../models/mongodb/todo.model');
 const TraceError = require('../models/mongodb/trace.error.model');
 const ErrorCategory = require('../models/mongodb/error.category.model');
+const TodoStatus = require('../models/mongodb/todo.status.model');
 const { logInfo, logError } = require('./log.util');
 const { passFieldKeys } = require('../utils/validate.util').fieldAuthenticityCheck;
 
@@ -46,6 +47,9 @@ const ModelValidateUtil = {
                     break;
                 case 'ErrorCategory':
                     validateFieldsResult = await ErrorCategory.validate(entity);
+                    break;
+                case 'TodoStatus':
+                    validateFieldsResult = await TodoStatus.validate(entity);
                     break;
                 default:
                     throw new Error(`Invalid validate model name: ${validateModelName}`);
@@ -92,6 +96,8 @@ const ModelValidateUtil = {
                 result.isValid = TraceError.schema.paths.hasOwnProperty(fieldKey);
             } else if (validateModelName === 'ErrorCategory') {
                 result.isValid = ErrorCategory.schema.paths.hasOwnProperty(fieldKey);
+            } else if (validateModelName === 'TodoStatus') {
+                result.isValid = TodoStatus.schema.paths.hasOwnProperty(fieldKey);
             }
 
             logInfo(`[result]: ${JSON.stringify(result)}`, fileDetails);

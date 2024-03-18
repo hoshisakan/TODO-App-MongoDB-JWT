@@ -25,25 +25,32 @@ class TodoRepository extends Repository {
         expression = {},
         fields = {},
         userFKFields = { username: 1, email: 1 },
-        categoryFKFields = { name: 1, value: 1 }
+        categoryFKFields = { name: 1, value: 1 },
+        statusFKFields = { name: 1, value: 1 },
+        sortFields = { createdAt: -1 }
+        // sortFields = { createdAt: -1, updatedAt: 1 }
     ) => {
         return await this.model
             .find(expression)
             .populate('user', userFKFields)
             .populate('category', categoryFKFields)
-            .select(fields);
+            .populate('status', statusFKFields)
+            .select(fields)
+            .sort(sortFields);
     };
 
     findOne = async (
         expression = {},
         fields = {},
         userFKFields = { username: 1, email: 1 },
-        categoryFKFields = { name: 1, value: 1 }
+        categoryFKFields = { name: 1, value: 1 },
+        statusFKFields = { name: 1, value: 1 }
     ) => {
         return await this.model
             .findOne(expression)
             .populate('user', userFKFields)
             .populate('category', categoryFKFields)
+            .populate('status', statusFKFields)
             .select(fields);
     };
 
@@ -51,16 +58,18 @@ class TodoRepository extends Repository {
         id,
         fields = {},
         userFKFields = { username: 1, email: 1, _id: 0 },
-        categoryFKFields = { name: 1, value: 1, category: 0 }
+        categoryFKFields = { name: 1, value: 1, category: 0 },
+        statusFKFields = { name: 1, value: 1 }
     ) => {
         return await this.model
             .findById(id)
             .populate('user', userFKFields)
             .populate('category', categoryFKFields)
+            .populate('status', statusFKFields)
             .select(fields);
     };
 
-    addTodoCategoryAndUser = async (entity, userId) => {
+    addTodoItems = async (entity, userId) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
@@ -78,6 +87,7 @@ class TodoRepository extends Repository {
                 startDate: entity.startDate,
                 dueDate: entity.dueDate,
                 category: entity.todoCategoryId,
+                status: entity.todoStatusId,
                 user: userId,
             });
 

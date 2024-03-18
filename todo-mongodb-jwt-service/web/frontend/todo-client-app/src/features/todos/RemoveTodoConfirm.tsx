@@ -9,7 +9,7 @@ const RemoveTodoConfirm = observer(() => {
     const modalRef = useRef<HTMLDivElement | null>(null);
     const bsModalRef = useRef<InstanceType<typeof BootstrapModal> | null>(null);
     const { todoStore } = useStore();
-    const { isRemovedSuccess, setIsRemovedSuccess, removedTodoCardId, removeTodo } = todoStore;
+    const { isRemovedSuccess, setIsRemovedSuccess, removedTodoId, removeTodo } = todoStore;
 
     const hideModal = useCallback(() => {
         bsModalRef.current?.hide();
@@ -57,18 +57,18 @@ const RemoveTodoConfirm = observer(() => {
                 <div className="modal-content">
                     <div className="modal-header">
                         <h5 className="modal-title" id="removeStaticBackdrop">
-                            {/* Remove Todo {removedTodoCardId} Item */}
+                            {/* Remove Todo {removedTodoId} Item */}
                             Remove Todo Item
                         </h5>
                         <button type="button" className="btn-close" onClick={hideModal} aria-label="Close"></button>
                     </div>
                     <div className="modal-body">
-                        <p>請問是否移除 {removedTodoCardId} 的項目?</p>
+                        <p>請問是否移除 {removedTodoId} 的項目?</p>
                     </div>
                     <div className="modal-footer">
                         <button
                             type="button"
-                            id={`${removedTodoCardId}`}
+                            id={`${removedTodoId}`}
                             className="btn btn-primary"
                             onClick={handleRemoveItem}
                         >

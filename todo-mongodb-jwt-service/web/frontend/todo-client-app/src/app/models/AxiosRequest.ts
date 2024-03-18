@@ -2,7 +2,7 @@ export interface RequestParameters {
     method: string;
     headers: any;
     body: any;
-    isFile: Boolean;
+    isFile: boolean;
 }
 
 export interface RequestOptions {

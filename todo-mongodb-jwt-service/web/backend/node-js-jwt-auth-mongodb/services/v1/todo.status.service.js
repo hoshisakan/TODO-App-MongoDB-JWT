@@ -8,12 +8,12 @@ const BaseService = require('./base.service');
 const UnitOfWork = require('../../repositories/unitwork');
 const unitOfWork = new UnitOfWork();
 
-class TodoCategoryService extends BaseService {
+class TodoStatusService extends BaseService {
     constructor() {
-        super(unitOfWork.todoCategories);
+        super(unitOfWork.todoStatuses);
         this.unitOfWork = unitOfWork;
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
-        this.modelName = 'TodoCategory';
+        this.modelName = 'TodoStatus';
     }
 
     getFunctionCallerName = () => {
@@ -36,10 +36,10 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid entity');
             }
 
-            const createResult = await this.unitOfWork.todoCategories.create(entity);
+            const createResult = await this.unitOfWork.todoStatuses.create(entity);
 
             if (!createResult) {
-                throw new Error('Todo category creation failed');
+                throw new Error('Todo status creation failed');
             }
 
             logInfo(`Create result: ${stringify(createResult)}`, fileDetails);
@@ -51,7 +51,6 @@ class TodoCategoryService extends BaseService {
         }
     };
 
-    ///TODO: Bulk create todo category
     bulkCreate = async (entities) => {
         const classAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classAndFuncName);
@@ -68,26 +67,25 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid duplicate existing query');
             }
 
-            const todoCategoryFound = await this.unitOfWork.todoCategories.find(duplicateExistingQuery);
+            const todoStatusFound = await this.unitOfWork.todoStatuses.find(duplicateExistingQuery);
 
-            if (todoCategoryFound && todoCategoryFound.length > 0) {
-                throw new Error('Todo category already exists');
+            if (todoStatusFound && todoStatusFound.length > 0) {
+                throw new Error('Todo status already exists');
             }
-            logInfo(`todoCategoryFound: ${stringify(todoCategoryFound)}`, fileDetails, true);
+            logInfo(`todoStatusFound: ${stringify(todoStatusFound)}`, fileDetails, true);
 
-            const todoCategoryCreated = await this.unitOfWork.todoCategories.insertMany(entities);
+            const todoStatusCreated = await this.unitOfWork.todoStatuses.insertMany(entities);
 
-            if (!todoCategoryCreated) {
-                throw new Error('Todo category creation failed');
+            if (!todoStatusCreated) {
+                throw new Error('Todo status creation failed');
             }
-            return todoCategoryCreated;
+            return todoStatusCreated;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
         }
     };
 
-    ///TODO: Bulk update todo category
     // bulkUpdate = async (entities) => {
     //     const classAndFuncName = this.getFunctionCallerName();
     //     const fileDetails = this.getFileDetails(classAndFuncName);
@@ -106,15 +104,15 @@ class TodoCategoryService extends BaseService {
 
     //         logInfo(`duplicateExistingQuery: ${stringify(duplicateExistingQuery)}`, fileDetails, true);
 
-    //         // logInfo(`todoCategoryFound: ${stringify(todoCategoryFound)}`, fileDetails, true);
+    //         // logInfo(`todoStatusFound: ${stringify(todoStatusFound)}`, fileDetails, true);
 
-    //         // const todoCategoryUpdated = await this.unitOfWork.todoCategories.updateMany(entities);
+    //         // const todoStatusUpdated = await this.unitOfWork.todoStatuses.updateMany(entities);
 
-    //         // if (!todoCategoryUpdated) {
-    //         //     throw new Error('Todo category update failed');
+    //         // if (!todoStatusUpdated) {
+    //         //     throw new Error('Todo status update failed');
     //         // }
 
-    //         // return todoCategoryUpdated;
+    //         // return todoStatusUpdated;
 
     //         return 'bulkUpdate';
     //     } catch (error) {
@@ -131,10 +129,10 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid parameters');
             }
 
-            const searchResult = await this.unitOfWork.todoCategories.findById(id);
+            const searchResult = await this.unitOfWork.todoStatuses.findById(id);
 
             if (!searchResult) {
-                throw new Error(`Todo category with id ${id} not found`);
+                throw new Error(`Todo status with id ${id} not found`);
             }
             let oldRecord = {};
             oldRecord = searchResult.toObject();
@@ -150,10 +148,10 @@ class TodoCategoryService extends BaseService {
             const filterCondition = {
                 _id: id,
             };
-            const updateResult = await this.unitOfWork.todoCategories.findOneAndUpdate(filterCondition, oldRecord);
+            const updateResult = await this.unitOfWork.todoStatuses.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
-                throw new Error('Update todo category failed');
+                throw new Error('Update todo status failed');
             }
             return updateResult;
         } catch (error) {
@@ -170,10 +168,10 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid parameters');
             }
 
-            const searchResult = await this.unitOfWork.todoCategories.findById(id);
+            const searchResult = await this.unitOfWork.todoStatuses.findById(id);
 
             if (!searchResult) {
-                throw new Error(`Todo category with id ${id} not found`);
+                throw new Error(`Todo status with id ${id} not found`);
             }
 
             let oldRecord = {};
@@ -188,10 +186,10 @@ class TodoCategoryService extends BaseService {
             oldRecord.updatedAt = new Date();
 
             const filterCondition = { _id: id };
-            const updateResult = await this.unitOfWork.todoCategories.findOneAndUpdate(filterCondition, oldRecord);
+            const updateResult = await this.unitOfWork.todoStatuses.findOneAndUpdate(filterCondition, oldRecord);
 
             if (!updateResult) {
-                throw new Error('Update todo category failed');
+                throw new Error('Update todo status failed');
             }
             return updateResult;
         } catch (error) {
@@ -208,18 +206,18 @@ class TodoCategoryService extends BaseService {
                 throw new Error('Invalid id');
             }
 
-            const todoCategoryFound = await this.unitOfWork.todoCategories.findById(id);
+            const todoStatusFound = await this.unitOfWork.todoStatuses.findById(id);
 
-            if (!todoCategoryFound) {
-                throw new Error('Todo category not found with the provided id');
+            if (!todoStatusFound) {
+                throw new Error('Todo status not found with the provided id');
             }
 
-            const todoCategoryDeleted = await this.unitOfWork.todoCategories.deleteOne({ _id: id });
+            const todoStatusDeleted = await this.unitOfWork.todoStatuses.deleteOne({ _id: id });
 
-            if (!todoCategoryDeleted) {
-                throw new Error('Todo category deletion failed');
+            if (!todoStatusDeleted) {
+                throw new Error('Todo status deletion failed');
             }
-            return todoCategoryDeleted;
+            return todoStatusDeleted;
         } catch (error) {
             // logError(error, fileDetails, true);
             throw error;
@@ -230,9 +228,9 @@ class TodoCategoryService extends BaseService {
         // const classNameAndFuncName = this.getFunctionCallerName();
         // const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const deleteResult = await this.unitOfWork.todoCategories.deleteMany({});
+            const deleteResult = await this.unitOfWork.todoStatuses.deleteMany({});
             if (!deleteResult) {
-                throw new Error('Todo category deletion failed');
+                throw new Error('Todo status deletion failed');
             }
             return deleteResult;
         } catch (error) {
@@ -241,21 +239,20 @@ class TodoCategoryService extends BaseService {
         }
     };
 
-    ///TODO: Find one todo category by query parameters
     findOne = async (queryParams) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.todoCategories.findOne({});
+                searchResult = await this.unitOfWork.todoStatuses.findOne({});
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.todoCategories.findOne(filterQueryResult.query);
+                searchResult = await this.unitOfWork.todoStatuses.findOne(filterQueryResult.query);
             }
             return searchResult;
         } catch (error) {
@@ -271,10 +268,10 @@ class TodoCategoryService extends BaseService {
             if (!id || !validObjectId(id)) {
                 throw new Error(`Not found id ${id}.`);
             }
-            const searchResult = await this.unitOfWork.todoCategories.findById(id);
+            const searchResult = await this.unitOfWork.todoStatuses.findById(id);
 
             if (!searchResult) {
-                throw new Error(`Todo category with id ${id} not found`);
+                throw new Error(`Todo status with id ${id} not found`);
             }
             return searchResult;
         } catch (error) {
@@ -283,7 +280,6 @@ class TodoCategoryService extends BaseService {
         }
     };
 
-    ///TODO: Find all todo category by query parameters
     findAll = async (queryParams) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
@@ -293,14 +289,14 @@ class TodoCategoryService extends BaseService {
             const sortFields = { value: 1 };
 
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                searchResult = await this.unitOfWork.todoCategories.find({}, selectField, sortFields);
+                searchResult = await this.unitOfWork.todoStatuses.find({}, selectField, sortFields);
             } else {
                 const filterQueryResult = await getFilterQuery(queryParams, this.modelName);
 
                 if (!filterQueryResult || !filterQueryResult.query || filterQueryResult.error) {
                     throw new Error(filterQueryResult.error);
                 }
-                searchResult = await this.unitOfWork.todoCategories.find(
+                searchResult = await this.unitOfWork.todoStatuses.find(
                     filterQueryResult.query,
                     selectField,
                     sortFields
@@ -314,4 +310,4 @@ class TodoCategoryService extends BaseService {
     };
 }
 
-module.exports = TodoCategoryService;
+module.exports = TodoStatusService;

@@ -8,8 +8,8 @@ const User = mongoose.model(
                 type: String,
                 required: true,
                 min: 6,
-                max: 50,
-                uqiue: true,
+                max: 20,
+                unique: true,
                 dropDups: true,
             },
             email: {
@@ -17,8 +17,19 @@ const User = mongoose.model(
                 required: true,
                 min: 6,
                 max: 50,
-                uqiue: true,
+                unique: true,
                 dropDups: true,
+            },
+            displayName: {
+                type: String,
+                required: true,
+                min: 6,
+                max: 50,
+            },
+            bio: {
+                type: String,
+                min: 6,
+                max: 200,
             },
             password: {
                 type: String,
@@ -28,14 +39,19 @@ const User = mongoose.model(
             },
             isActivate: {
                 type: Boolean,
-                default: false
+                default: false,
             },
             roles: [
                 {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'Role',
+                    default: ['user'],
                 },
             ],
+            profile: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Profile',
+            },
             createdAt: {
                 type: Date,
                 default: Date.now,

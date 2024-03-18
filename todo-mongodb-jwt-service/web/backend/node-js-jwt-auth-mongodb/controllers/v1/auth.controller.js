@@ -15,7 +15,6 @@ const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../../c
 const { ACCESS, REFRESH } = require('../../config/auth.type.config.js');
 
 const AuthService = require('../../services/v1/auth.service.js');
-const { log } = require('winston');
 
 class AuthController {
     constructor() {
@@ -361,13 +360,17 @@ class AuthController {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = null;
         try {
-            const cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
+            const clientRequest = {
+                tokenParseResult: {
+                    userId: req.userId,
+                    highestPermission: req.highestPermission,
+                    accessTokenExpireUnixStampTime: req.accessTokenExpireUnixStampTime,
+                },
+            };
 
-            if (!cookieAccessToken) {
-                throw new Error('Get access token from cookie failed.');
-            }
+            logInfo(`clientRequest: ${stringify(clientRequest)}`, fileDetails, true);
 
-            result = await this.authService.getCurrentUser(cookieAccessToken);
+            result = await this.authService.getCurrentUser(clientRequest);
 
             if (result.message) {
                 throw new Error(result.message);

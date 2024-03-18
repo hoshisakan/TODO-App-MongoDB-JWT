@@ -2,8 +2,11 @@ export interface UserDetails {
     id: string;
     username: string;
     email: string;
+    displayName: string;
+    bio: string;
     roles: string;
     accessTokenExpireUnixStampTime: number;
+    photoFileName: string | null;
 }
 
 export interface UserFormValuesLogin {
@@ -14,6 +17,7 @@ export interface UserFormValuesLogin {
 export interface UserFormValuesRegister {
     username: string;
     email: string;
+    displayName: string;
     password: string;
     roles: Array<string>;
 }

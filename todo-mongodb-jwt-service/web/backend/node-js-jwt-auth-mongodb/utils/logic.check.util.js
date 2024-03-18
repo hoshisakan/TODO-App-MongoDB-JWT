@@ -31,7 +31,7 @@ const LogicCheckUtil = {
             throw error;
         }
     },
-    ///TODO: Search ids by name list
+    ///TODO: Search todo category ids by name list
     searchCategoryIdByName: async (names = []) => {
         // const fileDetails = `[${filenameWithoutPath}] [searchRolesByName]`;
         let result = [];
@@ -39,6 +39,21 @@ const LogicCheckUtil = {
             result = await unitOfWork.todoCategories.find({ name: { $in: names } });
             if (!result) {
                 throw new Error('Search category id by name list failed, please provide correct name list');
+            }
+            return result;
+        } catch (error) {
+            // logError(error, fileDetails, true);
+            throw error;
+        }
+    },
+    ///TODO: Search todo status ids by name list
+    searchStatusIdByName: async (names = []) => {
+        // const fileDetails = `[${filenameWithoutPath}] [searchRolesByName]`;
+        let result = [];
+        try {
+            result = await unitOfWork.todoStatuses.find({ name: { $in: names } });
+            if (!result) {
+                throw new Error('Search status id by name list failed, please provide correct name list');
             }
             return result;
         } catch (error) {
@@ -265,6 +280,10 @@ const LogicCheckUtil = {
                     const searchCategoryIdByNameResult = await LogicCheckUtil.searchCategoryIdByName(newValue);
                     const searchCategoriesId = searchCategoryIdByNameResult.map((category) => category._id);
                     result.query['category'] = { $in: searchCategoriesId };
+                } else if (key === 'status' && validateModelName === 'Todo') {
+                    const searchStatusIdByNameResult = await LogicCheckUtil.searchStatusIdByName(newValue);
+                    const searchStatusesId = searchStatusIdByNameResult.map((status) => status._id);
+                    result.query['status'] = { $in: searchStatusesId };
                 } else if (key === 'user' && validateModelName === 'Todo') {
                     let searchUsersId = [];
                     let isAllObjectId = false;

@@ -4,7 +4,8 @@ const TodoRepository = require('./todo.repository');
 const TodoCategoryRepository = require('./todo.category.repository');
 const TraceErrorRespository = require('./trace.error.repository');
 const ErrorCategoryRepository = require('./error.category.repository');
-
+const ProfileRepository = require('./profile.repository');
+const TodoStatusRepository = require('./todo.status.repository');
 
 const db = require('../models/mongodb');
 const User = db.user;
@@ -13,7 +14,8 @@ const Todo = db.todo;
 const TodoCategory = db.todoCategory;
 const TraceError = db.traceError;
 const ErrorCategory = db.errorCategory;
-
+const Profile = db.profile;
+const TodoStatus = db.todoStatus;
 
 class UnitOfWork {
     constructor() {
@@ -24,6 +26,8 @@ class UnitOfWork {
         this.todoCategories = new TodoCategoryRepository(TodoCategory);
         this.traceErrors = new TraceErrorRespository(TraceError);
         this.errorCategories = new ErrorCategoryRepository(ErrorCategory);
+        this.profiles = new ProfileRepository(Profile);
+        this.todoStatuses = new TodoStatusRepository(TodoStatus);
     }
 
     async complete() {

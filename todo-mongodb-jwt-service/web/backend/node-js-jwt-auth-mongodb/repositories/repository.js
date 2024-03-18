@@ -3,8 +3,8 @@ class Repository {
         this.model = model;
     }
 
-    async find(expression = {}, fields = {}) {
-        return await this.model.find(expression).select(fields);
+    async find(expression = {}, fields = {}, sortFields = {}) {
+        return await this.model.find(expression).select(fields).sort(sortFields);
     }
 
     async findOne(expression = {}) {
@@ -53,6 +53,10 @@ class Repository {
 
     async deleteMany(expression) {
         return await this.model.deleteMany(expression);
+    }
+
+    async countDocuments() {
+        return await this.model.countDocuments();
     }
 }
 

@@ -11,6 +11,7 @@ import LoginForm from '../../features/home/LoginForm';
 import ApplResetPassword from '../../features/home/ApplyResetPassword';
 import ResetPassword from '../../features/home/ResetPassword';
 import ResetPasswordResultPage from '../../features/home/ResetPasswordResultPage';
+import UserProfile from '../../features/profile/UserProfile';
 
 
 export const routes: RouteObject[] = [
@@ -24,6 +25,10 @@ export const routes: RouteObject[] = [
                     {
                         path: 'todo',
                         element: <TodoDashboard />,
+                    },
+                    {
+                        path: 'profile',
+                        element: <UserProfile />,
                     },
                 ],
             },

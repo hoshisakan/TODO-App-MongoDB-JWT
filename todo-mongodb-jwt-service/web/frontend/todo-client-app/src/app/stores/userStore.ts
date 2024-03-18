@@ -15,9 +15,9 @@ import { toast } from 'react-toastify';
 
 export default class UserStore {
     user: UserDetails | null = null;
-    appLoaded = false;
-    isRequiredAuthPage = false;
-    refreshTokenTimeout: any;
+    appLoaded: boolean = false;
+    isRequiredAuthPage: boolean = false;
+    refreshTokenTimeout: any = null;
 
     constructor() {
         makeAutoObservable(this);
@@ -152,15 +152,19 @@ export default class UserStore {
                 const timeout = expires.getTime() - Date.now() - 30 * 1000;
                 // const timeout = expires.getTime() - Date.now();
 
-                // if (timeout > 0) {
-                //     this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
-                //     // console.log(this.refreshTokenTimeout);
-                //     // console.log(`Refresh user ${this.user.id} token that expired time is: ${expires}, timeout: ${timeout}`);
-                // }
-
-                this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
+                // this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
                 const expiresDateString = moment(expires).format('yyyy-MM-DD HH:mm:ss');
                 const timeoutDateString = moment.unix(timeout / 1000).format('mm:ss');
+
+                if (timeout > 0 && timeout < 30000) {
+                    this.refreshTokenTimeout = setTimeout(this.refreshToken, timeout);
+                    // console.log(`Refresh user ${this.user.id} token that expired time is: ${expires}, timeout: ${timeout}`);
+                } else if (timeout < 0) {
+                    console.log(`The timeout value less than 0 millseconds.`);
+                } else {
+                    console.log(`The timeout value more than 0, but less than 30000 millseconds.`);
+
+                }
 
                 // if (timeout <= 0) {
                 //     toast.warning(`Token expired! time left: ${timeoutDateString}`);

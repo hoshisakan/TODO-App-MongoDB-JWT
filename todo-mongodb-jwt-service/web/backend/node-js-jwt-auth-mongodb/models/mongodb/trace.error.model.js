@@ -35,6 +35,9 @@ const TraceError = mongoose.model(
                 type: Date,
                 default: Date.now,
             },
+            updatedAt: {
+                type: Date,
+            },
         },
         {
             versionKey: false,

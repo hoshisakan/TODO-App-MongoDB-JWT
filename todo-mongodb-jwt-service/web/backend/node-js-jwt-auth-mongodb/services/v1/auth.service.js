@@ -11,12 +11,12 @@ const {
     CONFIRMEMAILVERIFYACTION,
     RESETPASSWORDVERIFYACTION,
 } = require('../../config/auth.type.config.js');
-
+const { getSelectFields, getSelectFKFields, toObjectId } = require('../../utils/mongoose.filter.util');
 const {
     generateToken,
     verifyToken,
-    setTokenToCache,
-    getTokenFromCache,
+    // setTokenToCache,
+    // getTokenFromCache,
     checkTokenExistsFromCache,
     removeTokenFromCache,
 } = require('../../utils/jwt.util');
@@ -28,6 +28,7 @@ class AuthService {
     constructor() {
         this.unitOfWork = unitOfWork;
         this.filenameWithoutPath = String(__filename).split(filenameFilter).splice(-1).pop();
+        this.modelNames = ['Todo', 'User', 'Profile'];
     }
 
     getFunctionCallerName = () => {
@@ -42,11 +43,14 @@ class AuthService {
         return `[${this.filenameWithoutPath}] [${classAndFuncNameArr}]`;
     };
 
-    findUserById = async (id, fields = {}, roleFKFields = {}) => {
+    findUserById = async (id, fields = {}, roleFKFields = {}, profileFKFields = {}) => {
         if (!id) {
             throw new Error('User id cannot be empty.');
         }
-        return await this.unitOfWork.users.findById(id, fields, roleFKFields);
+        const classNameAndFuncName = this.getFunctionCallerName();
+        const fileDetails = this.getFileDetails(classNameAndFuncName);
+        const result = await this.unitOfWork.users.findById(id, fields, roleFKFields, profileFKFields);
+        return result;
     };
 
     findUserRolesById = async (userId, isDesc) => {
@@ -98,15 +102,18 @@ class AuthService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = {
             clientResponse: {
-                id: '',
+                id: null,
                 username: '',
                 email: '',
-                roles: [],
-                accessTokenExpireUnixStampTime: 0,
+                displayName: '',
+                bio: '',
+                roles: null,
+                accessTokenExpireUnixStampTime: null,
+                photoFileName: null,
             },
             clientCookie: {
                 accessToken: '',
-                accessTokenExpireSecondTime: 0,
+                accessTokenExpireSecondTime: null,
             },
             message: '',
         };
@@ -150,7 +157,7 @@ class AuthService {
                     const newAccessTokenValidateResult = verifyToken(generateAccessTokenResult.token, ACCESS);
                     result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
                 } else {
-                    ///TODO: 若舊 token 尚未過期 ，則再進一步檢查舊 token 是否快要逾期 ()
+                    ///TODO: 若舊 token 尚未過期 ，則再進一步檢查舊 token 是否快要逾期
                     const oldTokenExpireMillSecondTime = new Date(
                         oldCookieAccessTokenValidateResult.data['exp'] * 1000
                     );
@@ -189,9 +196,12 @@ class AuthService {
                 result.clientResponse.accessTokenExpireUnixStampTime = newAccessTokenValidateResult.data['exp'];
             }
             result.clientResponse.id = userValidateResult.user.id;
+            result.clientResponse.displayName = userValidateResult.user.displayName;
             result.clientResponse.username = userValidateResult.user.username;
             result.clientResponse.email = userValidateResult.user.email;
-            result.clientResponse.roles = userValidateResult.user.roles[0];
+            result.clientResponse.roles = userValidateResult.user.highestRolePermission;
+            result.clientResponse.photoFileName = userValidateResult.user.photoFileName;
+            result.clientResponse.bio = userValidateResult.user.bio;
         } catch (err) {
             logError(err, fileDetails, true);
             result.message = err.message;
@@ -203,42 +213,62 @@ class AuthService {
     validateUserIdentity = async (userFilterExpression) => {
         let result = {
             user: {
-                id: '',
+                id: null,
+                bio: '',
                 username: '',
                 password: '',
                 email: '',
-                roles: [],
+                displayName: '',
+                roles: null,
                 highestRolePermission: '',
                 isActivate: false,
+                photoFileName: null,
             },
             message: '',
         };
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const userValidateResult = await this.unitOfWork.users.findOne(userFilterExpression);
-            if (!userValidateResult) {
+            const selectFields = getSelectFields(this.modelNames[1]);
+            const FKFields = getSelectFKFields(this.modelNames[1]);
+            const roleFKFields = FKFields['role'];
+            const profileFKFields = FKFields['profile'];
+
+            const tempUserValidateResult = await this.unitOfWork.users.findOne(
+                userFilterExpression,
+                selectFields,
+                roleFKFields,
+                profileFKFields
+            );
+
+            if (!tempUserValidateResult) {
                 throw new Error('User not found');
             }
-            logInfo(`userValidateResult: ${stringify(userValidateResult)}`, fileDetails, true);
 
-            const userRoles = await this.unitOfWork.roles.find({ _id: { $in: userValidateResult.roles } });
-            const userRolesSortedByLevelDesc = userRoles.sort((a, b) => b.level > a.level);
-            logInfo(`userRolesSortedByLevelDesc: ${stringify(userRolesSortedByLevelDesc)}`, fileDetails, true);
-            // const userRolesName = userRoles.map((role) => 'ROLE_' + role.name.toUpperCase());
-            const userRolesName = userRoles.map((role) => role.name);
-            logInfo(`userRolesName: ${stringify(userRolesName)}`, fileDetails, true);
+            ///TODO: For debug
+            logInfo(`tempUserValidateResult: ${tempUserValidateResult}`, fileDetails, true);
+
+            const userValidateResult = tempUserValidateResult.toObject();
+            ///TODO Get highest role permission
+            const highestRolePermission =
+                userValidateResult['roles'].length > 1
+                    ? userValidateResult['roles'].sort((a, b) => b.level - a.level)[0]['name']
+                    : userValidateResult['roles'][0]['name'];
+            // const highestRolePermission = userValidateResult['roles'].sort((a, b) => b.level - a.level)[0]['name'];
 
             result.user = {
                 id: userValidateResult._id,
                 username: userValidateResult.username,
-                password: userValidateResult.password,
+                password: userValidateResult.password ?? '',
                 email: userValidateResult.email,
-                roles: userRolesName,
-                highestRolePermission: userRoles.sort((a, b) => b.level - a.level)[0]['name'],
+                displayName: userValidateResult.displayName,
+                bio: userValidateResult.bio,
+                roles: userValidateResult.roles,
+                highestRolePermission: highestRolePermission,
                 isActivate: userValidateResult.isActivate,
+                photoFileName: userValidateResult['profile']?.photoFileName ?? null,
             };
-            logInfo(`result: ${stringify(result)}`, fileDetails, true);
+            // logInfo(`validateUserIdentity result: ${stringify(result)}`, fileDetails, true);
             return result;
         } catch (err) {
             logError(err, fileDetails, true);
@@ -459,6 +489,7 @@ class AuthService {
                 email: registerDto.email,
                 password: bcrypt.hashSync(registerDto.password, 8),
                 isActivate: isActivate,
+                displayName: registerDto.displayName,
             });
 
             userCreated = await this.unitOfWork.users.create(registerUser);
@@ -519,15 +550,18 @@ class AuthService {
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = {
             clientResponse: {
-                id: '',
+                id: null,
                 username: '',
                 email: '',
-                roles: [],
-                accessTokenExpireUnixStampTime: 0,
+                displayName: '',
+                bio: '',
+                roles: null,
+                accessTokenExpireUnixStampTime: null,
+                photoFileName: null,
             },
             clientCookie: {
                 accessToken: '',
-                accessTokenExpireSecondTime: 0,
+                accessTokenExpireSecondTime: null,
                 isAccessTokenExistsInCookie: false,
                 refreshToken: '',
                 refreshTokenExpireSecondTime: 0,
@@ -554,6 +588,8 @@ class AuthService {
             };
 
             const userValidateResult = await this.validateUserIdentity(userFilterExpression);
+
+            // logInfo(`userValidateResult: ${stringify(userValidateResult)}`, fileDetails, true);
 
             if (userValidateResult.message) {
                 throw new Error(userValidateResult.message);
@@ -671,10 +707,13 @@ class AuthService {
             result.clientResponse.id = userValidateResult.user.id;
             result.clientResponse.username = userValidateResult.user.username;
             result.clientResponse.email = userValidateResult.user.email;
+            result.clientResponse.displayName = userValidateResult.user.displayName;
             result.clientResponse.roles = userValidateResult.user.highestRolePermission;
+            result.clientResponse.photoFileName = userValidateResult.user.photoFileName;
+            result.clientResponse.bio = userValidateResult.user.bio;
             logInfo(`Result: ${stringify(result)}`, fileDetails, true);
         } catch (err) {
-            // logError(err, fileDetails, true);
+            logError(err, fileDetails, true);
             result.message = err.message;
         }
         return result;
@@ -698,16 +737,16 @@ class AuthService {
                 throw new Error('User not found');
             }
 
-            const isDeletedAccessToken = await removeTokenFromCache(isUserExists._id, ACCESS);
-            logInfo(`isDeletedAccessToken: ${stringify(isDeletedAccessToken)}`, fileDetails, true);
+            // const isDeletedAccessToken = await removeTokenFromCache(isUserExists._id, ACCESS);
+            // logInfo(`isDeletedAccessToken: ${stringify(isDeletedAccessToken)}`, fileDetails, true);
 
-            const isDeletedRefreshToken = await removeTokenFromCache(isUserExists._id, REFRESH);
-            logInfo(`isDeletedRefreshToken: ${stringify(isDeletedRefreshToken)}`, fileDetails, true);
+            // const isDeletedRefreshToken = await removeTokenFromCache(isUserExists._id, REFRESH);
+            // logInfo(`isDeletedRefreshToken: ${stringify(isDeletedRefreshToken)}`, fileDetails, true);
 
-            if (!isDeletedAccessToken || !isDeletedRefreshToken) {
-                logInfo(`Delete token from cache failed`, fileDetails, true);
-                ///TODO: 未來必須要將錯誤寫入資料庫
-            }
+            // if (!isDeletedAccessToken || !isDeletedRefreshToken) {
+            //     logInfo(`Delete token from cache failed`, fileDetails, true);
+            //     ///TODO: 未來必須要將錯誤寫入資料庫
+            // }
             result.message = 'Logout success';
         } catch (err) {
             logError(err, fileDetails, true);
@@ -889,47 +928,45 @@ class AuthService {
     };
 
     ///TODO: Get current user info
-    getCurrentUser = async (cookieAccessToken) => {
+    getCurrentUser = async (clientRequest) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let result = {
-            id: '',
+            id: null,
             username: '',
             email: '',
-            roles: [],
-            accessTokenExpireUnixStampTime: 0,
+            displayName: '',
+            bio: '',
+            roles: null,
+            accessTokenExpireUnixStampTime: null,
+            photoFileName: null,
         };
 
         try {
-            if (!cookieAccessToken) {
+            if (!clientRequest) {
                 // throw new Error('Access token does not empty.');
                 throw new Error('Access token is required.');
             }
 
-            logInfo(`token: ${cookieAccessToken}`, fileDetails, true);
-
-            const accessTokenValidateResult = verifyToken(cookieAccessToken, ACCESS);
-
-            logInfo(stringify(accessTokenValidateResult), fileDetails, true);
-
-            if (!accessTokenValidateResult.data || accessTokenValidateResult.message) {
-                throw new Error(accessTokenValidateResult.message);
+            if (!clientRequest.tokenParseResult || !clientRequest.tokenParseResult.userId) {
+                throw new Error('Unauthorized1!');
             }
 
-            const userId = accessTokenValidateResult.data['id'];
+            const userFilterExpression = {
+                _id: toObjectId(clientRequest.tokenParseResult.userId),
+            };
+            const userDetails = await this.validateUserIdentity(userFilterExpression);
 
-            if (!userId) {
-                throw new Error('User id does not empty, access token analysis failed.');
-            }
+            // logInfo(`userDetails: ${stringify(userDetails)}`, fileDetails, true);
 
-            const fkFields = { _id: 0, name: 1 };
-            const userDetails = await this.findUserById(accessTokenValidateResult.data['id'], {}, fkFields);
-
-            result.id = userDetails._id;
-            result.username = userDetails.username;
-            result.email = userDetails.email;
-            result.roles = userDetails.roles.sort((a, b) => b.level - a.level)['0']['name'];
-            result.accessTokenExpireUnixStampTime = accessTokenValidateResult.data['exp'];
+            result.id = userDetails.user.id;
+            result.username = userDetails.user.username;
+            result.email = userDetails.user.email;
+            result.roles = userDetails.user.highestRolePermission;
+            result.accessTokenExpireUnixStampTime = clientRequest.tokenParseResult.accessTokenExpireUnixStampTime;
+            result.photoFileName = userDetails.user.photoFileName;
+            result.displayName = userDetails.user.displayName;
+            result.bio = userDetails.user.bio;
         } catch (err) {
             logError(err, fileDetails, true);
             result.message = err.message;
