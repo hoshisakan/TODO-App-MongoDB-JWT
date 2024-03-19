@@ -159,12 +159,13 @@ const checkRolesExistsAndCreate = async () => {
         logInfo(`Roles count: ${result}`, fileDetails, true);
         if (result === 0) {
             await createRoles();
-        } else {
-            logInfo(`Roles already exists.`, fileDetails, true);
-            await dropCollection('Roles');
-            await createRoles();
-            // logInfo(`Roles recreated.`, fileDetails, true);
         }
+        // else {
+        //     logInfo(`Roles already exists.`, fileDetails, true);
+        //     await dropCollection('Roles');
+        //     await createRoles();
+        //     // logInfo(`Roles recreated.`, fileDetails, true);
+        // }
     } catch (error) {
         logError(error, fileDetails, true);
     }
@@ -177,12 +178,13 @@ const checkTodoStatusesExistsAndCreate = async () => {
         logInfo(`Todo statuses count: ${result}`, fileDetails, true);
         if (result === 0) {
             await createTodoStatuses();
-        } else {
-            logInfo(`Statuses already exists.`, fileDetails, true);
-            await dropCollection('TodoStatuses');
-            await createTodoStatuses();
-            // logInfo(`Todo statuses recreated.`, fileDetails, true);
         }
+        // else {
+        //     logInfo(`Statuses already exists.`, fileDetails, true);
+        //     await dropCollection('TodoStatuses');
+        //     await createTodoStatuses();
+        //     // logInfo(`Todo statuses recreated.`, fileDetails, true);
+        // }
     } catch (error) {
         logError(error, fileDetails, true);
     }
@@ -195,12 +197,13 @@ const checkTodoCategoriesExistsAndCreate = async () => {
         logInfo(`Todo categories count: ${result}`, fileDetails, true);
         if (result === 0) {
             await createTodoStatuses();
-        } else {
-            logInfo(`Todo ctegories already exists.`, fileDetails, true);
-            await dropCollection('TodoCategories');
-            await createTodoCategories();
-            // logInfo(`Todo categories recreated.`, fileDetails, true);
         }
+        // else {
+        //     logInfo(`Todo ctegories already exists.`, fileDetails, true);
+        //     await dropCollection('TodoCategories');
+        //     await createTodoCategories();
+        //     // logInfo(`Todo categories recreated.`, fileDetails, true);
+        // }
     } catch (error) {
         logError(error, fileDetails, true);
     }
@@ -213,33 +216,88 @@ const checkErrorCategoriesExistsAndCreate = async () => {
         logInfo(`Error categories count: ${result}`, fileDetails, true);
         if (result === 0) {
             await createErrorCategories();
-        } else {
-            logInfo(`Error categories already exists.`, fileDetails, true);
-            await dropCollection('ErrorCategories');
-            // await createErrorCategories();
-            // logInfo(`Error categories recreated.`, fileDetails, true);
         }
+        // else {
+        //     logInfo(`Error categories already exists.`, fileDetails, true);
+        //     await dropCollection('ErrorCategories');
+        //     // await createErrorCategories();
+        //     // logInfo(`Error categories recreated.`, fileDetails, true);
+        // }
     } catch (error) {
         logError(error, fileDetails, true);
     }
     return;
 };
 
+const isIndexExistsInCollection = (indexInformation, name) => {
+    return indexInformation.some((index) => index.name === name);
+};
+
 ///TODO: Create index
 const createIndexes = async () => {
     try {
-        await Profile.createIndexes({ photoFileName: 1 }, { unique: true });
-        logInfo(`Create profile indexs completed.`, fileDetails);
-        await Role.createIndexes({ name: 1, level: 1 }, { unique: true });
-        logInfo(`Create role indexs completed.`, fileDetails);
-        await ErrorCategory.createIndexes({ name: 1 }, { unique: true });
-        logInfo(`Create error category indexs completed.`, fileDetails);
-        await TodoCategory.createIndexes({ name: 1, value: 1 }, { unique: true });
-        logInfo(`Create todo category indexs completed.`, fileDetails);
-        await Todo.createIndexes({ title: 1 }, { unique: true });
-        logInfo(`Create todo indexs completed.`, fileDetails);
-        await TodoStatus.createIndexes({ name: 1, value: 1 }, { unique: true });
-        logInfo(`Create todo status indexs completed.`, fileDetails);
+        const indexProfileInformation = await Profile.collection.indexInformation({ full: true });
+        const isProfilePhotoFileNameExists = isIndexExistsInCollection(indexProfileInformation, 'photoFileName_1');
+
+        if (!isProfilePhotoFileNameExists) {
+            await Profile.createIndexes({ key: { photoFileName: 1 }, name: 'photoFileName_1', unique: true });
+            logInfo(`Create profile indexs photoFileName completed.`, fileDetails);
+        }
+
+        const indexRoleInformation = await Role.collection.indexInformation({ full: true });
+        const isRoleNameExists = isIndexExistsInCollection(indexRoleInformation, 'name_1');
+        const isRoleValueExists = isIndexExistsInCollection(indexRoleInformation, 'value_1');
+
+        if (!isRoleNameExists) {
+            await Role.createIndexes({ key: { name: 1 }, name: 'name_1', unique: true });
+            logInfo(`Create role collection that indexs name completed.`, fileDetails);
+        }
+        if (!isRoleValueExists) {
+            await Role.createIndexes({ key: { level: 1 }, name: 'level_1', unique: true });
+            logInfo(`Create role collection that indexs level completed.`, fileDetails);
+        }
+
+        const indexErrorCategoryInformation = await ErrorCategory.collection.indexInformation({ full: true });
+        const isErrorCategoryNameExists = isIndexExistsInCollection(indexErrorCategoryInformation, 'name_1');
+
+        if (!isErrorCategoryNameExists) {
+            await ErrorCategory.createIndexes({ key: { name: 1 }, name: 'name_1', unique: true });
+            logInfo(`Create error category collection that indexs name completed.`, fileDetails);
+        }
+
+        const indexTodoCategoryInformation = await TodoCategory.collection.indexInformation({ full: true });
+        const isTodoCategoryNameExists = isIndexExistsInCollection(indexTodoCategoryInformation, 'name_1');
+        const isTodoCategoryValueExists = isIndexExistsInCollection(indexTodoCategoryInformation, 'value_1');
+
+        if (!isTodoCategoryNameExists) {
+            await TodoCategory.createIndexes({ key: { name: 1 }, name: 'name_1', unique: true });
+            logInfo(`Create todo category collection that indexs name completed.`, fileDetails);
+        }
+        if (!isTodoCategoryValueExists) {
+            await TodoCategory.createIndexes({ key: { value: 1 }, name: 'value_1', unique: true });
+            logInfo(`Create todo category collection that indexs value completed.`, fileDetails);
+        }
+
+        const indexTodoStatusInformation = await TodoStatus.collection.indexInformation({ full: true });
+        const isTodoStatusNameExists = isIndexExistsInCollection(indexTodoStatusInformation, 'name_1');
+        const isTodoStatusValueExists = isIndexExistsInCollection(indexTodoStatusInformation, 'value_1');
+
+        if (!isTodoStatusNameExists) {
+            await TodoStatus.createIndexes({ key: { name: 1 }, name: 'name_1', unique: true });
+            logInfo(`Create todo status collection that indexs name completed.`, fileDetails);
+        }
+        if (!isTodoStatusValueExists) {
+            await TodoStatus.createIndexes({ key: { value: 1 }, name: 'value_1', unique: true });
+            logInfo(`Create todo status collection that indexs value completed.`, fileDetails);
+        }
+
+        const indexTodoInformation = await Todo.collection.indexInformation({ full: true });
+        const isTodoPhotoFileNameExists = isIndexExistsInCollection(indexTodoInformation, 'photoFileName_1');
+
+        if (!isTodoPhotoFileNameExists) {
+            await Todo.createIndexes({ key: { title: 1 }, name: 'title_1', unique: true });
+            logInfo(`Create todo collection that indexs title completed.`, fileDetails);
+        }
         // await listIndexes();
     } catch (error) {
         logError(error, fileDetails, true);

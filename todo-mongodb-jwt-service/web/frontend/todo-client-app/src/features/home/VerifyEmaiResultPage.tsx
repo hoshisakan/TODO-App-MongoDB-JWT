@@ -69,7 +69,6 @@ const VerifyEmaiResultPage = observer(() => {
                                         href="/sign-in"
                                         className="btn btn-primary active"
                                         role="button"
-                                        data-bs-toggle="button"
                                         aria-pressed="true"
                                     >
                                         回首頁

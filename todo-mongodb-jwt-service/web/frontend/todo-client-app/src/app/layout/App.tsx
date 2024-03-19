@@ -2,7 +2,7 @@ import { Fragment, useEffect } from 'react';
 import HomePage from '../../features/home/HomePage';
 import { useLocation } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useStore } from '../stores/store';
 import LoadingComponent from './LoadingComponent';

@@ -43,7 +43,7 @@ export default class UserStore {
                     this.user = response.data;
                     this.startRefreshTokenTimer();
                     // toast.success('Token is valid.');
-                    console.log(`login: ${JSON.stringify(this.user)}`);
+                    // console.log(`login: ${JSON.stringify(this.user)}`);
                 });
             });
             router.navigate('/todo');

@@ -1,11 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import { StyledOtherPageOutsideLayout } from './styles/StyledComponents';
-import { useStore } from '../../app/stores/store';
+// import { useStore } from '../../app/stores/store';
 
 export default observer(function NotFound() {
-    const {
-        userStore: { isLoggedIn },
-    } = useStore();
+    // const {
+    //     userStore: { isLoggedIn },
+    // } = useStore();
 
     return (
         <StyledOtherPageOutsideLayout>

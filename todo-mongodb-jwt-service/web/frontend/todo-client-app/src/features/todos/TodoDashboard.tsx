@@ -10,7 +10,8 @@ import AddTodo from './AddTodo';
 
 const TodoDashboard = observer(() => {
     const { todoStore, todoCategoryStore, todoStatusStore } = useStore();
-    const { userTodoList, todoStatusList, statusPatch } = todoStore;
+    const { userTodoList, statusPatch } = todoStore;
+    const { todoStatuses } = todoStatusStore;
     const bsModalRef = useRef<InstanceType<typeof BootstrapModal> | null>(null);
 
     const showAddModal = async () => {
@@ -72,10 +73,16 @@ const TodoDashboard = observer(() => {
         加入 useCallback 後，只有當依賴列表中的 todoStore 狀態被變更時，才會指向 loadTodos 新的記憶體位址；
         否則，將會指向同一個 loadTodoRelatedDataCallback 方法 (即是同一個記憶體位址)
     */
+    // const loadTodoRelatedDataCallback = useCallback(() => {
+    //     todoStore.loadTodos();
+    //     todoCategoryStore.loadTodoCategories();
+    //     todoStatusStore.loadTodoStatuses();
+    // }, [todoStore, todoCategoryStore, todoStatusStore]); // 依賴列表
+
     const loadTodoRelatedDataCallback = useCallback(() => {
-        todoStore.loadTodos();
         todoCategoryStore.loadTodoCategories();
         todoStatusStore.loadTodoStatuses();
+        todoStore.loadTodos();
     }, [todoStore, todoCategoryStore, todoStatusStore]); // 依賴列表
 
     const capitalizeFirstLetter = (word: string) => {
@@ -112,13 +119,12 @@ const TodoDashboard = observer(() => {
                 <div className="col-9">
                     <DragDropContext onDragEnd={onDragEnd}>
                         <DropContextWrapper>
-                            {todoStatusList.map((status, index) => (
+                            {todoStatuses.map((status, index) => (
                                 <DroppableSectionWrapper
-                                    droppableObjName={capitalizeFirstLetter(status)}
-                                    droppableId={status}
-                                    items={userTodoList[status]}
-                                    key={`droppable_${status}`}
-                                    // isLoadEditModal={true}
+                                    droppableObjName={capitalizeFirstLetter(status.name)}
+                                    droppableId={status.name}
+                                    items={userTodoList[status.name]}
+                                    key={`droppable_${status.name}`}
                                 />
                             ))}
                         </DropContextWrapper>

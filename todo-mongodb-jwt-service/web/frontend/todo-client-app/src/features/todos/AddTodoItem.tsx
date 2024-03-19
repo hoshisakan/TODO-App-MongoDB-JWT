@@ -63,7 +63,7 @@ const AddTodoItem = observer(() => {
         event.preventDefault();
         // console.log(`The form submit content is: ${JSON.stringify(state)}`);
         const requestValues: TodoFormValuesAddOrEdit = state;
-        console.log(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
+        // console.log(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
         // toast.info(`Read state before submit form valus: ${JSON.stringify(requestValues)}`);
 
         const isEmptyExists = checkFormEmptyExists(requestValues);

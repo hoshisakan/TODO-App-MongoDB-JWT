@@ -4,7 +4,7 @@ import {
     TodoDetail,
     TodoCUDResult,
     TodoFormValuesAddOrEdit,
-    TodoPatchResult,
+    // TodoPatchResult,
     TodoValuesUpdateDropableItem,
     TodoUpdateOrPatchResult,
 } from '../models/Todo';
@@ -15,7 +15,6 @@ import moment from 'moment';
 export default class TodoStore {
     todos: Todo[] = [];
     userTodoList: { [key: string]: Todo[] } = {};
-    todoStatusList: Array<string> = ['pending', 'ongoing', 'completed'];
     isAddedSuccess: boolean = false;
     isEditedSuccess: boolean = false;
     isRemovedSuccess: boolean = false;
@@ -38,7 +37,6 @@ export default class TodoStore {
         makeAutoObservable(this, {
             todos: observable,
             userTodoList: observable,
-            todoStatusList: observable,
             isAddedSuccess: observable,
             isEditedSuccess: observable,
             isRemovedSuccess: observable,
@@ -172,7 +170,7 @@ export default class TodoStore {
                         const patchResult: TodoUpdateOrPatchResult = response.data;
                         if (patchResult.isModifiedSuccess) {
                             await this.loadTodos();
-                            console.log(`Patch ${id} item successfully.`);
+                            // console.log(`Patch ${id} item successfully.`);
                         } else {
                             toast.error(`Patch ${id} item failed.`);
                         }
