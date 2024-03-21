@@ -45,7 +45,7 @@ const staticPhotoPath = path.join(__dirname, process.env.UPLOAD_PHOTO_STATIC_PAT
 logInfo(`staticPhotoPath: ${staticPhotoPath}.`, fileDetails, true);
 
 ///TODO: Reject tls certificate source check, please avoid use it in production environment.
-process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 
 //TODO: For debug
 // const fs = require('fs');
