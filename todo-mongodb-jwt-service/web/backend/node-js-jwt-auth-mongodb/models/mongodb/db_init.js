@@ -193,10 +193,10 @@ const checkTodoStatusesExistsAndCreate = async () => {
 
 const checkTodoCategoriesExistsAndCreate = async () => {
     try {
-        const result = await TodoStatus.estimatedDocumentCount();
+        const result = await TodoCategory.estimatedDocumentCount();
         logInfo(`Todo categories count: ${result}`, fileDetails, true);
         if (result === 0) {
-            await createTodoStatuses();
+            await createTodoCategories();
         }
         // else {
         //     logInfo(`Todo ctegories already exists.`, fileDetails, true);
