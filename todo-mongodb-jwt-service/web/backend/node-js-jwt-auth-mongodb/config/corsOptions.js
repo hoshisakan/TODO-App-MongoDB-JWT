@@ -7,6 +7,8 @@ const corsOptions = {
         'http://localhost:3001',
         'http://localhost',
         'https://localhost',
+        'http://dragtodo.serveirc.com',
+        'https://dragtodo.serveirc.com',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,

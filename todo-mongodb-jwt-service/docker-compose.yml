@@ -37,7 +37,8 @@ services:
         volumes:
             - ./web/frontend/nginx/nginx.conf:/etc/nginx/nginx.conf
             - ./web/frontend/nginx/conf.d:/etc/nginx/conf.d
-            - ./web/certs:/etc/nginx/ssl
+            - ./web/frontend/certs/ssl:/etc/nginx/ssl
+            - ./web/frontend/certs/data:/usr/share/nginx/html/letsencrypt/
             - ./logs/nginx:/var/log/nginx
         env_file:
             - ${ENV_FILE_PATH}

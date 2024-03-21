@@ -31,7 +31,7 @@ ARG NGINX_LANG_CHARMAP
 ARG DEBIAN_FRONTEND
 
 # update nginx html
-# RUN rm -rf /usr/share/nginx/html
+RUN rm -rf /usr/share/nginx/html
 COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
 
 # Remove default nginx config
