@@ -69,9 +69,16 @@ export default class UserStore {
         }
     };
 
-    logout = async (requestValues: UserLogout) => {
+    logout = async () => {
         try {
-            await agent.Auth.signout(requestValues).then((response) => {
+            // await agent.Auth.signout(requestValues).then((response) => {
+            //     const result: UserLogoutSuccess = response.data;
+            //     if (result.isAllowedLogout) {
+            //         this.user = null;
+            //         router.navigate('/sign-in');
+            //     }
+            // });
+            await agent.Auth.signout().then((response) => {
                 const result: UserLogoutSuccess = response.data;
                 if (result.isAllowedLogout) {
                     this.user = null;
@@ -163,7 +170,6 @@ export default class UserStore {
                     console.log(`The timeout value less than 0 millseconds.`);
                 } else {
                     console.log(`The timeout value more than 0, but less than 30000 millseconds.`);
-
                 }
 
                 // if (timeout <= 0) {

@@ -116,9 +116,12 @@ class AuthController {
             if (!key || !value) {
                 throw new Error('Invalid key or value!');
             }
+            const env = process.env.NODE_ENV || 'development';
+            logInfo(`Read NODE ENV environment variable: ${env}`, fileDetails);
+
             res.cookie(key, value, {
                 httpOnly: true,
-                secure: false,
+                secure: env.trim() === 'production',
                 // sameSite: 'none',
                 sameSite: 'strict',
                 maxAge: expireTime * 1000,
@@ -132,6 +135,7 @@ class AuthController {
     clearCookie = (res) => {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
+        let isClearSuccess = false;
         try {
             this.cookieNameList.forEach((cookieName) => {
                 logInfo(`clear cookie name: ${cookieName}`, fileDetails, true);
@@ -145,10 +149,13 @@ class AuthController {
                     // sameSite: 'none'
                     sameSite: 'strict', // Allow client cross domain request
                 });
+                res.clearCookie(cookieName);
             });
+            isClearSuccess = true;
         } catch (err) {
             logError(err, fileDetails, true);
         }
+        return isClearSuccess;
     };
 
     ///TODO: Handle client login request
@@ -322,32 +329,12 @@ class AuthController {
         const classNameAndFuncName = this.getFunctionCallerName();
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         try {
-            const cookieAccessToken = this.getItemFromCookie(req, ACCESS_TOKEN_COOKIE_NAME);
-            const cookieRefreshToken = this.getItemFromCookie(req, REFRESH_TOKEN_COOKIE_NAME);
+            const isAllowedLogout = this.clearCookie(res);
 
-            logInfo(`cookieAccessToken: ${stringify(cookieAccessToken)}`, fileDetails, true);
-            logInfo(`cookieRefreshToken: ${stringify(cookieRefreshToken)}`, fileDetails, true);
-
-            const logoutDto = {
-                username: req.body.username || null,
-                email: req.body.email || null,
-                cookieAccessToken,
-                cookieRefreshToken,
+            const result = {
+                isAllowedLogout: isAllowedLogout,
+                message: isAllowedLogout ? 'Logout success.' : 'Logout failed.',
             };
-
-            logInfo(`logoutDto: ${stringify(logoutDto)}`, fileDetails, true);
-
-            if (!cookieAccessToken && !cookieRefreshToken) {
-                logInfo(`No token provided!`, fileDetails, true);
-            }
-
-            const result = await this.authService.signout(logoutDto);
-
-            if (!result || !result.isAllowedLogout) {
-                throw new Error('User was not signed out successfully!');
-            }
-            this.clearCookie(res);
-
             return http.successResponse(res, OK, '', result);
         } catch (err) {
             logError(err, fileDetails, true);

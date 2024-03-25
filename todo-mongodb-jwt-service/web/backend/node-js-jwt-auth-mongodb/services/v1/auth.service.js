@@ -478,9 +478,14 @@ class AuthService {
 
             logInfo(`roles: ${stringify(roles)}`, fileDetails, true);
 
-            const allowedNoEmailValidateRoles = ['admin', 'superadmin'];
+            let isActivate = false;
+            const exceptNoValidateEmailList = process.env.EXCEPT_NO_VALIDATE_EMAIL_LIST.split('|');
 
-            const isActivate = registerDto.roles.some((role) => allowedNoEmailValidateRoles.indexOf(role) !== -1);
+            if (exceptNoValidateEmailList.length === 0) {
+                isActivate = false;
+            } else {
+                isActivate = exceptNoValidateEmailList.includes(registerDto.email);
+            }
 
             logInfo(`isActivate: ${isActivate}`, fileDetails, true);
 
@@ -720,40 +725,41 @@ class AuthService {
     };
 
     ///TODO: Signout user, remove access token and refresh token from redis cache, return items in success response, otherwise throw error
-    signout = async (logoutDto) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
-        const fileDetails = this.getFileDetails(classNameAndFuncName);
-        const result = {
-            isAllowedLogout: true,
-            message: null,
-        };
-        try {
-            const isUserExists = await this.unitOfWork.users.findOne({
-                username: logoutDto.username,
-                email: logoutDto.email,
-            });
+    ///TODO: If need to remove redis save user token, then uncomment signout method.
+    // signout = async (logoutDto) => {
+    //     const classNameAndFuncName = this.getFunctionCallerName();
+    //     const fileDetails = this.getFileDetails(classNameAndFuncName);
+    //     const result = {
+    //         isAllowedLogout: true,
+    //         message: null,
+    //     };
+    //     try {
+    //         const isUserExists = await this.unitOfWork.users.findOne({
+    //             username: logoutDto.username,
+    //             email: logoutDto.email,
+    //         });
 
-            if (!isUserExists) {
-                throw new Error('User not found');
-            }
+    //         if (!isUserExists) {
+    //             throw new Error('User not found');
+    //         }
 
-            // const isDeletedAccessToken = await removeTokenFromCache(isUserExists._id, ACCESS);
-            // logInfo(`isDeletedAccessToken: ${stringify(isDeletedAccessToken)}`, fileDetails, true);
+    //         // const isDeletedAccessToken = await removeTokenFromCache(isUserExists._id, ACCESS);
+    //         // logInfo(`isDeletedAccessToken: ${stringify(isDeletedAccessToken)}`, fileDetails, true);
 
-            // const isDeletedRefreshToken = await removeTokenFromCache(isUserExists._id, REFRESH);
-            // logInfo(`isDeletedRefreshToken: ${stringify(isDeletedRefreshToken)}`, fileDetails, true);
+    //         // const isDeletedRefreshToken = await removeTokenFromCache(isUserExists._id, REFRESH);
+    //         // logInfo(`isDeletedRefreshToken: ${stringify(isDeletedRefreshToken)}`, fileDetails, true);
 
-            // if (!isDeletedAccessToken || !isDeletedRefreshToken) {
-            //     logInfo(`Delete token from cache failed`, fileDetails, true);
-            //     ///TODO: 未來必須要將錯誤寫入資料庫
-            // }
-            result.message = 'Logout success';
-        } catch (err) {
-            logError(err, fileDetails, true);
-            result.message = err.message;
-        }
-        return result;
-    };
+    //         // if (!isDeletedAccessToken || !isDeletedRefreshToken) {
+    //         //     logInfo(`Delete token from cache failed`, fileDetails, true);
+    //         //     ///TODO: 未來必須要將錯誤寫入資料庫
+    //         // }
+    //         result.message = 'Logout success';
+    //     } catch (err) {
+    //         logError(err, fileDetails, true);
+    //         result.message = err.message;
+    //     }
+    //     return result;
+    // };
 
     ///TODO: Verify token of confirm email letter and parse token get user email, then check email whether or exists in database or not
     verifyEmail = async (verifyEmailDto) => {
