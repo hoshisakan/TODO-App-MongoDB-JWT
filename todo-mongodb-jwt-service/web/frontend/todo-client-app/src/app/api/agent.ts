@@ -61,7 +61,7 @@ const responseBody = <T>(response: AxiosResponse<T>) => response.data;
 
 const requests = {
     get: <T>(url: string) => axios.get<T>(url).then(responseBody),
-    post: <T>(url: string, body: {}, headers = {}) => axios.post<T>(url, body).then(responseBody),
+    post: <T>(url: string, body = {}, headers = {}) => axios.post<T>(url, body).then(responseBody),
     put: <T>(url: string, body: {}) => axios.put<T>(url, body).then(responseBody),
     patch: <T>(url: string, body: {}) => axios.patch<T>(url, body).then(responseBody),
     del: <T>(url: string) => axios.delete<T>(url).then(responseBody),
@@ -110,7 +110,8 @@ const Auth = {
     verifyToken: (authType: string) => requests.post<ResponseResult>(`/auth/verify-token`, { authType: authType }),
     signin: (entity: UserFormValuesLogin) => requests.post<ResponseResult>(`/auth/signin`, entity),
     signup: (entity: UserFormValuesRegister) => requests.post<ResponseResult>(`/auth/signup`, entity),
-    signout: (entity: UserLogout) => requests.post<ResponseResult>(`/auth/signout`, entity),
+    // signout: (entity: UserLogout) => requests.post<ResponseResult>(`/auth/signout`, entity),
+    signout: () => requests.post<ResponseResult>(`/auth/signout`),
     refreshToken: () => requests.get<ResponseResult>(`/auth/refresh-token`),
     reSendVerifyEmail: (entity: UserFormValuesReSendVerifyEmail) =>
         requests.post<ResponseResult>(`/auth/re-send-confirm-email`, entity),

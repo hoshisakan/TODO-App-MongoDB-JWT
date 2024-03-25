@@ -14,11 +14,7 @@ const HeaderNavbar = observer(({ navbarName }: Props) => {
     } = useStore();
 
     const handleLoginout = () => {
-        const userLogout: UserLogout = {
-            username: user?.username || '',
-            email: user?.email || '',
-        };
-        logout(userLogout);
+        logout();
     };
 
     return (

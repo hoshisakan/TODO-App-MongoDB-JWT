@@ -822,25 +822,16 @@ class TodoService extends BaseService {
 
             ///TODO: Step1.1: If no query parameters, find one todo category
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
-                    tempSearchResult = await this.unitOfWork.todos.findOne(
-                        {},
-                        selectFields,
-                        userFKFields,
-                        categoryFKFields,
-                        statusFKFields
-                    );
-                } else {
-                    tempSearchResult = await this.unitOfWork.todos.findOne(
-                        {
-                            user: toObjectId(tokenParseResult.userId),
-                        },
-                        selectFields,
-                        userFKFields,
-                        categoryFKFields,
-                        statusFKFields
-                    );
-                }
+                const expression = {
+                    user: toObjectId(tokenParseResult.userId),
+                };
+                tempSearchResult = await this.unitOfWork.todos.findOne(
+                    expression,
+                    selectFields,
+                    userFKFields,
+                    categoryFKFields,
+                    statusFKFields
+                );
             }
             ///TODO: Step1.2: If query parameters, find one todo category by query parameters
             else {
@@ -965,23 +956,17 @@ class TodoService extends BaseService {
             let tempSearchResult = [];
 
             if (!queryParams || Object.keys(queryParams).length === 0) {
-                if (tokenParseResult.highestPermission && tokenParseResult.highestPermission === 'admin') {
-                    tempSearchResult = await this.unitOfWork.todos.find(
-                        {},
-                        selectFields,
-                        userFKFields,
-                        categoryFKFields,
-                        statusFKFields
-                    );
-                } else {
-                    (tempSearchResult = await this.unitOfWork.todos.find({
-                        user: toObjectId(tokenParseResult.userId),
-                    })),
-                        selectFields,
-                        userFKFields,
-                        categoryFKFields,
-                        statusFKFields;
-                }
+                const expression = {
+                    user: toObjectId(tokenParseResult.userId),
+                };
+                tempSearchResult = await this.unitOfWork.todos.find(
+                    expression,
+                    selectFields,
+                    userFKFields,
+                    categoryFKFields,
+                    statusFKFields
+                );
+
                 ///TODO: 使用 mongoose 的搜尋結果返回的資料是不可變的，故需要將其從 mongoose 的資料型態轉換成 object 才能夠讓其屬性被更動
                 searchResult = tempSearchResult.map((item) => item.toObject());
                 searchResult.forEach((item, index) => {
