@@ -43,7 +43,7 @@ const MongooseFilterUtil = {
                 };
             case 'Profile':
                 return {
-                    _id: 1,
+                    // _id: 1,
                     photoFileName: 1,
                     // isMainPhoto: 1,
                 };
@@ -99,7 +99,8 @@ const MongooseFilterUtil = {
                     // role: { _id: 1, name: 1, level: 1 },
                     // role: { name: 1, level: 1 },
                     role: { _id: 0, name: 1, level: 1 },
-                    profile: { _id: 0, photoFileName: 1 },
+                    // profile: { _id: 0, photoFileName: 1 },
+                    profile: { photoFileName: 1 },
                 };
             case 'Profile':
                 return {

@@ -159,13 +159,14 @@ class UserService extends BaseService {
 
     ///TODO: Find all user by query parameters
     findAll = async (queryParams) => {
-        const classNameAndFuncName = this.getFunctionCallerName();
+        const classNameAndFuncName = this.getFunctionCallerName()
         const fileDetails = this.getFileDetails(classNameAndFuncName);
         let searchResult = [];
         try {
             const selectFields = getSelectFields(this.modelName);
             const FKFields = getSelectFKFields(this.modelName);
             const roleFKFields = FKFields['role'];
+            const profileFKFields = FKFields['profile'];
 
             if (!queryParams || Object.keys(queryParams).length === 0) {
                 searchResult = await this.unitOfWork.users.find({}, selectFields, roleFKFields);
@@ -176,7 +177,12 @@ class UserService extends BaseService {
                     throw new Error(filterQueryResult.error);
                 }
 
-                searchResult = await this.unitOfWork.users.find(filterQueryResult.query, selectFields, roleFKFields);
+                searchResult = await this.unitOfWork.users.find(
+                    filterQueryResult.query,
+                    selectFields,
+                    roleFKFields,
+                    profileFKFields
+                );
             }
             return searchResult;
         } catch (error) {

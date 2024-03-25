@@ -30,7 +30,6 @@ class UserRepository extends Repository {
             value: 1,
         },
         profileFKFields = {
-            id: 0,
             photoFileName: 1,
         }
     ) => {
@@ -68,7 +67,6 @@ class UserRepository extends Repository {
             value: 1,
         },
         profileFKFields = {
-            id: 0,
             photoFileName: 1,
         }
     ) => {
